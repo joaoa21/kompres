@@ -1,0 +1,600 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kompres — Compressor de Imagens</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #0c0c0d;
+    --surface: #161618;
+    --surface2: #1e1e21;
+    --border: rgba(255,255,255,0.08);
+    --border-hover: rgba(255,255,255,0.18);
+    --accent: #b8f55a;
+    --accent-dim: rgba(184,245,90,0.12);
+    --text: #f0f0ee;
+    --muted: #888886;
+    --danger: #ff6b6b;
+    --font-head: 'Syne', sans-serif;
+    --font-mono: 'DM Mono', monospace;
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-head);
+    min-height: 100vh;
+    padding: 2rem 1.5rem 4rem;
+  }
+
+  header {
+    display: flex;
+    align-items: baseline;
+    gap: 1rem;
+    margin-bottom: 2.5rem;
+  }
+
+  header h1 {
+    font-size: 1.6rem;
+    font-weight: 700;
+    letter-spacing: -0.03em;
+    color: var(--accent);
+  }
+
+  header span {
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    color: var(--muted);
+  }
+
+  .controls {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .control-group {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 1rem 1.25rem;
+  }
+
+  .control-group label {
+    display: block;
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 0.6rem;
+  }
+
+  .control-group .value {
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: var(--accent);
+    margin-bottom: 0.5rem;
+  }
+
+  input[type="range"] {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 100%;
+    height: 4px;
+    background: var(--surface2);
+    border-radius: 2px;
+    outline: none;
+  }
+
+  input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 16px;
+    height: 16px;
+    background: var(--accent);
+    border-radius: 50%;
+    cursor: pointer;
+  }
+
+  .format-toggle {
+    display: flex;
+    gap: 0.5rem;
+  }
+
+  .fmt-btn {
+    flex: 1;
+    padding: 0.5rem;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: var(--muted);
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+
+  .fmt-btn.active {
+    background: var(--accent-dim);
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+
+  .drop-zone {
+    border: 1.5px dashed var(--border-hover);
+    border-radius: 12px;
+    padding: 3rem 2rem;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    margin-bottom: 1.5rem;
+    position: relative;
+  }
+
+  .drop-zone.drag-over {
+    border-color: var(--accent);
+    background: var(--accent-dim);
+  }
+
+  .drop-zone input[type="file"] {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    cursor: pointer;
+  }
+
+  .drop-icon {
+    font-size: 2rem;
+    margin-bottom: 0.75rem;
+    display: block;
+  }
+
+  .drop-zone p {
+    font-size: 0.95rem;
+    color: var(--muted);
+    line-height: 1.6;
+  }
+
+  .drop-zone strong {
+    color: var(--text);
+    font-weight: 600;
+  }
+
+  .action-bar {
+    display: flex;
+    gap: 0.75rem;
+    margin-bottom: 2rem;
+  }
+
+  .btn {
+    padding: 0.6rem 1.25rem;
+    border-radius: 8px;
+    font-family: var(--font-head);
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s;
+    border: none;
+  }
+
+  .btn-primary {
+    background: var(--accent);
+    color: #0c0c0d;
+  }
+
+  .btn-primary:hover { background: #c8ff6a; }
+  .btn-primary:disabled { background: var(--surface2); color: var(--muted); cursor: not-allowed; }
+
+  .btn-outline {
+    background: transparent;
+    border: 1px solid var(--border-hover);
+    color: var(--muted);
+  }
+
+  .btn-outline:hover { border-color: var(--text); color: var(--text); }
+  .btn-outline:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  .stats-bar {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.75rem;
+    margin-bottom: 2rem;
+  }
+
+  .stat {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 0.85rem 1rem;
+  }
+
+  .stat-label {
+    font-family: var(--font-mono);
+    font-size: 0.65rem;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 0.3rem;
+  }
+
+  .stat-value {
+    font-size: 1.2rem;
+    font-weight: 700;
+    font-family: var(--font-mono);
+    color: var(--accent);
+  }
+
+  .image-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 1rem;
+  }
+
+  .image-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+    transition: border-color 0.2s;
+  }
+
+  .image-card:hover { border-color: var(--border-hover); }
+
+  .image-card.done { border-color: rgba(184,245,90,0.25); }
+
+  .card-thumb {
+    width: 100%;
+    height: 160px;
+    object-fit: cover;
+    display: block;
+    background: var(--surface2);
+  }
+
+  .card-body {
+    padding: 0.85rem 1rem;
+  }
+
+  .card-name {
+    font-size: 0.8rem;
+    font-family: var(--font-mono);
+    color: var(--text);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-bottom: 0.6rem;
+  }
+
+  .card-sizes {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .size-original {
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    color: var(--muted);
+    text-decoration: line-through;
+  }
+
+  .size-arrow {
+    color: var(--muted);
+    font-size: 0.7rem;
+  }
+
+  .size-new {
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+    color: var(--accent);
+    font-weight: 500;
+  }
+
+  .saving-badge {
+    font-family: var(--font-mono);
+    font-size: 0.68rem;
+    background: var(--accent-dim);
+    color: var(--accent);
+    border: 1px solid rgba(184,245,90,0.2);
+    padding: 2px 7px;
+    border-radius: 4px;
+    margin-left: auto;
+  }
+
+  .card-download {
+    width: 100%;
+    padding: 0.5rem;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: var(--muted);
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    cursor: pointer;
+    transition: all 0.15s;
+    text-align: center;
+  }
+
+  .card-download:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-dim); }
+  .card-download:disabled { opacity: 0.4; cursor: default; }
+
+  .progress-bar {
+    width: 100%;
+    height: 2px;
+    background: var(--surface2);
+    margin-bottom: 0.75rem;
+    border-radius: 1px;
+    overflow: hidden;
+  }
+
+  .progress-fill {
+    height: 100%;
+    background: var(--accent);
+    border-radius: 1px;
+    width: 0%;
+    transition: width 0.3s;
+  }
+
+  .empty-state {
+    display: none;
+    text-align: center;
+    padding: 2rem;
+    color: var(--muted);
+    font-size: 0.85rem;
+    font-family: var(--font-mono);
+  }
+
+  @media (max-width: 540px) {
+    .controls { grid-template-columns: 1fr; }
+    .stats-bar { grid-template-columns: 1fr 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Kompres</h1>
+  <span>compressor de imagens — batch</span>
+</header>
+
+<div class="controls">
+  <div class="control-group">
+    <label>Qualidade</label>
+    <div class="value" id="quality-val">82%</div>
+    <input type="range" min="30" max="100" value="82" step="1" id="quality-slider">
+  </div>
+  <div class="control-group">
+    <label>Formato de saída</label>
+    <div class="format-toggle" id="fmt-toggle">
+      <button class="fmt-btn active" data-fmt="webp">WebP</button>
+      <button class="fmt-btn" data-fmt="png">PNG</button>
+      <button class="fmt-btn" data-fmt="jpeg">JPEG</button>
+    </div>
+  </div>
+</div>
+
+<div class="drop-zone" id="drop-zone">
+  <input type="file" accept="image/png,image/webp,image/jpeg" multiple id="file-input">
+  <span class="drop-icon">⬇</span>
+  <p><strong>Arraste as imagens aqui</strong><br>ou clique para selecionar · PNG, WebP, JPEG</p>
+</div>
+
+<div class="action-bar">
+  <button class="btn btn-primary" id="btn-compress" disabled>Comprimir tudo</button>
+  <button class="btn btn-outline" id="btn-download-all" disabled>↓ Baixar ZIP</button>
+  <button class="btn btn-outline" id="btn-clear" disabled>Limpar</button>
+</div>
+
+<div class="stats-bar" id="stats-bar" style="display:none">
+  <div class="stat">
+    <div class="stat-label">Arquivos</div>
+    <div class="stat-value" id="stat-count">0</div>
+  </div>
+  <div class="stat">
+    <div class="stat-label">Tamanho original</div>
+    <div class="stat-value" id="stat-original">—</div>
+  </div>
+  <div class="stat">
+    <div class="stat-label">Economia total</div>
+    <div class="stat-value" id="stat-saved">—</div>
+  </div>
+</div>
+
+<div class="image-grid" id="image-grid"></div>
+<div class="empty-state" id="empty-state">nenhuma imagem ainda</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script>
+  const qualitySlider = document.getElementById('quality-slider');
+  const qualityVal = document.getElementById('quality-val');
+  const fmtToggle = document.getElementById('fmt-toggle');
+  const dropZone = document.getElementById('drop-zone');
+  const fileInput = document.getElementById('file-input');
+  const imageGrid = document.getElementById('image-grid');
+  const btnCompress = document.getElementById('btn-compress');
+  const btnDownloadAll = document.getElementById('btn-download-all');
+  const btnClear = document.getElementById('btn-clear');
+  const statsBar = document.getElementById('stats-bar');
+
+  let selectedFormat = 'webp';
+  let images = [];
+
+  qualitySlider.addEventListener('input', () => {
+    qualityVal.textContent = qualitySlider.value + '%';
+  });
+
+  fmtToggle.querySelectorAll('.fmt-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      fmtToggle.querySelectorAll('.fmt-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      selectedFormat = btn.dataset.fmt;
+    });
+  });
+
+  dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('drag-over'); });
+  dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
+  dropZone.addEventListener('drop', e => {
+    e.preventDefault();
+    dropZone.classList.remove('drag-over');
+    handleFiles([...e.dataTransfer.files]);
+  });
+
+  fileInput.addEventListener('change', () => handleFiles([...fileInput.files]));
+
+  function handleFiles(files) {
+    const valid = files.filter(f => f.type.startsWith('image/'));
+    if (!valid.length) return;
+    valid.forEach(file => {
+      const id = Date.now() + Math.random();
+      const reader = new FileReader();
+      reader.onload = e => {
+        images.push({ id, file, dataUrl: e.target.result, compressed: null });
+        renderCard(images[images.length - 1]);
+        updateUI();
+      };
+      reader.readAsDataURL(file);
+    });
+    fileInput.value = '';
+  }
+
+  function renderCard(img) {
+    const card = document.createElement('div');
+    card.className = 'image-card';
+    card.dataset.id = img.id;
+    card.innerHTML = `
+      <img class="card-thumb" src="${img.dataUrl}" alt="${img.file.name}">
+      <div class="card-body">
+        <div class="card-name">${img.file.name}</div>
+        <div class="progress-bar"><div class="progress-fill" id="prog-${img.id}"></div></div>
+        <div class="card-sizes" id="sizes-${img.id}">
+          <span class="size-original">${formatBytes(img.file.size)}</span>
+          <span class="size-arrow">→</span>
+          <span class="size-new" style="color:var(--muted)">aguardando</span>
+        </div>
+        <button class="card-download" disabled id="dl-${img.id}">↓ baixar</button>
+      </div>`;
+    imageGrid.appendChild(card);
+  }
+
+  btnCompress.addEventListener('click', async () => {
+    btnCompress.disabled = true;
+    btnCompress.textContent = 'Comprimindo...';
+    const quality = parseInt(qualitySlider.value) / 100;
+    const fmt = selectedFormat;
+
+    for (const img of images) {
+      if (img.compressed) continue;
+      const prog = document.getElementById('prog-' + img.id);
+      prog.style.width = '40%';
+
+      const blob = await compressImage(img.dataUrl, fmt, quality);
+      img.compressed = blob;
+      img.compressedName = img.file.name.replace(/\.(png|webp|jpe?g)$/i, '') + '.' + fmt;
+
+      prog.style.width = '100%';
+
+      const sizesEl = document.getElementById('sizes-' + img.id);
+      const saved = ((img.file.size - blob.size) / img.file.size * 100);
+      sizesEl.innerHTML = `
+        <span class="size-original">${formatBytes(img.file.size)}</span>
+        <span class="size-arrow">→</span>
+        <span class="size-new">${formatBytes(blob.size)}</span>
+        <span class="saving-badge">-${Math.round(saved)}%</span>`;
+
+      const dlBtn = document.getElementById('dl-' + img.id);
+      dlBtn.disabled = false;
+      dlBtn.addEventListener('click', () => downloadBlob(blob, img.compressedName));
+
+      document.querySelector(`.image-card[data-id="${img.id}"]`).classList.add('done');
+    }
+
+    updateStats();
+    btnCompress.textContent = 'Comprimir tudo';
+    btnCompress.disabled = false;
+    btnDownloadAll.disabled = false;
+  });
+
+  btnDownloadAll.addEventListener('click', async () => {
+    const done = images.filter(i => i.compressed);
+    if (!done.length) return;
+    btnDownloadAll.textContent = 'Gerando ZIP...';
+    btnDownloadAll.disabled = true;
+
+    const zip = new JSZip();
+    done.forEach(img => zip.file(img.compressedName, img.compressed));
+    const blob = await zip.generateAsync({ type: 'blob' });
+    downloadBlob(blob, 'imagens-kompres.zip');
+
+    btnDownloadAll.textContent = '↓ Baixar ZIP';
+    btnDownloadAll.disabled = false;
+  });
+
+  btnClear.addEventListener('click', () => {
+    images = [];
+    imageGrid.innerHTML = '';
+    statsBar.style.display = 'none';
+    btnCompress.disabled = true;
+    btnDownloadAll.disabled = true;
+    btnClear.disabled = true;
+  });
+
+  function compressImage(dataUrl, format, quality) {
+    return new Promise(resolve => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        canvas.width = img.naturalWidth;
+        canvas.height = img.naturalHeight;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0);
+        const mimeType = format === 'jpeg' ? 'image/jpeg' : 'image/' + format;
+        const q = format === 'png' ? undefined : quality;
+        canvas.toBlob(blob => resolve(blob), mimeType, q);
+      };
+      img.src = dataUrl;
+    });
+  }
+
+  function downloadBlob(blob, name) {
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = name;
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  function formatBytes(bytes) {
+    if (bytes < 1024) return bytes + ' B';
+    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+    return (bytes / (1024 * 1024)).toFixed(2) + ' MB';
+  }
+
+  function updateUI() {
+    btnCompress.disabled = images.length === 0;
+    btnClear.disabled = images.length === 0;
+  }
+
+  function updateStats() {
+    const done = images.filter(i => i.compressed);
+    if (!done.length) return;
+    statsBar.style.display = 'grid';
+
+    const totalOrig = images.reduce((s, i) => s + i.file.size, 0);
+    const totalNew = done.reduce((s, i) => s + i.compressed.size, 0);
+    const saved = totalOrig - totalNew;
+
+    document.getElementById('stat-count').textContent = done.length;
+    document.getElementById('stat-original').textContent = formatBytes(totalOrig);
+    document.getElementById('stat-saved').textContent = '-' + formatBytes(saved);
+  }
+</script>
+</body>
+</html>
