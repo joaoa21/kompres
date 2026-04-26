@@ -13,4 +13,16 @@ Allow: /
 User-agent: *
 Allow: /
 
+User-agent: Facebot
+Allow: /
+
+User-agent: Meta-ExternalAgent
+Allow: /
+
+User-agent: Meta-ExternalFetcher
+Allow: /
+
+User-agent: Meta-ExternalAds
+Allow: /
+
 Sitemap: https://kompres.com.br/sitemap.xml
