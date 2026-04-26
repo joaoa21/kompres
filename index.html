@@ -896,7 +896,7 @@
 
   <div class="controls page">
     <div class="control-group">
-      <label>Qualidade</label>
+      <label for="quality-slider">Qualidade</label>
       <div class="value" id="quality-val">82%</div>
       <input type="range" min="30" max="100" value="82" step="1" id="quality-slider">
     </div>
@@ -911,7 +911,7 @@
   </div>
 
   <div class="drop-zone page" id="drop-zone">
-    <input type="file" accept="image/png,image/webp,image/jpeg" multiple id="file-input">
+    <input type="file" accept="image/png,image/webp,image/jpeg" multiple id="file-input" aria-label="Selecionar imagens para compressão">
     <span class="drop-icon">⬇</span>
     <p><strong>Arraste as imagens aqui</strong><br>ou clique para selecionar · PNG, WebP, JPEG</p>
   </div>
