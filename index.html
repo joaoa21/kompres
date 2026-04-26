@@ -676,6 +676,75 @@
     position: relative;
     z-index: 1;
   }
+
+  /* ── Cookie banner ── */
+  #cookie-banner {
+    position: fixed;
+    bottom: 1.25rem;
+    left: 1.25rem;
+    right: 1.25rem;
+    max-width: 440px;
+    margin-inline: auto;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 1.1rem 1.25rem;
+    z-index: 100;
+    backdrop-filter: blur(18px);
+    box-shadow: 0 12px 40px rgba(0,0,0,0.25);
+    display: none;
+    animation: cookie-rise 0.4s ease forwards;
+  }
+
+  #cookie-banner.show { display: block; }
+
+  #cookie-banner p {
+    font-size: 0.85rem;
+    color: var(--muted);
+    line-height: 1.55;
+    margin-bottom: 0.85rem;
+  }
+
+  #cookie-banner p strong {
+    color: var(--text);
+    font-weight: 600;
+  }
+
+  .cookie-actions {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+  }
+
+  .cookie-btn {
+    padding: 0.5rem 1rem;
+    border-radius: 7px;
+    font-family: var(--font-head);
+    font-size: 0.8rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s;
+    border: none;
+  }
+
+  .cookie-btn.primary {
+    background: var(--accent);
+    color: #0c0c0d;
+  }
+  .cookie-btn.primary:hover { filter: brightness(1.1); }
+  html.light .cookie-btn.primary { background: #3d7000; color: #ffffff; }
+
+  .cookie-btn.ghost {
+    background: transparent;
+    border: 1px solid var(--border-hover);
+    color: var(--muted);
+  }
+  .cookie-btn.ghost:hover { color: var(--text); border-color: var(--text); }
+
+  @keyframes cookie-rise {
+    from { transform: translateY(20px); opacity: 0; }
+    to   { transform: translateY(0); opacity: 1; }
+  }
 </style>
 
 <script type="application/ld+json">
@@ -787,6 +856,18 @@
       <a href="https://joaoa21.github.io/pagina-de-links/" target="_blank">João Alberto<span>.</span></a>
     </p>
   </footer>
+</div>
+
+<div id="cookie-banner" role="dialog" aria-label="Aviso de cookies">
+  <p>
+    Usamos cookies de análise para entender como o site é utilizado.
+    <strong>Suas imagens nunca saem do navegador.</strong>
+  </p>
+  <div class="cookie-actions">
+    <button class="cookie-btn primary" onclick="acceptCookies()">Entendi</button>
+    <a href="#" class="cookie-btn ghost" onclick="rejectCookies(); return false;">Recusar</a>
+  </div>
+</div>
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
@@ -1012,6 +1093,23 @@
     const track = getComputedStyle(document.documentElement).getPropertyValue('--surface2').trim();
     const fill = document.documentElement.classList.contains('light') ? '#3d7000' : '#b8f55a';
     qualitySlider.style.background = `linear-gradient(to right, ${fill} 0%, ${fill} ${pct}%, ${track} ${pct}%, ${track} 100%)`;
+  }
+
+  /* ── Cookie banner ── */
+  const cookieBanner = document.getElementById('cookie-banner');
+
+  if (!localStorage.getItem('kompres-cookies')) {
+    setTimeout(() => cookieBanner.classList.add('show'), 800);
+  }
+
+  function acceptCookies() {
+    localStorage.setItem('kompres-cookies', 'accepted');
+    cookieBanner.classList.remove('show');
+  }
+
+  function rejectCookies() {
+    localStorage.setItem('kompres-cookies', 'rejected');
+    cookieBanner.classList.remove('show');
   }
 
   updateSliderFill();
