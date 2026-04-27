@@ -1,196 +1,181 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
-
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Kompres - Compressor de Imagens</title>
-<meta name="description" content="Comprima e converta imagens em lote para WebP, PNG ou JPEG direto no navegador. Rápido, gratuito e privado.">
+  <title>Kompres - Compressor de Imagens</title>
+  <meta name="description" content="Comprima e converta imagens em lote para WebP, PNG ou JPEG direto no navegador. Rápido, gratuito e privado.">
+  <meta name="keywords" content="compressor de imagens, converter para webp, otimizar imagens, png para webp, comprimir png, comprimir jpeg, batch image compressor">
+  <meta name="author" content="João Alberto">
+  <meta name="robots" content="index, follow">
+  <link rel="canonical" href="https://kompres.com.br/">
 
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@400;600;700&family=Bebas+Neue&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap" rel="stylesheet">
 
-<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@400;600;700&family=Bebas+Neue&display=swap" rel="stylesheet">
-<link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap" rel="stylesheet">
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+  <link rel="stylesheet" href="/css/style.css">
 
-<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://kompres.com.br/">
+  <meta property="og:title" content="Kompres - Compressor de imagens em lote">
+  <meta property="og:description" content="Comprima e converta imagens em lote para WebP, PNG ou JPEG direto no navegador. Rápido, gratuito e privado.">
+  <meta property="og:image" content="https://kompres.com.br/og-image.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="Kompres — Compressor de imagens em lote">
+  <meta property="og:image:type" content="image/png">
+  <meta property="og:locale" content="pt_BR">
+  <meta property="og:site_name" content="Kompres">
 
-<!-- SEO básico -->
-<meta name="keywords" content="compressor de imagens, converter para webp, otimizar imagens, png para webp, comprimir png, comprimir jpeg, batch image compressor">
-<meta name="author" content="João Alberto">
-<meta name="robots" content="index, follow">
-<link rel="canonical" href="https://kompres.com.br">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Kompres — Compressor de imagens em lote">
+  <meta name="twitter:description" content="Comprima e converta imagens em lote para WebP, PNG ou JPEG direto no navegador.">
+  <meta name="twitter:image" content="https://kompres.com.br/og-image.png">
+  <meta name="twitter:image:alt" content="Kompres — Compressor de imagens em lote">
 
-<!-- Open Graph -->
-<meta property="og:type" content="website">
-<meta property="og:url" content="https://kompres.com.br">
-<meta property="og:title" content="Kompres - Compressor de imagens em lote">
-<meta property="og:description" content="Comprima e converta imagens em lote para WebP, PNG ou JPEG direto no navegador. Rápido, gratuito e privado.">
-<meta property="og:image" content="https://kompres.com.br/og-image.png">
-<meta property="og:image:width" content="1200">
-<meta property="og:image:height" content="630">
-<meta property="og:image:alt" content="Kompres — Compressor de imagens em lote">
-<meta property="og:image:type" content="image/png">
-<meta property="og:locale" content="pt_BR">
-<meta property="og:site_name" content="Kompres">
+  <meta name="theme-color" content="#0c0c0d" media="(prefers-color-scheme: dark)">
+  <meta name="theme-color" content="#f2f0eb" media="(prefers-color-scheme: light)">
 
-<!-- Twitter -->
-<meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="Kompres — Compressor de imagens em lote">
-<meta name="twitter:description" content="Comprima e converta imagens em lote para WebP, PNG ou JPEG direto no navegador.">
-<meta name="twitter:image" content="https://kompres.com.br/og-image.png">
-<meta name="twitter:image:alt" content="Kompres — Compressor de imagens em lote">
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-THHRVK8HJF"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-THHRVK8HJF');
+  </script>
 
-<!-- Cor da barra do navegador no mobile -->
-<meta name="theme-color" content="#0c0c0d" media="(prefers-color-scheme: dark)">
-<meta name="theme-color" content="#f2f0eb" media="(prefers-color-scheme: light)">
-
-<!-- Google tag (gtag.js) -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-THHRVK8HJF"></script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
-
-  gtag('config', 'G-THHRVK8HJF');
-</script>
-
-<link rel="apple-touch-icon" href="/apple-touch-icon.png">
-
-<!-- Estilos -->
-<link rel="stylesheet" href="/css/style.css">
-
-<!-- Schema.org -->
-<script type="application/ld+json">
-{
-  "@context": "https://schema.org",
-  "@type": "WebApplication",
-  "name": "Kompres",
-  "description": "Compressor e conversor de imagens em lote no navegador",
-  "url": "https://kompres.com.br/",
-  "applicationCategory": "UtilitiesApplication",
-  "operatingSystem": "Any",
-  "offers": {
-    "@type": "Offer",
-    "price": "0",
-    "priceCurrency": "BRL"
-  },
-  "author": {
-    "@type": "Person",
-    "name": "João Alberto"
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebApplication",
+    "name": "Kompres",
+    "description": "Compressor e conversor de imagens em lote no navegador",
+    "url": "https://kompres.com.br/",
+    "applicationCategory": "UtilitiesApplication",
+    "operatingSystem": "Any",
+    "offers": { "@type": "Offer", "price": "0", "priceCurrency": "BRL" },
+    "author": { "@type": "Person", "name": "João Alberto" }
   }
-}
-</script>
+  </script>
 </head>
 <body>
+  <header class="site-header page">
+    <a class="brand" href="/" aria-label="Kompres - Página inicial">
+      <img class="brand-mark" src="/favicon.svg" alt="">
+      <span class="brand-name">Kompres</span>
+    </a>
 
-<header class="page">
-  <a class="brand" href="/" aria-label="Kompres - Página inicial">
-    <img class="brand-mark" src="/favicon.svg" alt="">
-    <span class="brand-name">Kompres</span>
-  </a>
+    <nav class="site-nav" aria-label="Navegação principal">
+      <a class="nav-link active" href="/">Compressor</a>
+      <a class="nav-link" href="/resizer/">Resizer</a>
+    </nav>
 
-  <div id="theme-switch" onclick="toggleTheme()" title="Alternar tema">
-    <button aria-label="Alternar tema"></button>
-    <span></span>
-  </div>
-</header>
+    <button id="theme-switch" class="theme-switch" type="button" aria-label="Alternar tema" title="Alternar tema">
+      <span class="theme-knob"></span>
+      <span class="theme-track"></span>
+    </button>
+  </header>
 
-<section class="hero">
-  <div class="hero-content">
-    <h1>Imagens leves. <br> Site mais <span>rápido.</span></h1>
-    <p class="hero-text">
-      Comprima e converta imagens em lote para WebP, PNG ou JPEG direto
-      no navegador. Ajuste a qualidade, compare a economia e baixe tudo em ZIP.
-    </p>
-  </div>
-</section>
-
-<section class="tool-section page2">
-
-  <div class="tool-header page">
-    <div>
-      <h2>Compressor e conversor de imagens</h2>
-      <p>Arraste suas imagens, escolha o formato e gere versões otimizadas em poucos cliques.</p>
-    </div>
-  </div>
-
-  <div class="controls page">
-    <div class="control-group">
-      <label for="quality-slider">Qualidade</label>
-      <div class="value" id="quality-val">82%</div>
-      <input type="range" min="30" max="100" value="82" step="1" id="quality-slider">
-    </div>
-    <div class="control-group">
-      <label>Formato de saída</label>
-      <div class="format-toggle" id="fmt-toggle">
-        <button class="fmt-btn active" data-fmt="webp">WebP</button>
-        <button class="fmt-btn" data-fmt="png">PNG</button>
-        <button class="fmt-btn" data-fmt="jpeg">JPEG</button>
+  <main>
+    <section class="hero page">
+      <div class="hero-content">
+        <h1>Imagens leves. <br> Site mais <span>rápido.</span></h1>
+        <p class="hero-text">
+          Comprima e converta imagens em lote para WebP, PNG ou JPEG direto
+          no navegador. Ajuste a qualidade, compare a economia e baixe tudo em ZIP.
+        </p>
       </div>
-    </div>
+    </section>
+
+    <section class="tool-section page2">
+      <div class="tool-header page-inner">
+        <div>
+          <h2>Compressor e conversor de imagens</h2>
+          <p>Arraste suas imagens, escolha o formato e gere versões otimizadas em poucos cliques.</p>
+        </div>
+      </div>
+
+      <div class="controls page-inner controls-compressor">
+        <div class="control-group">
+          <label for="quality-slider">Qualidade</label>
+          <div class="value" id="quality-val">82%</div>
+          <input type="range" min="30" max="100" value="82" step="1" id="quality-slider">
+        </div>
+
+        <div class="control-group">
+          <label>Formato de saída</label>
+          <div class="format-toggle" id="fmt-toggle">
+            <button class="fmt-btn active" type="button" data-fmt="webp">WebP</button>
+            <button class="fmt-btn" type="button" data-fmt="png">PNG</button>
+            <button class="fmt-btn" type="button" data-fmt="jpeg">JPEG</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="drop-zone page-inner" id="drop-zone">
+        <input type="file" accept="image/png,image/webp,image/jpeg" multiple id="file-input" aria-label="Selecionar imagens para compressão">
+        <span class="drop-icon">⬇</span>
+        <p><strong>Arraste as imagens aqui</strong><br>ou clique para selecionar · PNG, WebP, JPEG</p>
+      </div>
+
+      <div class="action-bar page-inner">
+        <button class="btn btn-primary" id="btn-compress" disabled>Comprimir tudo</button>
+        <button class="btn btn-outline" id="btn-download-all" disabled>↓ Baixar ZIP</button>
+        <button class="btn btn-outline" id="btn-clear" disabled>Limpar</button>
+      </div>
+
+      <div class="stats-bar page-inner" id="stats-bar" hidden>
+        <div class="stat">
+          <div class="stat-label">Arquivos</div>
+          <div class="stat-value" id="stat-count">0</div>
+        </div>
+        <div class="stat">
+          <div class="stat-label">Tamanho original</div>
+          <div class="stat-value" id="stat-original">—</div>
+        </div>
+        <div class="stat">
+          <div class="stat-label">Novo tamanho</div>
+          <div class="stat-value" id="stat-new">—</div>
+        </div>
+        <div class="stat">
+          <div class="stat-label">Economia total</div>
+          <div class="stat-value" id="stat-saved">—</div>
+        </div>
+      </div>
+
+      <div class="image-grid page-inner" id="image-grid"></div>
+    </section>
+  </main>
+
+  <div class="footer-wrap">
+    <footer class="site-footer">
+      <p>© Kompres — Todos os direitos reservados.</p>
+      <p class="creator">Criado por&nbsp;<a href="https://joaoa.com.br" target="_blank" rel="noopener">João Alberto<span>.</span></a></p>
+    </footer>
   </div>
 
-  <div class="drop-zone page" id="drop-zone">
-    <input type="file" accept="image/png,image/webp,image/jpeg" multiple id="file-input" aria-label="Selecionar imagens para compressão">
-    <span class="drop-icon">⬇</span>
-    <p><strong>Arraste as imagens aqui</strong><br>ou clique para selecionar · PNG, WebP, JPEG</p>
-  </div>
-
-  <div class="action-bar page">
-    <button class="btn btn-primary" id="btn-compress" disabled>Comprimir tudo</button>
-    <button class="btn btn-outline" id="btn-download-all" disabled>↓ Baixar ZIP</button>
-    <button class="btn btn-outline" id="btn-clear" disabled>Limpar</button>
-  </div>
-
-  <div class="stats-bar page" id="stats-bar" style="display:none">
-    <div class="stat">
-      <div class="stat-label">Arquivos</div>
-      <div class="stat-value" id="stat-count">0</div>
-    </div>
-    <div class="stat">
-      <div class="stat-label">Tamanho original</div>
-      <div class="stat-value" id="stat-original">—</div>
-    </div>
-    <div class="stat">
-      <div class="stat-label">Economia total</div>
-      <div class="stat-value" id="stat-saved">—</div>
-    </div>
-  </div>
-
-  <div class="image-grid page" id="image-grid"></div>
-
-</section>
-
-<div class="footer-wrap">
-  <footer>
-    <p>© Kompres — Todos os direitos reservados.</p>
+  <div id="cookie-banner" role="dialog" aria-label="Aviso de cookies">
     <p>
-      Criado por&nbsp;
-      <a href="https://joaoa.com.br" target="_blank">João Alberto<span>.</span></a>
+      Usamos cookies de análise para entender como o site é utilizado.
+      <strong>Suas imagens nunca saem do navegador.</strong>
     </p>
-  </footer>
-</div>
-
-<div id="cookie-banner" role="dialog" aria-label="Aviso de cookies">
-  <p>
-    Usamos cookies de análise para entender como o site é utilizado.
-    <strong>Suas imagens nunca saem do navegador.</strong>
-  </p>
-  <div class="cookie-actions">
-    <button class="cookie-btn primary" onclick="acceptCookies()">Entendi</button>
-    <a href="#" class="cookie-btn ghost" onclick="rejectCookies(); return false;">Recusar</a>
+    <div class="cookie-actions">
+      <button class="cookie-btn primary" type="button" onclick="acceptCookies()">Entendi</button>
+      <a href="#" class="cookie-btn ghost" onclick="rejectCookies(); return false;">Recusar</a>
+    </div>
   </div>
-</div>
 
-<!-- Bibliotecas -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/pako@2.1.0/dist/pako.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/upng-js@2.1.0/UPNG.js"></script>
-
-<!-- App -->
-<script src="/js/app.js"></script>
-
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/pako@2.1.0/dist/pako.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/upng-js@2.1.0/UPNG.js"></script>
+  <script src="/js/theme.js"></script>
+  <script src="/js/compressor.js"></script>
+  <script src="https://unpkg.com/lenis@1.3.13/dist/lenis.min.js"></script>
+  <script src="js/lenis-init.js"></script>
 </body>
 </html>
