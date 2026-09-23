@@ -1,5 +1,6 @@
+if (window.Lenis && !matchMedia('(prefers-reduced-motion: reduce)').matches) {
 const lenis = new Lenis({
-  duration: 1.2,
+  duration: 1,
   smoothWheel: true,
   wheelMultiplier: 1,
   touchMultiplier: 1,
@@ -13,3 +14,4 @@ function raf(time) {
 }
 
 requestAnimationFrame(raf);
+}

@@ -337,7 +337,7 @@ html.light .hero h1 span {
 }
 
 .controls-compressor {
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(3, 1fr);
 }
 
 .controls-resizer {
@@ -1092,3 +1092,346 @@ html.light .cookie-btn.primary {
     grid-template-columns: 1fr;
   }
 }
+
+/* ═══════════════════════════════════
+   PDF TOOLS (/pdf/)
+═══════════════════════════════════ */
+
+.controls-pdf {
+  grid-template-columns: repeat(3, 1fr);
+}
+
+.controls-pdf.merge {
+  grid-template-columns: minmax(0, 380px);
+}
+
+.tool-note {
+  margin-top: -0.4rem;
+  margin-bottom: 1.4rem;
+  font-size: 0.8rem;
+  color: var(--muted);
+  line-height: 1.55;
+  font-family: var(--font-mono);
+}
+
+.pdf-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  padding-bottom: 2rem;
+}
+
+.pdf-row {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 0.7rem 0.9rem;
+  transition: border-color 0.2s, opacity 0.2s, transform 0.2s;
+}
+
+.pdf-row:hover {
+  border-color: var(--border-hover);
+}
+
+.pdf-row.dragging {
+  opacity: 0.45;
+}
+
+.pdf-row.drag-target {
+  border-color: var(--accent);
+  background: var(--accent-dim);
+}
+
+html.light .pdf-row.drag-target {
+  border-color: #3d7000;
+}
+
+.pdf-row.done {
+  border-color: rgba(184,245,90,0.3);
+}
+
+html.light .pdf-row.done {
+  border-color: rgba(61,112,0,0.35);
+}
+
+.pdf-row.error {
+  border-color: var(--danger);
+}
+
+.pdf-row.error .pdf-info small {
+  color: var(--danger);
+}
+
+.pdf-drag {
+  cursor: grab;
+  color: var(--muted);
+  font-size: 1.05rem;
+  user-select: none;
+  flex-shrink: 0;
+}
+
+.pdf-row.dragging .pdf-drag {
+  cursor: grabbing;
+}
+
+.pdf-index {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  color: var(--muted);
+  min-width: 1.3rem;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.pdf-thumb {
+  width: 42px;
+  height: 56px;
+  object-fit: cover;
+  object-position: top;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: var(--surface2);
+  flex-shrink: 0;
+}
+
+.pdf-thumb-empty {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-mono);
+  font-size: 0.6rem;
+  color: var(--muted);
+}
+
+.pdf-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.pdf-info strong {
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  font-weight: 500;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.pdf-info small {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  color: var(--muted);
+}
+
+.pdf-result {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  flex-wrap: wrap;
+  flex-shrink: 0;
+}
+
+.pdf-progress-wrap {
+  width: 120px;
+}
+
+.pdf-progress-wrap .progress-bar {
+  width: 100%;
+}
+
+.pdf-badge {
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  font-weight: 700;
+  background: rgba(184,245,90,0.92);
+  color: #0c0c0d;
+  padding: 2px 7px;
+  border-radius: 5px;
+}
+
+html.light .pdf-badge {
+  background: #3d7000;
+  color: #ffffff;
+}
+
+.pdf-nogain {
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  color: var(--muted);
+}
+
+.pdf-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  flex-shrink: 0;
+}
+
+.row-btn {
+  width: 28px;
+  height: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--muted);
+  font-size: 0.8rem;
+  line-height: 1;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.row-btn:hover:not(:disabled) {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: var(--accent-dim);
+}
+
+html.light .row-btn:hover:not(:disabled) {
+  border-color: #3d7000;
+  color: #3d7000;
+}
+
+.row-btn:disabled {
+  opacity: 0.3;
+  cursor: default;
+}
+
+.row-btn-x:hover:not(:disabled) {
+  border-color: var(--danger);
+  color: var(--danger);
+  background: transparent;
+}
+
+@media (max-width: 900px) {
+  .controls-pdf {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .controls-pdf,
+  .controls-pdf.merge {
+    grid-template-columns: 1fr;
+  }
+
+  .pdf-row {
+    flex-wrap: wrap;
+    row-gap: 0.6rem;
+  }
+
+  .pdf-info {
+    flex-basis: calc(100% - 140px);
+  }
+
+  .pdf-result {
+    flex-basis: 100%;
+    order: 5;
+  }
+
+  .pdf-actions {
+    margin-left: auto;
+  }
+}
+
+/* ═══════════════════════════════════
+   COMPRESSOR — MODO TAMANHO MÁXIMO
+═══════════════════════════════════ */
+
+.target-size-row {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.target-size-row input[type="number"] {
+  flex: 1;
+  min-width: 0;
+}
+
+.target-size-row select {
+  width: auto;
+  flex-shrink: 0;
+}
+
+.card-note {
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  line-height: 1.5;
+  color: var(--muted);
+}
+
+.card-note:empty {
+  display: none;
+}
+
+.card-note.warn {
+  color: var(--danger);
+}
+
+.card-note-actions {
+  display: flex;
+  gap: 0.4rem;
+  margin-top: 0.5rem;
+}
+
+.card-note-actions .card-download {
+  margin-top: 0;
+}
+
+.card-note-actions .card-download.primary {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+html.light .card-note-actions .card-download.primary {
+  border-color: #3d7000;
+  color: #3d7000;
+}
+
+/* Toggles e campos na mesma altura (compressor e PDF misturam os dois) */
+.controls-compressor .fmt-btn,
+.controls-pdf .fmt-btn,
+.controls-compressor input[type="number"],
+.controls-compressor select,
+.controls-pdf select {
+  box-sizing: border-box;
+  height: 2.9rem;
+}
+
+.controls-compressor .fmt-btn,
+.controls-pdf .fmt-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.controls-compressor input[type="number"],
+.controls-compressor select,
+.controls-pdf select {
+  padding-block: 0;
+}
+
+/* Conteúdo útil e rastreável, integrado ao tema. */
+[hidden] { display: none !important; }
+.guide { margin-block: clamp(96px, 10vw, 144px) 64px; max-width: 1000px; }
+.guide h2 { font-family: var(--font-head); font-size: clamp(1.4rem, 3vw, 2rem); margin-bottom: 24px; }
+.guide details { border-bottom: 1px solid var(--border); padding: 20px 0; }
+.guide summary { cursor: pointer; font-weight: 600; line-height: 1.6; }
+.guide p { color: var(--muted); line-height: 1.85; max-width: 80ch; margin-top: 14px; }
+.related-tools { display: flex; flex-wrap: wrap; gap: 16px 28px; margin-top: 28px; }
+.related-tools a { color: var(--accent); line-height: 1.6; }
+html.light .related-tools a { color: #3d7000; }
+.skip-link { position: fixed; top: -100px; left: 16px; z-index: 10000; background: var(--surface); color: var(--text); padding: 12px; }
+.skip-link:focus { top: 12px; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; }
+button:disabled { cursor: not-allowed; }
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } *, *::before, *::after { transition: none !important; animation: none !important; } }

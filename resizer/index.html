@@ -4,10 +4,10 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <title>Kompres Resizer - Redimensionador de Imagens</title>
-  <meta name="description" content="Redimensione imagens em lote direto no navegador. Rápido, gratuito e privado.">
+  <title>Redimensionar imagens online em lote grátis | Kompres</title>
+  <meta name="description" content="Redimensione PNG, JPG e WebP por largura ou porcentagem, mantendo a proporção. Veja as novas dimensões e baixe suas imagens em lote gratuitamente.">
   <meta name="author" content="João Alberto">
-  <meta name="robots" content="index, follow">
+  <meta name="robots" content="index, follow, max-image-preview:large">
   <link rel="canonical" href="https://kompres.com.br/resizer/">
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -21,16 +21,19 @@
 
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://kompres.com.br/resizer/">
-  <meta property="og:title" content="Kompres Resizer - Redimensionador de imagens em lote">
-  <meta property="og:description" content="Redimensione imagens em lote direto no navegador. Rápido, gratuito e privado.">
+  <meta property="og:title" content="Redimensionar imagens online em lote grátis | Kompres">
+  <meta property="og:description" content="Redimensione PNG, JPG e WebP por largura ou porcentagem, mantendo a proporção. Veja as novas dimensões e baixe suas imagens em lote gratuitamente.">
   <meta property="og:image" content="https://kompres.com.br/og-image.png">
   <meta property="og:locale" content="pt_BR">
   <meta property="og:site_name" content="Kompres">
 
   <meta name="theme-color" content="#0c0c0d" media="(prefers-color-scheme: dark)">
   <meta name="theme-color" content="#f2f0eb" media="(prefers-color-scheme: light)">
+  <script type="application/ld+json">{"@context": "https://schema.org", "@type": "WebApplication", "name": "Kompres Resizer", "url": "https://kompres.com.br/resizer/", "description": "Redimensione PNG, JPG e WebP por largura ou porcentagem, mantendo a proporção. Veja as novas dimensões e baixe suas imagens em lote gratuitamente.", "applicationCategory": "UtilitiesApplication", "operatingSystem": "Any", "inLanguage": "pt-BR", "isAccessibleForFree": true, "offers": {"@type": "Offer", "price": "0", "priceCurrency": "BRL"}, "browserRequirements": "Requires JavaScript"}</script>
+<meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="Redimensionar imagens online em lote grátis | Kompres"><meta name="twitter:description" content="Redimensione PNG, JPG e WebP por largura ou porcentagem, mantendo a proporção. Veja as novas dimensões e baixe suas imagens em lote gratuitamente."><meta name="twitter:image" content="https://kompres.com.br/og-image.png">
 </head>
 <body>
+  <a class="skip-link" href="#main">Pular para o conteúdo</a>
   <header class="site-header page">
     <a class="brand" href="/" aria-label="Kompres - Página inicial">
       <img class="brand-mark" src="/favicon.svg" alt="">
@@ -39,7 +42,8 @@
 
     <nav class="site-nav" aria-label="Navegação principal">
       <a class="nav-link" href="/">Compressor</a>
-      <a class="nav-link active" href="/resizer/">Resizer</a>
+      <a class="nav-link active" aria-current="page" href="/resizer/">Resizer</a>
+      <a class="nav-link" href="/pdf/">PDF</a>
     </nav>
 
     <button id="theme-switch" class="theme-switch" type="button" aria-label="Alternar tema" title="Alternar tema">
@@ -48,13 +52,11 @@
     </button>
   </header>
 
-  <main>
+  <main id="main">
+    <noscript><p class="page tool-note">Ative o JavaScript para processar arquivos. As instruções abaixo continuam disponíveis.</p></noscript>
     <section class="hero page">
       <div class="hero-content">
-        <h1>
-          Reduza dimensões.<br>
-          Ganhe <span>performance.</span>
-        </h1>
+        <h1>Redimensionar imagens.<br><span>Simples e em lote.</span></h1>
         <p class="hero-text">
           Redimensione imagens em lote direto no navegador. Escolha por largura ou porcentagem,
           veja o preview e baixe tudo em ZIP.
@@ -104,7 +106,7 @@
       </div>
 
       <div class="drop-zone page-inner" id="dropZone">
-        <input type="file" id="fileInput" accept="image/*" multiple aria-label="Selecionar imagens para redimensionar">
+        <input type="file" id="fileInput" accept="image/png,image/jpeg,image/webp" multiple aria-label="Selecionar imagens para redimensionar">
         <span class="drop-icon">⬇</span>
         <p><strong>Arraste as imagens aqui</strong><br>ou clique para selecionar · PNG, WebP, JPEG</p>
       </div>
@@ -136,6 +138,14 @@
 
       <div class="image-grid page-inner" id="previewList"></div>
     </section>
+
+    <section class="guide page" aria-labelledby="guide-title"><h2 id="guide-title">Como redimensionar imagens sem distorcer</h2>
+<details><summary>Como mudar a largura de uma imagem?</summary><p>Adicione imagens PNG, JPG ou WebP e informe a largura máxima em pixels. A altura é calculada automaticamente para manter a proporção. Imagens menores que essa largura não são ampliadas.</p></details>
+<details><summary>Como reduzir uma imagem pela metade?</summary><p>Escolha o modo Porcentagem e selecione 50%. Tanto a largura quanto a altura serão reduzidas pela metade, respeitando o mínimo de um pixel. Confira as dimensões antes de baixar.</p></details>
+<details><summary>Redimensionar diminui o tamanho em KB?</summary><p>Reduzir as dimensões geralmente diminui o peso, mas o resultado também depende do formato e da codificação. Se você precisa de um limite específico em KB, use o compressor de imagens após redimensionar.</p></details>
+<details><summary>É possível redimensionar várias imagens de uma vez?</summary><p>Sim. Selecione vários arquivos, defina a largura ou porcentagem e clique em Redimensionar tudo. Você pode baixar os resultados individualmente ou em um arquivo ZIP.</p></details>
+<details><summary>O fundo transparente é preservado?</summary><p>PNG e WebP mantêm a transparência na saída. O redimensionamento usa os formatos compatíveis PNG, JPEG e WebP e acontece no navegador, sem enviar seus arquivos ao servidor.</p></details>
+<nav class="related-tools" aria-label="Ferramentas relacionadas"><a href="/">Comprimir e converter imagens</a><a href="/resizer/">Redimensionar imagens</a><a href="/pdf/">Juntar e comprimir PDF</a></nav></section>
   </main>
 
   <div class="footer-wrap">
@@ -145,10 +155,16 @@
     </footer>
   </div>
 
+  <div id="cookie-banner" role="dialog" aria-label="Preferência de análise de uso">
+    <p>Podemos usar cookies de análise para entender o uso do site? <strong>Seus arquivos são processados no navegador.</strong></p>
+    <div class="cookie-actions"><button class="cookie-btn primary" type="button" onclick="acceptCookies()">Aceitar</button><button class="cookie-btn ghost" type="button" onclick="rejectCookies()">Recusar</button></div>
+  </div>
+
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
   <script src="/js/theme.js"></script>
   <script src="/js/resizer.js"></script>
   <script src="https://unpkg.com/lenis@1.3.13/dist/lenis.min.js"></script>
   <script src="../js/lenis-init.js"></script>
+  <script src="/js/privacy.js"></script>
 </body>
 </html>

@@ -13,9 +13,17 @@ const statOriginal = document.getElementById('stat-original');
 const statNew = document.getElementById('stat-new');
 const statSaved = document.getElementById('stat-saved');
 const cookieBanner = document.getElementById('cookie-banner');
+const modeToggle = document.getElementById('mode-toggle');
+const qualityGroup = document.getElementById('quality-group');
+const sizeGroup = document.getElementById('size-group');
+const targetSizeInput = document.getElementById('target-size');
+const targetUnit = document.getElementById('target-unit');
 
 let selectedFormat = 'webp';
+let compressMode = 'quality'; // 'quality' | 'size'
 let images = [];
+let busy = false;
+let inputGeneration = 0;
 
 qualitySlider.addEventListener('input', () => {
   qualityVal.textContent = `${qualitySlider.value}%`;
@@ -32,9 +40,33 @@ fmtToggle.querySelectorAll('.fmt-btn').forEach((btn) => {
     btn.classList.add('active');
 
     selectedFormat = btn.dataset.fmt;
+    updateFormatControls();
     resetCompressedResults();
   });
 });
+
+modeToggle.querySelectorAll('.fmt-btn').forEach((btn) => {
+  btn.addEventListener('click', () => {
+    if (btn.dataset.mode === compressMode) return;
+
+    modeToggle.querySelectorAll('.fmt-btn').forEach((item) => item.classList.remove('active'));
+    btn.classList.add('active');
+
+    compressMode = btn.dataset.mode;
+    updateFormatControls();
+    sizeGroup.classList.toggle('hidden', compressMode !== 'size');
+
+    if (compressMode === 'quality' && typeof updateAllRangeFills === 'function') updateAllRangeFills();
+    resetCompressedResults();
+  });
+});
+
+function updateFormatControls() {
+  qualityGroup.classList.toggle('hidden', compressMode !== 'quality');
+}
+
+targetSizeInput.addEventListener('change', resetCompressedResults);
+targetUnit.addEventListener('change', resetCompressedResults);
 
 dropZone.addEventListener('dragover', (event) => {
   event.preventDefault();
@@ -60,7 +92,9 @@ btnDownloadAll.addEventListener('click', downloadAllAsZip);
 btnClear.addEventListener('click', clearAll);
 
 function handleFiles(files) {
-  const validFiles = files.filter((file) => file.type.startsWith('image/'));
+  if (busy) return;
+  const generation = inputGeneration;
+  const validFiles = files.filter((file) => ['image/png', 'image/webp', 'image/jpeg'].includes(file.type));
   if (!validFiles.length) return;
 
   validFiles.forEach((file) => {
@@ -68,6 +102,7 @@ function handleFiles(files) {
     const reader = new FileReader();
 
     reader.onload = (event) => {
+      if (generation !== inputGeneration) return;
       images.push({
         id,
         file,
@@ -107,6 +142,7 @@ function renderCard(image) {
         <span class="size-arrow">→</span>
         <span class="size-new" style="color:var(--muted)!important">aguardando</span>
       </div>
+      <div class="card-note" id="note-${image.id}"></div>
       <button class="card-download" type="button" disabled id="dl-${image.id}">↓ baixar</button>
     </div>
   `;
@@ -116,6 +152,11 @@ function renderCard(image) {
 }
 
 function removeImage(id) {
+  const removed = images.find((image) => image.id === id);
+  if (removed) {
+    removed.runId = (removed.runId || 0) + 1;
+    if (removed.resultUrl) URL.revokeObjectURL(removed.resultUrl);
+  }
   images = images.filter((image) => image.id !== id);
 
   const card = document.querySelector(`.image-card[data-id="${CSS.escape(id)}"]`);
@@ -132,8 +173,12 @@ function removeImage(id) {
 
 function resetCompressedResults() {
   images.forEach((image) => {
+    if (image.resultUrl) URL.revokeObjectURL(image.resultUrl);
+    image.resultUrl = null;
     image.compressed = null;
     image.compressedName = null;
+    image.runId = (image.runId || 0) + 1;
+    setNote(image, '');
 
     const card = document.querySelector(`.image-card[data-id="${CSS.escape(image.id)}"]`);
     const progress = document.getElementById(`prog-${image.id}`);
@@ -141,7 +186,10 @@ function resetCompressedResults() {
     const overlay = document.getElementById(`overlay-${image.id}`);
     const downloadButton = document.getElementById(`dl-${image.id}`);
 
-    if (card) card.classList.remove('done');
+    if (card) {
+      card.classList.remove('done');
+      card.querySelector('.card-thumb').src = image.dataUrl;
+    }
     if (progress) progress.style.width = '0%';
 
     if (sizes) {
@@ -168,60 +216,281 @@ function resetCompressedResults() {
 }
 
 async function compressAllImages() {
-  if (!images.length) return;
+  if (!images.length || busy) return;
 
+  const format = selectedFormat;
+  const quality = Number(qualitySlider.value) / 100;
+  const target = getTarget();
+
+  if (compressMode === 'size' && !target) {
+    targetSizeInput.focus();
+    alert('Informe um tamanho máximo válido.');
+    return;
+  }
+
+  resetCompressedResults();
+  busy = true;
+  updateUI();
   btnCompress.disabled = true;
   btnCompress.textContent = 'Comprimindo...';
 
-  const quality = Number(qualitySlider.value) / 100;
-  const format = selectedFormat;
+  for (const image of [...images]) {
+    if (!images.includes(image)) continue;
 
-  for (const image of images) {
+    const run = (image.runId = (image.runId || 0) + 1);
+    setNote(image, '');
     const progress = document.getElementById(`prog-${image.id}`);
-    if (progress) progress.style.width = '40%';
+    if (progress) progress.style.width = '15%';
 
-    let blob = await compressImage(image.dataUrl, format, quality);
+    try {
+    if (compressMode === 'size') {
+      const result = await compressToTarget(image, format, target.bytes, progress);
+      if (image.runId !== run) continue;
 
-    const isConversion = !image.file.name.toLowerCase().endsWith(`.${format}`) &&
-      !(format === 'jpeg' && image.file.name.toLowerCase().match(/\.jpe?g$/));
-
-    if (!isConversion && blob.size >= image.file.size) {
-      blob = image.file;
-    }
-
-    image.compressed = blob;
-    image.compressedName = `${image.file.name.replace(/\.(png|webp|jpe?g)$/i, '')}.${format}`;
-
-    if (progress) progress.style.width = '100%';
-
-    const savedPercent = calculateSavingPercent(image.file.size, blob.size);
-
-    document.getElementById(`sizes-${image.id}`).innerHTML = `
-      <span class="size-original">${formatBytes(image.file.size)}</span>
-      <span class="size-arrow">→</span>
-      <span class="size-new">${formatBytes(blob.size)}</span>
-    `;
-
-    const overlay = document.getElementById(`overlay-${image.id}`);
-    if (savedPercent > 0) {
-      overlay.textContent = `-${savedPercent}%`;
-      overlay.style.display = 'block';
+      if (result.fits) {
+        showResult(image, result.blob, format, { note: `${result.label} · até ${target.label}` });
+      } else {
+        askResize(image, format, target, result.blob);
+      }
     } else {
-      overlay.textContent = '';
-      overlay.style.display = 'none';
+      let blob = await compressImage(image.dataUrl, format, quality);
+      if (image.runId !== run) continue;
+
+      if (!isConversion(image, format) && blob.size >= image.file.size) {
+        blob = image.file;
+      }
+      showResult(image, blob, format, { note: blob === image.file ? 'Original mantido: não houve redução com esta qualidade.' : '' });
     }
-
-    const downloadButton = document.getElementById(`dl-${image.id}`);
-    downloadButton.disabled = false;
-    downloadButton.onclick = () => downloadBlob(blob, image.compressedName);
-
-    document.querySelector(`.image-card[data-id="${CSS.escape(image.id)}"]`).classList.add('done');
-    updateStats();
+    } catch (error) {
+      setNote(image, 'Não foi possível processar esta imagem. Recarregue a página e verifique o arquivo antes de tentar novamente.', true);
+      if (progress) progress.style.width = '0%';
+    }
   }
+  busy = false;
 
   btnCompress.textContent = 'Comprimir tudo';
   btnCompress.disabled = false;
-  btnDownloadAll.disabled = images.some((image) => image.compressed) === false;
+  updateUI();
+}
+
+/* Exibe o resultado final no card */
+function showResult(image, blob, format, { note = '', warn = false, name = null } = {}) {
+  const card = document.querySelector(`.image-card[data-id="${CSS.escape(image.id)}"]`);
+  if (!card) return;
+
+  if (image.resultUrl) URL.revokeObjectURL(image.resultUrl);
+  image.resultUrl = URL.createObjectURL(blob);
+  card.querySelector('.card-thumb').src = image.resultUrl;
+  image.compressed = blob;
+  image.compressedName = name || `${stripExtension(image.file.name)}-kompres.${format}`;
+
+  const progress = document.getElementById(`prog-${image.id}`);
+  if (progress) progress.style.width = '100%';
+
+  document.getElementById(`sizes-${image.id}`).innerHTML = `
+    <span class="size-original">${formatBytes(image.file.size)}</span>
+    <span class="size-arrow">→</span>
+    <span class="size-new">${formatBytes(blob.size)}</span>
+  `;
+
+  const savedPercent = calculateSavingPercent(image.file.size, blob.size);
+  const overlay = document.getElementById(`overlay-${image.id}`);
+  if (savedPercent > 0) {
+    overlay.textContent = `-${savedPercent}%`;
+    overlay.style.display = 'block';
+  } else {
+    overlay.textContent = '';
+    overlay.style.display = 'none';
+  }
+
+  setNote(image, note, warn);
+
+  const downloadButton = document.getElementById(`dl-${image.id}`);
+  downloadButton.disabled = false;
+  downloadButton.onclick = () => downloadBlob(blob, image.compressedName);
+
+  card.classList.add('done');
+  updateUI();
+  updateStats();
+}
+
+function setNote(image, text, warn = false) {
+  const note = document.getElementById(`note-${image.id}`);
+  if (!note) return;
+  note.className = warn ? 'card-note warn' : 'card-note';
+  note.textContent = text;
+}
+
+/* ── Modo "Tamanho máximo" ── */
+
+// Base 1000 de propósito: 300 KB = 300.000 bytes. Assim o arquivo fica dentro do
+// limite tanto em sistemas que contam KB como 1000 quanto como 1024 bytes.
+function getTarget() {
+  const value = parseFloat(String(targetSizeInput.value).replace(',', '.'));
+  if (!Number.isFinite(value) || value <= 0) return null;
+  const unit = targetUnit.value;
+  return {
+    bytes: Math.floor(value * (unit === 'MB' ? 1000 * 1000 : 1000)),
+    label: `${value} ${unit}`,
+  };
+}
+
+// Busca a MAIOR qualidade que ainda cabe no limite
+async function compressToTarget(image, format, targetBytes, progress) {
+  const setProgress = (pct) => { if (progress) progress.style.width = `${pct}%`; };
+
+  // já cabe e não é conversão: mantém o original, sem perda nenhuma
+  if (!isConversion(image, format) && image.file.size <= targetBytes) {
+    return { fits: true, blob: image.file, label: 'original já estava no limite' };
+  }
+
+  if (format === 'png') return pngToTarget(image, targetBytes, setProgress);
+
+  const MIN = 0.3;
+  const MAX = 0.95;
+
+  const top = await compressImage(image.dataUrl, format, MAX);
+  if (top.size <= targetBytes) return { fits: true, blob: top, label: `qualidade ${Math.round(MAX * 100)}%` };
+  setProgress(25);
+
+  const bottom = await compressImage(image.dataUrl, format, MIN);
+  if (bottom.size > targetBytes) return { fits: false, blob: bottom };
+  setProgress(35);
+
+  let lo = MIN;
+  let hi = MAX;
+  let best = { blob: bottom, q: MIN };
+  const steps = 7;
+
+  for (let i = 0; i < steps; i++) {
+    const mid = (lo + hi) / 2;
+    const blob = await compressImage(image.dataUrl, format, mid);
+    if (blob.size <= targetBytes) {
+      best = { blob, q: mid };
+      lo = mid;
+    } else {
+      hi = mid;
+    }
+    setProgress(35 + Math.round(((i + 1) / steps) * 60));
+  }
+
+  return { fits: true, blob: best.blob, label: `qualidade ${Math.round(best.q * 100)}%` };
+}
+
+// PNG: tenta compressão inteligente antes de oferecer redução de dimensões.
+async function pngToTarget(image, targetBytes, setProgress) {
+  let blob = await compressPNG(image.dataUrl, 1, 1, targetBytes);
+  if (!isConversion(image, 'png') && image.file.size < blob.size) blob = image.file;
+  setProgress(90);
+  return { fits: blob.size <= targetBytes, blob, label: 'Concluído' };
+}
+
+// Não coube nem na qualidade mínima: pergunta antes de redimensionar
+function askResize(image, format, target, minBlob) {
+  const progress = document.getElementById(`prog-${image.id}`);
+  if (progress) progress.style.width = '100%';
+
+  const sizes = document.getElementById(`sizes-${image.id}`);
+  if (sizes) {
+    sizes.innerHTML = `
+      <span class="size-original">${formatBytes(image.file.size)}</span>
+      <span class="size-arrow">→</span>
+      <span class="size-new">${formatBytes(minBlob.size)}</span>
+    `;
+  }
+
+  const note = document.getElementById(`note-${image.id}`);
+  if (!note) return;
+
+  const run = image.runId;
+  note.className = 'card-note warn';
+  note.innerHTML = `
+    <span>Com as configurações atuais ficou acima de ${escapeHtml(target.label)}. Posso reduzir as dimensões para caber?</span>
+    <div class="card-note-actions">
+      <button class="card-download primary" type="button" data-act="resize">Redimensionar</button>
+      <button class="card-download" type="button" data-act="keep">Manter assim</button>
+    </div>
+  `;
+
+  note.querySelector('[data-act="resize"]').onclick = async () => {
+    if (image.runId !== run || busy) return;
+    busy = true; updateUI();
+    try {
+    setNote(image, 'Redimensionando…');
+    if (progress) progress.style.width = '30%';
+
+    const result = await resizeToTarget(image, format, target.bytes, progress);
+    if (image.runId !== run) return;
+
+    if (result) {
+      showResult(image, result.blob, format, {
+        note: `redimensionada para ${result.width}×${result.height} px · até ${target.label}`,
+        name: `${stripExtension(image.file.name)}-${result.width}x${result.height}-kompres.${format}`,
+      });
+    } else {
+      showResult(image, minBlob, format, {
+        note: `Não foi possível chegar a ${target.label}. Mantida a versão disponível.`,
+        warn: true,
+      });
+    }
+    } catch { setNote(image, 'Falha ao redimensionar. Tente novamente.', true); }
+    finally { busy = false; updateUI(); }
+  };
+
+  note.querySelector('[data-act="keep"]').onclick = () => {
+    if (image.runId !== run) return;
+    showResult(image, minBlob, format, {
+      note: `acima de ${target.label} · dimensões originais`,
+      warn: true,
+    });
+  };
+}
+
+// Maior escala (dimensões) que cabe no limite, com qualidade boa fixa
+async function resizeToTarget(image, format, targetBytes, progress) {
+  const source = await loadImage(image.dataUrl);
+  const quality = format === 'png' ? 0.75 : 0.8;
+  const steps = format === 'png' ? 5 : 8;
+
+  let lo = 0.05;
+  let hi = 1;
+  let best = null;
+
+  for (let i = 0; i < steps; i++) {
+    const mid = (lo + hi) / 2;
+    const blob = await compressImage(image.dataUrl, format, quality, mid);
+    if (blob.size <= targetBytes) {
+      best = { blob, scale: mid };
+      lo = mid;
+    } else {
+      hi = mid;
+    }
+    if (progress) progress.style.width = `${30 + Math.round(((i + 1) / steps) * 70)}%`;
+  }
+
+  if (!best) {
+    const blob = await compressImage(image.dataUrl, format, quality, 0.05);
+    if (blob.size > targetBytes) return null;
+    best = { blob, scale: 0.05 };
+  }
+
+  return {
+    blob: best.blob,
+    width: scaledSize(source.naturalWidth, best.scale),
+    height: scaledSize(source.naturalHeight, best.scale),
+  };
+}
+
+function scaledSize(value, scale) {
+  return Math.max(1, Math.round(value * scale));
+}
+
+function isConversion(image, format) {
+  return image.file.type !== `image/${format}`;
+}
+
+function stripExtension(name) {
+  return name.replace(/\.(png|webp|jpe?g)$/i, '');
 }
 
 async function downloadAllAsZip() {
@@ -231,19 +500,27 @@ async function downloadAllAsZip() {
   btnDownloadAll.textContent = 'Gerando ZIP...';
   btnDownloadAll.disabled = true;
 
+  try {
   const zip = new JSZip();
-  doneImages.forEach((image) => {
-    zip.file(image.compressedName, image.compressed);
+  doneImages.forEach((image, index) => {
+    zip.file(`${index + 1}-${image.compressedName}`, image.compressed);
   });
 
   const blob = await zip.generateAsync({ type: 'blob' });
   downloadBlob(blob, 'imagens-kompres.zip');
 
+  } catch { alert('Não foi possível gerar o ZIP. Tente novamente.'); }
+  finally { btnDownloadAll.disabled = false; btnDownloadAll.textContent = '↓ Baixar ZIP'; }
   btnDownloadAll.textContent = '↓ Baixar ZIP';
   btnDownloadAll.disabled = false;
 }
 
 function clearAll() {
+  inputGeneration++;
+  images.forEach((image) => {
+    image.runId = (image.runId || 0) + 1;
+    if (image.resultUrl) URL.revokeObjectURL(image.resultUrl);
+  });
   images = [];
   imageGrid.innerHTML = '';
   fileInput.value = '';
@@ -255,9 +532,10 @@ function updateUI() {
   const hasImages = images.length > 0;
   const hasCompressed = images.some((image) => image.compressed);
 
-  btnCompress.disabled = !hasImages;
-  btnClear.disabled = !hasImages;
-  btnDownloadAll.disabled = !hasCompressed;
+  document.querySelectorAll('.controls button, .controls input, .controls select, .card-remove, .card-note-actions button, #file-input').forEach((el) => el.disabled = busy);
+  btnCompress.disabled = busy || !hasImages;
+  btnClear.disabled = busy || !hasImages;
+  btnDownloadAll.disabled = busy || !hasCompressed;
 }
 
 function updateStats() {
@@ -273,8 +551,9 @@ function updateStats() {
   const doneImages = images.filter((image) => image.compressed);
   const totalOriginal = images.reduce((sum, image) => sum + image.file.size, 0);
   const totalNew = doneImages.reduce((sum, image) => sum + image.compressed.size, 0);
-  const saved = totalOriginal - totalNew;
-  const savedPercent = doneImages.length ? calculateSavingPercent(totalOriginal, totalNew) : 0;
+  const originalDone = doneImages.reduce((sum, image) => sum + image.file.size, 0);
+  const saved = originalDone - totalNew;
+  const savedPercent = doneImages.length ? calculateSavingPercent(originalDone, totalNew) : 0;
 
   statsBar.hidden = false;
   statCount.textContent = images.length;
@@ -290,58 +569,80 @@ function updateStats() {
   statSaved.textContent = `${formatSignedBytes(saved)} (${savedPercent}%)`;
 }
 
-async function compressImage(dataUrl, format, quality) {
-  if (format === 'png') return compressPNG(dataUrl, quality);
-  return compressCanvas(dataUrl, format, quality);
+async function compressImage(dataUrl, format, quality, scale = 1) {
+  if (format === 'png') return compressPNG(dataUrl, quality, scale);
+  return compressCanvas(dataUrl, format, quality, scale);
 }
 
-function compressCanvas(dataUrl, format, quality) {
-  return new Promise((resolve) => {
+function compressCanvas(dataUrl, format, quality, scale = 1) {
+  return new Promise((resolve, reject) => {
     const image = new Image();
 
     image.onload = () => {
       const canvas = document.createElement('canvas');
-      canvas.width = image.naturalWidth;
-      canvas.height = image.naturalHeight;
-      canvas.getContext('2d').drawImage(image, 0, 0);
+      canvas.width = scaledSize(image.naturalWidth, scale);
+      canvas.height = scaledSize(image.naturalHeight, scale);
+
+      const context = canvas.getContext('2d');
+      context.imageSmoothingEnabled = scale !== 1;
+  context.imageSmoothingQuality = 'high';
+      if (format === 'jpeg') { context.fillStyle = '#fff'; context.fillRect(0, 0, canvas.width, canvas.height); }
+      if (scale === 1) context.drawImage(image, 0, 0);
+  else context.drawImage(image, 0, 0, canvas.width, canvas.height);
 
       const mimeType = format === 'jpeg' ? 'image/jpeg' : `image/${format}`;
-      canvas.toBlob((blob) => resolve(blob), mimeType, quality);
+      canvas.toBlob((blob) => {
+        if (!blob || blob.type !== mimeType) reject(new Error('Formato não suportado pelo navegador.'));
+        else resolve(blob);
+      }, mimeType, quality);
     };
 
+    image.onerror = () => reject(new Error('Imagem inválida.'));
     image.src = dataUrl;
   });
 }
 
-async function compressPNG(dataUrl, quality) {
+async function compressPNG(dataUrl, quality, scale = 1, targetBytes = null) {
   const image = await loadImage(dataUrl);
   const canvas = document.createElement('canvas');
-  canvas.width = image.naturalWidth;
-  canvas.height = image.naturalHeight;
+  canvas.width = scaledSize(image.naturalWidth, scale);
+  canvas.height = scaledSize(image.naturalHeight, scale);
 
   const context = canvas.getContext('2d');
-  context.drawImage(image, 0, 0);
+  context.imageSmoothingEnabled = scale !== 1;
+  context.imageSmoothingQuality = 'high';
+  if (scale === 1) context.drawImage(image, 0, 0);
+  else context.drawImage(image, 0, 0, canvas.width, canvas.height);
 
-  const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
-  const colors = qualityToColors(quality);
-
-  const arrayBuffer = UPNG.encode(
-    [imageData.data.buffer],
-    canvas.width,
-    canvas.height,
-    colors
-  );
-
-  return new Blob([arrayBuffer], { type: 'image/png' });
+  const nativeBlob = await new Promise((resolve, reject) => canvas.toBlob((blob) => {
+    if (blob) resolve(blob);
+    else reject(new Error('Não foi possível gerar o PNG.'));
+  }, 'image/png'));
+  const pixels = context.getImageData(0, 0, canvas.width, canvas.height);
+  // Offload optimization, freeing every worker after a file. No image upload.
+  const optimized = await optimizePNG(pixels, quality, targetBytes);
+  if (optimized.buffer.byteLength >= nativeBlob.size) return nativeBlob;
+  const blob = new Blob([optimized.buffer], { type: 'image/png' });
+  return blob;
 }
 
-function qualityToColors(quality) {
-  if (quality >= 0.95) return 256;
-  if (quality >= 0.85) return 192;
-  if (quality >= 0.70) return 128;
-  if (quality >= 0.55) return 96;
-  if (quality >= 0.40) return 64;
-  return 32;
+function optimizePNG(pixels, quality, targetBytes = null) {
+  return new Promise((resolve, reject) => {
+    let worker;
+    let timer;
+    const finish = (error, result) => {
+      clearTimeout(timer);
+      if (worker) worker.terminate();
+      if (error) reject(error); else resolve(result);
+    };
+    try {
+      worker = new Worker('/js/png-worker.js?v=png-target-2');
+      timer = setTimeout(() => finish(new Error('O PNG demorou demais para processar.')), 120000);
+      worker.onmessage = ({ data }) => data.error ? finish(new Error(data.error)) : finish(null, data);
+      worker.onerror = () => finish(new Error('Não foi possível carregar o otimizador PNG.'));
+      worker.postMessage({ buffer: pixels.data.buffer, width: pixels.width, height: pixels.height, quality, targetBytes }, [pixels.data.buffer]);
+    } catch (error) { finish(error); }
+  });
 }
 
 function loadImage(src) {
@@ -359,7 +660,7 @@ function downloadBlob(blob, name) {
   anchor.href = url;
   anchor.download = name;
   anchor.click();
-  URL.revokeObjectURL(url);
+  setTimeout(() => URL.revokeObjectURL(url), 4000);
 }
 
 function calculateSavingPercent(originalSize, newSize) {
@@ -387,21 +688,5 @@ function escapeHtml(value) {
     .replaceAll("'", '&#039;');
 }
 
-if (cookieBanner && !localStorage.getItem('kompres-cookies')) {
-  setTimeout(() => cookieBanner.classList.add('show'), 800);
-}
-
-function acceptCookies() {
-  localStorage.setItem('kompres-cookies', 'accepted');
-  cookieBanner.classList.remove('show');
-}
-
-function rejectCookies() {
-  localStorage.setItem('kompres-cookies', 'rejected');
-  cookieBanner.classList.remove('show');
-}
-
-window.acceptCookies = acceptCookies;
-window.rejectCookies = rejectCookies;
-
 updateAllRangeFills();
+updateFormatControls();

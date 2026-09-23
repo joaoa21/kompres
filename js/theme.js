@@ -1,5 +1,6 @@
 (function initTheme() {
-  const saved = localStorage.getItem('kompres-theme');
+  let saved;
+  try { saved = localStorage.getItem('kompres-theme'); } catch {}
   const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
   const isLight = saved ? saved === 'light' : !prefersDark;
 
@@ -31,7 +32,7 @@ function updateAllRangeFills() {
 
 function toggleTheme() {
   const isLight = document.documentElement.classList.toggle('light');
-  localStorage.setItem('kompres-theme', isLight ? 'light' : 'dark');
+  try { localStorage.setItem('kompres-theme', isLight ? 'light' : 'dark'); } catch {}
   setThemeColor();
   updateAllRangeFills();
 }

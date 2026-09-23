@@ -15,6 +15,7 @@ const statNew = document.getElementById('statNew');
 const statSaved = document.getElementById('statSaved');
 
 let imageData = [];
+let busy = false;
 
 fileInput.addEventListener('change', async (event) => {
   await handleFiles([...event.target.files]);
@@ -57,14 +58,16 @@ downloadZipBtn.addEventListener('click', downloadAllAsZip);
 clearBtn.addEventListener('click', clearAll);
 
 async function handleFiles(files) {
-  if (!files.length) return;
+  if (!files.length || busy) return;
+  busy = true;
+  updateUI();
 
   for (const file of files) {
-    if (!file.type.startsWith('image/')) continue;
-    const data = await getImageInfo(file);
-    imageData.push(data);
+    if (!['image/png', 'image/jpeg', 'image/webp'].includes(file.type)) continue;
+    try { imageData.push(await getImageInfo(file)); } catch { alert(`Não foi possível abrir: ${file.name}`); }
   }
 
+  busy = false;
   renderPreviews();
   updateStats();
   updateUI();
@@ -109,15 +112,16 @@ function calculateNewDimensions(originalWidth, originalHeight) {
   const mode = getResizeMode();
 
   if (mode === 'width') {
-    const width = Math.max(Number(maxWidthInput.value), 1);
-    const height = Math.round((originalHeight / originalWidth) * width);
+    const requested = Number(maxWidthInput.value);
+    const width = Math.min(originalWidth, Math.max(1, Math.round(Number.isFinite(requested) ? requested : originalWidth)));
+    const height = Math.max(1, Math.round((originalHeight / originalWidth) * width));
     return { width, height };
   }
 
   const percent = Math.max(Number(percentSelect.value), 1) / 100;
   return {
-    width: Math.round(originalWidth * percent),
-    height: Math.round(originalHeight * percent),
+    width: Math.max(1, Math.round(originalWidth * percent)),
+    height: Math.max(1, Math.round(originalHeight * percent)),
   };
 }
 
@@ -138,7 +142,7 @@ function renderPreviews() {
       ? `
         <small>${data.originalWidth}x${data.originalHeight} → ${data.processed.width}x${data.processed.height}</small>
         <small>${formatBytes(data.originalSize)} → <span class="size-new">${formatBytes(data.processed.blob.size)}</span></small>
-        <a class="download-btn" href="${data.downloadUrl}" download="${data.processed.fileName}">↓ baixar</a>
+        <a class="download-btn" href="${data.downloadUrl}" download="${escapeHtml(data.processed.fileName)}">↓ baixar</a>
       `
       : `
         <small>Dimensão atual: ${data.originalWidth}x${data.originalHeight}</small>
@@ -168,6 +172,12 @@ function renderPreviews() {
 }
 
 function updatePreviewDimensions() {
+  if (busy) return;
+  imageData.forEach(item => {
+    if (item.downloadUrl) URL.revokeObjectURL(item.downloadUrl);
+    item.processed = null; item.downloadUrl = null;
+  });
+  renderPreviews(); updateStats(); updateUI();
   document.querySelectorAll('.preview-card').forEach((card, index) => {
     const data = imageData[index];
     if (!data || data.processed) return;
@@ -182,11 +192,14 @@ function updatePreviewDimensions() {
 }
 
 async function processImages() {
+  if (busy) return;
   if (!imageData.length) {
     alert('Selecione pelo menos uma imagem.');
     return;
   }
 
+  busy = true;
+  updateUI();
   processBtn.disabled = true;
   processBtn.textContent = 'Processando...';
 
@@ -196,7 +209,9 @@ async function processImages() {
     if (item.downloadUrl) {
       URL.revokeObjectURL(item.downloadUrl);
     }
+    item.processed = null; item.downloadUrl = null;
 
+    try {
     const processed = await resizeImage(item.file);
     const downloadUrl = URL.createObjectURL(processed.blob);
 
@@ -205,8 +220,10 @@ async function processImages() {
 
     renderPreviews();
     updateStats();
+    } catch { alert(`Não foi possível redimensionar: ${item.file.name}`); }
   }
 
+  busy = false;
   processBtn.disabled = false;
   processBtn.textContent = 'Redimensionar tudo';
   updateUI();
@@ -224,13 +241,14 @@ function resizeImage(file) {
       canvas.height = dimensions.height;
 
       const context = canvas.getContext('2d');
+      context.imageSmoothingQuality = 'high';
       context.drawImage(image, 0, 0, dimensions.width, dimensions.height);
 
       const mimeType = file.type || 'image/png';
-      const extension = getFileExtension(file.name);
+      const extension = mimeType === 'image/jpeg' ? 'jpg' : mimeType.split('/')[1];
 
       canvas.toBlob((blob) => {
-        if (!blob) {
+        if (!blob || blob.type !== mimeType) {
           reject(new Error('Erro ao gerar imagem.'));
           return;
         }
@@ -238,7 +256,7 @@ function resizeImage(file) {
         URL.revokeObjectURL(url);
 
         const baseName = file.name.replace(/\.[^/.]+$/, '');
-        const fileName = `${baseName}-${dimensions.width}x${dimensions.height}.${extension}`;
+        const fileName = `${baseName}-${dimensions.width}x${dimensions.height}-kompres.${extension}`;
 
         resolve({
           blob,
@@ -261,9 +279,10 @@ async function downloadAllAsZip() {
   downloadZipBtn.disabled = true;
   downloadZipBtn.textContent = 'Gerando ZIP...';
 
+  try {
   const zip = new JSZip();
-  processedImages.forEach((item) => {
-    zip.file(item.processed.fileName, item.processed.blob);
+  processedImages.forEach((item, index) => {
+    zip.file(`${index + 1}-${item.processed.fileName}`, item.processed.blob);
   });
 
   const zipBlob = await zip.generateAsync({ type: 'blob' });
@@ -276,11 +295,14 @@ async function downloadAllAsZip() {
 
   URL.revokeObjectURL(zipUrl);
 
+  } catch { alert('Não foi possível gerar o ZIP. Tente novamente.'); }
+  finally { downloadZipBtn.disabled = false; downloadZipBtn.textContent = '↓ Baixar ZIP'; }
   downloadZipBtn.disabled = false;
   downloadZipBtn.textContent = '↓ Baixar ZIP';
 }
 
 function removeImage(index) {
+  if (busy) return;
   const item = imageData[index];
 
   if (item.previewUrl) URL.revokeObjectURL(item.previewUrl);
@@ -295,6 +317,7 @@ function removeImage(index) {
 }
 
 function clearAll() {
+  if (busy) return;
   imageData.forEach((item) => {
     if (item.previewUrl) URL.revokeObjectURL(item.previewUrl);
     if (item.downloadUrl) URL.revokeObjectURL(item.downloadUrl);
@@ -311,9 +334,10 @@ function updateUI() {
   const hasImages = imageData.length > 0;
   const hasProcessed = imageData.some((item) => item.processed);
 
-  processBtn.disabled = false;
-  clearBtn.disabled = !hasImages;
-  downloadZipBtn.disabled = !hasProcessed;
+  document.querySelectorAll('.controls input, .controls select, .card-remove, #fileInput').forEach(el => el.disabled = busy);
+  processBtn.disabled = busy || !hasImages;
+  clearBtn.disabled = busy || !hasImages;
+  downloadZipBtn.disabled = busy || !hasProcessed;
 }
 
 function updateStats() {
@@ -331,8 +355,9 @@ function updateStats() {
   const totalOriginal = imageData.reduce((sum, item) => sum + item.originalSize, 0);
   const processedImages = imageData.filter((item) => item.processed);
   const totalNew = processedImages.reduce((sum, item) => sum + item.processed.blob.size, 0);
-  const saved = totalOriginal - totalNew;
-  const savingPercent = processedImages.length ? calculateSavingPercent(totalOriginal, totalNew) : 0;
+  const originalDone = processedImages.reduce((sum, item) => sum + item.originalSize, 0);
+  const saved = originalDone - totalNew;
+  const savingPercent = processedImages.length ? calculateSavingPercent(originalDone, totalNew) : 0;
 
   statsBar.hidden = false;
   statCount.textContent = totalFiles;
@@ -377,3 +402,5 @@ function escapeHtml(value) {
     .replaceAll('"', '&quot;')
     .replaceAll("'", '&#039;');
 }
+
+updateUI();
