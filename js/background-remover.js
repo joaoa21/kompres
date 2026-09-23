@@ -116,7 +116,7 @@ async function openEditor(item, opener) {
     const alpha = await createImageBitmap(item.maskBlob);
     canvas.width = mask.width = item.width; canvas.height = mask.height = item.height;
     mc.clearRect(0,0,mask.width,mask.height); mc.drawImage(alpha,0,0); alpha.close();
-    editing = item; returnFocus = opener; history = []; $('editorUndo').disabled = true; $('editorZoom').value = 'fit'; showOriginal = false;
+    editing = item; returnFocus = opener; history = []; $('editorUndo').disabled = true; $('editorZoom').value = 'fit'; $('editorZoom').dispatchEvent(new Event('kompres:sync')); showOriginal = false;
     $('editorOriginal').setAttribute('aria-pressed','false'); $('editorOriginal').textContent = 'Ver original';
     $('editorStatus').textContent = 'Apague o fundo que sobrou ou restaure detalhes.';
     composite(); dialog.showModal(); resizeView();

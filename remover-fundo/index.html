@@ -5,6 +5,7 @@
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@400;600;700&family=Inter:wght@400;500;600&display=swap">
 <link rel="stylesheet" href="/css/style.css"><link rel="stylesheet" href="/css/tool-navigation.css?v=1"><link rel="stylesheet" href="/css/background-remover.css?v=1">
+<link rel="stylesheet" href="/css/selects.css?v=1">
 </head><body>
   <a class="skip-link" href="#main">Pular para o conteúdo</a>
   <header class="site-header page">
@@ -40,7 +41,7 @@
 <div class="editor-modes" role="group" aria-label="Ferramenta"><button data-brush="erase" class="active" aria-pressed="true">Apagar</button><button data-brush="restore" aria-pressed="false">Restaurar</button><button data-brush="pan" aria-pressed="false">Mover</button></div>
 <label>Pincel <input id="brushSize" type="range" min="2" max="160" value="30"><output id="brushValue">30 px</output></label>
 <button id="editorUndo" disabled>Desfazer</button>
-<label>Zoom <select id="editorZoom"><option value="fit">Ajustar</option><option value="1">100%</option><option value="2">200%</option><option value="4">400%</option></select></label>
+<label for="editorZoom">Zoom</label><select id="editorZoom"><option value="fit">Ajustar</option><option value="1">100%</option><option value="2">200%</option><option value="4">400%</option></select>
 <div class="editor-backgrounds" role="group" aria-label="Fundo da prévia"><button data-bg="check" aria-label="Fundo quadriculado" aria-pressed="true">▦</button><button data-bg="white" aria-label="Fundo branco" aria-pressed="false">Branco</button><button data-bg="black" aria-label="Fundo preto" aria-pressed="false">Preto</button><button data-bg="green" aria-label="Fundo verde" aria-pressed="false">Verde</button></div>
 <button id="editorOriginal" aria-pressed="false">Ver original</button>
 </div>
@@ -63,4 +64,5 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 <script src="/js/theme.js"></script><script src="/js/privacy.js"></script>
 <script type="module" src="/js/background-remover.js?v=1"></script>
+<script src="/js/selects.js?v=1"></script>
 </body></html>
