@@ -1,0 +1,8 @@
+.image-tools { display: flex; justify-content: center; flex-wrap: wrap; gap: 8px; padding-top: 22px; animation: tools-enter 200ms ease-out; }
+.image-tools a { padding: 9px 16px; border-radius: 9px; border: 1px solid transparent; color: var(--muted); text-decoration: none; font-family: var(--font-head); font-size: .85rem; font-weight: 600; transition: color 180ms ease, background 180ms ease, border-color 180ms ease; }
+.image-tools a:hover, .image-tools a.active { color: var(--accent); background: var(--accent-dim); border-color: var(--border); }
+html.light .image-tools a:hover, html.light .image-tools a.active { color: #3d7000; }
+@keyframes tools-enter { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
+@media (prefers-reduced-motion: reduce) { .image-tools { animation: none; } .image-tools a { transition: none; } }
+.controls-pdf .pdf-mode-group { animation: tools-enter 200ms ease-out; }
+@media (prefers-reduced-motion: reduce) { .controls-pdf .pdf-mode-group { animation: none; } }

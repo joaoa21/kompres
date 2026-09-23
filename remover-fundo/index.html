@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="pt-BR"><head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Remover fundo | Kompres</title>
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@400;600;700&family=Inter:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="/css/style.css"><link rel="stylesheet" href="/css/tool-navigation.css?v=1"><link rel="stylesheet" href="/css/background-remover.css?v=1">
+</head><body>
+  <a class="skip-link" href="#main">Pular para o conteúdo</a>
+  <header class="site-header page">
+    <a class="brand" href="/" aria-label="Kompres - Página inicial">
+      <img class="brand-mark" src="/favicon.svg" alt="">
+      <span class="brand-name">Kompres</span>
+    </a>
+
+    <nav class="site-nav" aria-label="Categorias de ferramentas">
+      <a class="nav-link active" aria-current="true" href="/">Imagem</a>
+      <a class="nav-link"  href="/pdf/">PDF</a>
+    </nav>
+
+    <button id="theme-switch" class="theme-switch" type="button" aria-label="Alternar tema" title="Alternar tema">
+      <span class="theme-knob"></span>
+      <span class="theme-track"></span>
+    </button>
+  </header>
+  <nav class="image-tools page" aria-label="Ferramentas de imagem"><a href="/">Comprimir e converter</a><a href="/resizer/">Redimensionar</a><a href="/remover-fundo/" class="active" aria-current="page">Remover fundo</a></nav>
+
+<main id="main">
+<section class="hero page"><div class="hero-content"><h1>Fundo fora.<br><span>Foco no que importa.</span></h1><p class="hero-text">Remova o fundo das suas imagens e ajuste os detalhes antes de baixar.</p></div></section>
+<section class="tool-section page2 bg-tool">
+<div class="tool-header page-inner"><div><h2>Remover fundo de imagem</h2><p>Selecione suas imagens para começar.</p></div></div>
+<div class="drop-zone page-inner" id="bgDrop"><input id="bgFiles" type="file" accept="image/png,image/jpeg,image/webp" multiple aria-label="Selecionar imagens"><span class="drop-icon">⬇</span><p><strong>Arraste as imagens aqui</strong><br>ou clique para selecionar · PNG, WebP, JPEG</p></div>
+<div class="action-bar page-inner"><button class="btn btn-primary" id="bgRun" disabled>Remover fundo</button><button class="btn btn-outline" id="bgDownload" disabled>↓ Baixar PNG</button><button class="btn btn-outline" id="bgClear" disabled>Limpar</button><button class="btn btn-outline" id="bgCancel" hidden>Cancelar</button></div>
+<p class="bg-status page-inner" id="bgStatus" role="status" aria-live="polite" hidden></p>
+<div class="bg-cards page-inner" id="bgCards"></div>
+</section></main>
+<dialog id="bgEditor" aria-labelledby="editorTitle">
+<div class="editor-header"><h2 id="editorTitle">Ajustar recorte</h2><button type="button" class="btn btn-outline" id="editorClose">Cancelar</button></div>
+<div class="editor-controls">
+<div class="editor-modes" role="group" aria-label="Ferramenta"><button data-brush="erase" class="active" aria-pressed="true">Apagar</button><button data-brush="restore" aria-pressed="false">Restaurar</button><button data-brush="pan" aria-pressed="false">Mover</button></div>
+<label>Pincel <input id="brushSize" type="range" min="2" max="160" value="30"><output id="brushValue">30 px</output></label>
+<button id="editorUndo" disabled>Desfazer</button>
+<label>Zoom <select id="editorZoom"><option value="fit">Ajustar</option><option value="1">100%</option><option value="2">200%</option><option value="4">400%</option></select></label>
+<div class="editor-backgrounds" role="group" aria-label="Fundo da prévia"><button data-bg="check" aria-label="Fundo quadriculado" aria-pressed="true">▦</button><button data-bg="white" aria-label="Fundo branco" aria-pressed="false">Branco</button><button data-bg="black" aria-label="Fundo preto" aria-pressed="false">Preto</button><button data-bg="green" aria-label="Fundo verde" aria-pressed="false">Verde</button></div>
+<button id="editorOriginal" aria-pressed="false">Ver original</button>
+</div>
+<div id="editorStage" class="editor-stage"><div id="editorSurface" data-background="check"><canvas id="editorCanvas" aria-label="Área de edição do recorte"></canvas><div id="brushCursor" hidden></div></div></div>
+<div class="editor-footer"><span id="editorStatus" role="status">Apague o fundo que sobrou ou restaure detalhes.</span><button class="btn btn-primary" id="editorSave">Aplicar ajustes</button></div>
+</dialog>
+  <div class="footer-wrap">
+    <footer class="site-footer">
+      <p>© Kompres — Todos os direitos reservados.</p>
+      <p class="creator">Criado por&nbsp;<a href="https://joaoa.com.br" target="_blank" rel="noopener">João Alberto<span>.</span></a></p>
+    </footer>
+  </div>
+
+  <div id="cookie-banner" role="dialog" aria-label="Preferência de análise de uso">
+    <p>Podemos usar cookies de análise para entender o uso do site? <strong>Seus arquivos são processados no navegador.</strong></p>
+    <div class="cookie-actions"><button class="cookie-btn primary" type="button" onclick="acceptCookies()">Aceitar</button><button class="cookie-btn ghost" type="button" onclick="rejectCookies()">Recusar</button></div>
+  </div>
+
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script src="/js/theme.js"></script><script src="/js/privacy.js"></script>
+<script type="module" src="/js/background-remover.js?v=1"></script>
+</body></html>

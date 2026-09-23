@@ -18,6 +18,7 @@
   <link rel="icon" type="image/svg+xml" href="/favicon.svg">
   <link rel="apple-touch-icon" href="/apple-touch-icon.png">
   <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="/css/pdf-tools.css?v=pdf-ui-2">
 
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://kompres.com.br/pdf/">
@@ -35,6 +36,7 @@
 
   <script type="application/ld+json">{"@context": "https://schema.org", "@type": "WebApplication", "name": "Kompres PDF", "url": "https://kompres.com.br/pdf/", "description": "Junte PDFs na ordem desejada ou reduza o tamanho de documentos no navegador. Ferramenta gratuita, sem cadastro e sem upload dos arquivos.", "applicationCategory": "UtilitiesApplication", "operatingSystem": "Any", "inLanguage": "pt-BR", "isAccessibleForFree": true, "offers": {"@type": "Offer", "price": "0", "priceCurrency": "BRL"}, "browserRequirements": "Requires JavaScript"}</script>
 <meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="Juntar e comprimir PDF online grátis | Kompres"><meta name="twitter:description" content="Junte PDFs na ordem desejada ou reduza o tamanho de documentos no navegador. Ferramenta gratuita, sem cadastro e sem upload dos arquivos."><meta name="twitter:image" content="https://kompres.com.br/og-image.png">
+  <link rel="stylesheet" href="/css/tool-navigation.css?v=1">
 </head>
 <body>
   <a class="skip-link" href="#main">Pular para o conteúdo</a>
@@ -44,10 +46,9 @@
       <span class="brand-name">Kompres</span>
     </a>
 
-    <nav class="site-nav" aria-label="Navegação principal">
-      <a class="nav-link" href="/">Compressor</a>
-      <a class="nav-link" href="/resizer/">Resizer</a>
-      <a class="nav-link active" aria-current="page" href="/pdf/">PDF</a>
+    <nav class="site-nav" aria-label="Categorias de ferramentas">
+      <a class="nav-link"  href="/">Imagem</a>
+      <a class="nav-link active" aria-current="true" href="/pdf/">PDF</a>
     </nav>
 
     <button id="theme-switch" class="theme-switch" type="button" aria-label="Alternar tema" title="Alternar tema">
@@ -71,17 +72,20 @@
     <section class="tool-section page2">
       <div class="tool-header page-inner">
         <div>
-          <h2>Juntar e comprimir PDF</h2>
-          <p>Arraste seus PDFs, organize a ordem e baixe o resultado em poucos cliques.</p>
+          <h2 id="toolTitle">Juntar e comprimir PDF</h2>
+          <p id="toolDescription">Arraste seus PDFs, organize a ordem e baixe o resultado em poucos cliques.</p>
         </div>
       </div>
 
       <div class="controls page-inner controls-pdf" id="pdfControls">
-        <div class="control-group">
+        <div class="control-group pdf-mode-group">
           <label>Ferramenta</label>
           <div class="format-toggle" id="modeToggle">
             <button class="fmt-btn active" type="button" data-mode="merge">Juntar</button>
             <button class="fmt-btn" type="button" data-mode="compress">Comprimir</button>
+            <button class="fmt-btn" type="button" data-mode="images">Imagens → PDF</button>
+            <button class="fmt-btn" type="button" data-mode="extract">Extrair / dividir</button>
+            <button class="fmt-btn" type="button" data-mode="export">PDF → imagens</button>
           </div>
         </div>
 
@@ -99,17 +103,46 @@
           <div class="value" id="pdfQualityVal">80%</div>
           <input type="range" min="30" max="95" value="80" step="1" id="pdfQuality">
         </div>
+        <div class="control-group hidden" data-for="images">
+          <label for="imagePageSize">Tamanho da página</label>
+          <select id="imagePageSize"><option value="a4">A4 · retrato</option><option value="a4-landscape">A4 · paisagem</option><option value="image">Tamanho da imagem</option></select>
+        </div>
+        <div class="control-group hidden" data-for="images">
+          <label for="imageMargin">Margem</label>
+          <select id="imageMargin"><option value="0">Sem margem</option><option value="10" selected>10 mm</option><option value="20">20 mm</option></select>
+        </div>
+        <div class="control-group hidden" data-for="extract export">
+          <label for="pageRange">Páginas</label>
+          <input type="text" id="pageRange" placeholder="Todas ou 1-3, 7" autocomplete="off" spellcheck="false" aria-describedby="rangeHint">
+          <small id="rangeHint" class="pdf-field-hint">Deixe vazio para todas as páginas.</small>
+        </div>
+        <div class="control-group hidden" data-for="extract">
+          <label for="extractOutput">Salvar como</label>
+          <select id="extractOutput"><option value="single">PDF único</option><option value="split">Um PDF por página</option></select>
+        </div>
+        <div class="control-group hidden" data-for="export">
+          <label for="exportFormat">Formato de saída</label>
+          <select id="exportFormat"><option value="jpeg">JPG</option><option value="png">PNG</option></select>
+        </div>
+        <div class="control-group hidden" data-for="export">
+          <label for="exportDpi">Resolução</label>
+          <select id="exportDpi"><option value="72">72 DPI</option><option value="150" selected>150 DPI</option><option value="200">200 DPI</option></select>
+        </div>
+        <div class="control-group hidden" id="exportQualityGroup" data-for="export">
+          <label for="exportQuality">Qualidade JPG</label>
+          <div class="value" id="exportQualityVal">90%</div>
+          <input type="range" min="30" max="100" value="90" id="exportQuality">
+        </div>
       </div>
 
-      <p class="tool-note page-inner compress-only hidden" id="compressNote">
-        Por padrão, o texto é preservado. A conversão de páginas em imagens é opcional e pode remover texto selecionável, links e campos de formulário.
-      </p>
-
-      <label class="tool-note page-inner compress-only hidden"><input type="checkbox" id="allow-rasterize"> Permitir converter páginas em imagens para reduzir mais (pode remover texto selecionável e recursos interativos).</label>
+      <div class="pdf-compression-option page-inner compress-only hidden">
+        <label for="allow-rasterize"><input type="checkbox" id="allow-rasterize" aria-describedby="rasterize-hint"><span>Permitir compressão mais forte</span></label>
+        <p id="rasterize-hint">Pode transformar páginas em imagens, removendo texto selecionável, links e campos.</p>
+      </div>
       <div class="drop-zone page-inner" id="dropZone">
         <input type="file" id="fileInput" accept="application/pdf,.pdf" multiple aria-label="Selecionar arquivos PDF">
         <span class="drop-icon">⬇</span>
-        <p><strong>Arraste os PDFs aqui</strong><br>ou clique para selecionar · somente .pdf</p>
+        <p id="dropText"><strong>Arraste os PDFs aqui</strong><br>ou clique para selecionar · somente .pdf</p>
       </div>
 
       <div class="action-bar page-inner">
@@ -117,6 +150,8 @@
         <button class="btn btn-outline" id="downloadBtn" disabled>↓ Baixar PDF</button>
         <button class="btn btn-outline" id="clearBtn" disabled>Limpar</button>
       </div>
+
+      <p class="page-inner pdf-status" id="pdfStatus" role="status" aria-live="polite" hidden></p>
 
       <div class="stats-bar page-inner" id="statsBar" hidden>
         <div class="stat">
@@ -138,6 +173,7 @@
       </div>
 
       <div class="pdf-list page-inner" id="pdfList"></div>
+      <div class="page-inner pdf-outputs" id="pdfOutputs" hidden></div>
     </section>
 
     <section class="guide page" aria-labelledby="guide-title"><h2 id="guide-title">Como juntar ou reduzir arquivos PDF</h2>
@@ -165,7 +201,9 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
   <script src="/js/theme.js"></script>
-  <script src="/js/pdf.js"></script>
+  <script src="/js/pdf-tools.js?v=pdf-tools-1"></script>
+  <script src="/js/pdf.js?v=pdf-tools-1"></script>
+  <script src="/js/pdf-selects.js?v=pdf-ui-2"></script>
   <script src="https://unpkg.com/lenis@1.3.13/dist/lenis.min.js"></script>
   <script src="../js/lenis-init.js"></script>
   <script src="/js/privacy.js"></script>

@@ -1,0 +1,42 @@
+.bg-tool { --bg-accent: var(--accent); padding-bottom: 28px; }
+html.light .bg-tool, html.light #bgEditor { --bg-accent: #3d7000; }
+.bg-tool .drop-zone { margin-top: 24px; }
+.bg-status { font-size: .85rem; line-height: 1.6; margin-bottom: 20px; color: var(--muted); }
+.bg-status.error { color: var(--danger); }
+.bg-cards { display: grid; grid-template-columns: repeat(auto-fill,minmax(min(100%,260px),1fr)); gap: 16px; }
+.bg-card { border: 1px solid var(--border); background: var(--surface); border-radius: 12px; overflow: hidden; }
+.bg-thumb, #editorSurface[data-background="check"] { background-color: #fff; background-image: conic-gradient(#e3e3e3 25%,#fff 0 50%,#e3e3e3 0 75%,#fff 0); background-size: 20px 20px; }
+.bg-thumb { position: relative; aspect-ratio: 4/3; }
+.bg-thumb img { width: 100%; height: 100%; object-fit: contain; display: block; }
+.bg-thumb button { position: absolute; top: 8px; right: 8px; width: 30px; height: 30px; background: #222d; color: white; border: 0; border-radius: 50%; cursor: pointer; }
+.bg-card-body { padding: 14px; display: grid; gap: 10px; }
+.bg-card-body strong { overflow-wrap: anywhere; font: .8rem/1.5 var(--font-mono); }
+.bg-card-body small { color: var(--muted); line-height: 1.5; }
+.bg-card-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.bg-card-actions button { flex: 1 1 auto; padding: 10px; border: 1px solid var(--border); background: var(--surface2); color: var(--text); border-radius: 7px; cursor: pointer; font: .75rem var(--font-mono); }
+.bg-card-actions button:hover:not(:disabled) { color: var(--bg-accent); border-color: var(--bg-accent); }
+.bg-card button:disabled { opacity: .4; cursor: not-allowed; }
+#bgEditor { --bg-accent: var(--accent); margin: auto; padding: 0; width: min(1400px,calc(100vw - 32px)); max-width: none; height: min(900px,calc(100dvh - 32px)); max-height: none; border: 1px solid var(--border); border-radius: 16px; background: var(--surface); color: var(--text); }
+#bgEditor[open] { display: flex; flex-direction: column; }
+#bgEditor::backdrop { background: #000b; }
+.editor-header, .editor-footer { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 16px 20px; }
+.editor-header h2 { font: 600 1.2rem var(--font-head); }
+.editor-controls { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; padding: 0 20px 16px; }
+.editor-controls label { display: flex; align-items: center; gap: 8px; font: .8rem var(--font-mono); }
+.editor-controls input { width: 100px; }
+.editor-controls output { min-width: 45px; font-size: .7rem; }
+.editor-controls button, .editor-controls select { padding: 10px 12px; border: 1px solid var(--border); border-radius: 7px; background: var(--surface2); color: var(--text); font: .8rem var(--font-text); cursor: pointer; }
+.editor-controls button:hover, .editor-controls button[aria-pressed="true"] { color: var(--bg-accent); border-color: var(--bg-accent); background: var(--accent-dim); }
+.editor-controls button:disabled { opacity: .4; cursor: not-allowed; }
+.editor-stage { flex: 1; min-height: 100px; overflow: auto; padding: 24px; background: var(--bg); overscroll-behavior: contain; }
+#editorSurface { position: relative; margin: auto; width: fit-content; overflow: hidden; box-shadow: 0 3px 16px #0003; }
+#editorSurface[data-background="white"] { background: #fff; }
+#editorSurface[data-background="black"] { background: #000; }
+#editorSurface[data-background="green"] { background: #035028; }
+#editorCanvas { display: block; touch-action: none; cursor: crosshair; max-width: none; }
+#brushCursor { position: absolute; border: 1px solid white; box-shadow: 0 0 0 1px #222; border-radius: 50%; pointer-events: none; transform: translate(-50%,-50%); }
+.editor-footer span { font-size: .8rem; line-height: 1.5; color: var(--muted); }
+@media(max-width:600px) { #bgEditor { width: 100vw; height: 100dvh; border-radius: 0; } .editor-controls { gap: 8px; padding: 0 12px 12px; } .editor-header,.editor-footer { padding: 12px; } .editor-header .btn { padding: 10px; } .editor-footer span { max-width: 50%; } .editor-footer .btn { padding: 12px; } .editor-controls button,.editor-controls select { font-size: .75rem; padding: 9px; } .editor-stage { padding: 12px; } }
+#bgEditor .btn { width: auto; flex: 0 0 auto; }
+.editor-controls select { width: auto; min-width: 104px; padding-right: 32px; background-repeat: no-repeat; background-position: right 10px center; background-size: 14px; }
+.editor-controls select option { background: var(--surface); color: var(--text); }

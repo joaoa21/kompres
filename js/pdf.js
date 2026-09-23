@@ -1,11 +1,11 @@
 /* ═══════════════════════════════════════════════
-   Kompres PDF — juntar e comprimir PDFs no browser
+   Kompres PDF — ferramentas locais de PDF
    pdf-lib  → montagem/merge do PDF final
    pdf.js   → leitura, contagem de páginas, thumbs
               e render das páginas na compressão
 ═══════════════════════════════════════════════ */
 
-pdfjsLib.GlobalWorkerOptions.workerSrc =
+if (window.pdfjsLib) pdfjsLib.GlobalWorkerOptions.workerSrc =
   'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
 
 const fileInput   = document.getElementById('fileInput');
@@ -24,18 +24,38 @@ const statsBar    = document.getElementById('statsBar');
 const statLabels = [1, 2, 3, 4].map((i) => document.getElementById(`statLabel${i}`));
 const statValues = [1, 2, 3, 4].map((i) => document.getElementById(`statValue${i}`));
 
-let mode = 'merge'; // 'merge' | 'compress'
-let items = [];     // { id, name, size, pages, data, thumbUrl, status, outBlob, outSize }
-let mergedBlob = null;
-let zipBlob = null;
+let mode = 'merge';
+const banks = { pdf: [], single: [], images: [] };
+const bankKey = () => mode === 'images' ? 'images' : ['extract', 'export'].includes(mode) ? 'single' : 'pdf';
+let outputs = [];
+const field = id => document.getElementById(id);
+function setStatus(message = '', error = false) { const el = field('pdfStatus'); el.textContent = message; el.hidden = !message; el.classList.toggle('error', error); }
+const reorderable = () => mode === 'merge' || mode === 'images';
+let items = banks.pdf;     // { id, name, size, pages, data, thumbUrl, status, outBlob, outSize }
 let busy = false;
 let uid = 0;
 const rasterizeInput = document.getElementById('allow-rasterize');
 function escapeHtml(value) { return String(value).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
-[dpiSelect, qualityIn, rasterizeInput].forEach(el => el.addEventListener('change', () => {
+document.querySelectorAll('#pdfControls input, #pdfControls select, #allow-rasterize').forEach(el => el.addEventListener('input', () => {
   if (busy) return;
-  invalidateResults(); renderList(); updateStats(); updateButtons();
+  qualityVal.textContent = `${qualityIn.value}%`;
+  field('exportQualityVal').textContent = `${field('exportQuality').value}%`;
+  field('exportQualityGroup').classList.toggle('hidden', mode !== 'export' || field('exportFormat').value === 'png');
+  field('pageRange').removeAttribute('aria-invalid');
+  invalidateResults(); refresh();
+  if (window.updateAllRangeFills) window.updateAllRangeFills();
 }));
+function refresh() { renderList(); renderOutputs(); updateStats(); updateButtons(); }
+function renderOutputs() {
+  const root = field('pdfOutputs'); root.replaceChildren(); root.hidden = !outputs.length;
+  outputs.forEach(output => {
+    const row = document.createElement('div'); row.className = 'pdf-output';
+    const info = document.createElement('div'); const name = document.createElement('strong'); name.textContent = output.name;
+    const size = document.createElement('small'); size.textContent = formatBytes(output.blob.size); info.append(name, size);
+    const btn = document.createElement('button'); btn.className = 'btn btn-outline'; btn.textContent = '↓ Baixar'; btn.disabled = busy;
+    btn.addEventListener('click', () => triggerDownload(output.blob, output.name)); row.append(info, btn); root.append(row);
+  });
+}
 
 /* ── Helpers ── */
 
@@ -78,55 +98,38 @@ dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover
 dropZone.addEventListener('drop', async (event) => {
   event.preventDefault();
   dropZone.classList.remove('dragover');
-  const files = [...event.dataTransfer.files].filter(
-    (file) => file.type === 'application/pdf' || /\.pdf$/i.test(file.name)
-  );
-  await handleFiles(files);
+  await handleFiles([...event.dataTransfer.files]);
 });
 
 async function handleFiles(files) {
   if (!files.length || busy) return;
-
-  for (const file of files) {
-    const item = {
-      id: `pdf-${uid++}`,
-      name: file.name,
-      size: file.size,
-      pages: null,
-      data: null,
-      thumbUrl: null,
-      status: 'loading', // loading | ready | working | done | error
-      outBlob: null,
-      outSize: null,
-      error: null,
-    };
-    busy = true;
-    updateButtons();
-    items.push(item);
-    renderList();
-
-    try {
-      item.data = await file.arrayBuffer();
-
-      // pdf.js "consome" (detach) o buffer passado — sempre enviar uma cópia
-      const doc = await pdfjsLib.getDocument({ isEvalSupported: false, data: item.data.slice(0) }).promise;
-      item.pages = doc.numPages;
-      item.thumbUrl = await renderThumb(doc);
-      await doc.destroy();
-
-      item.status = 'ready';
-    } catch (err) {
-      console.error('Erro ao ler PDF:', item.name, err);
-      item.status = 'error';
-      item.error = 'Não foi possível ler este PDF';
+  const imageMode = mode === 'images';
+  const single = bankKey() === 'single';
+  if (single && files.length > 1) { setStatus('Selecione um PDF por vez.', true); return; }
+  const valid = files.filter(file => imageMode ? /\.(png|jpe?g)$/i.test(file.name) : /\.pdf$/i.test(file.name));
+  if (valid.length !== files.length) { setStatus(imageMode ? 'Selecione apenas imagens JPG ou PNG.' : 'Selecione apenas arquivos PDF.', true); return; }
+  if (single) { items.length = 0; field('pageRange').value = ''; }
+  invalidateResults(); busy = true;
+  try {
+    for (const file of valid) {
+      const item = { id: `pdf-${uid++}`, name: file.name, size: file.size, file, status: 'loading', pages: null };
+      items.push(item); setStatus('Lendo arquivos…'); refresh();
+      try {
+        if (imageMode) { Object.assign(item, await KompresPDF.imageInfo(file)); item.pages = 1; }
+        else {
+          item.data = await file.arrayBuffer();
+          const doc = await KompresPDF.loadPdf(item.data);
+          try { item.pages = doc.numPages; item.thumbUrl = await renderThumb(doc); }
+          finally { await doc.destroy(); }
+        }
+        item.status = 'ready';
+      } catch (err) {
+        item.status = 'error';
+        item.error = err.name === 'PasswordException' ? 'PDF protegido por senha' : imageMode ? 'Não foi possível ler esta imagem' : 'Não foi possível ler este PDF';
+      }
     }
-
-    busy = false;
-    invalidateResults();
-    renderList();
-    updateStats();
-    updateButtons();
-  }
+    setStatus();
+  } finally { busy = false; refresh(); }
 }
 
 async function renderThumb(doc) {
@@ -155,25 +158,27 @@ modeToggle.querySelectorAll('.fmt-btn').forEach((btn) => {
     if (busy || btn.dataset.mode === mode) return;
     modeToggle.querySelectorAll('.fmt-btn').forEach((b) => b.classList.remove('active'));
     btn.classList.add('active');
+    banks[bankKey()] = items;
     mode = btn.dataset.mode;
+    items = banks[bankKey()];
     applyMode();
   });
 });
 
 function applyMode() {
-  const compress = mode === 'compress';
-
-  document.querySelectorAll('.compress-only').forEach((el) => {
-    el.classList.toggle('hidden', !compress);
-  });
-  pdfControls.classList.toggle('merge', !compress);
-
-  invalidateResults();
-  renderList();
-  updateStats();
-  updateButtons();
-
-  if (compress && window.updateAllRangeFills) window.updateAllRangeFills();
+  document.querySelectorAll('.compress-only').forEach(el => el.classList.toggle('hidden', mode !== 'compress'));
+  document.querySelectorAll('[data-for]').forEach(el => el.classList.toggle('hidden', !el.dataset.for.split(' ').includes(mode)));
+  field('exportQualityGroup').classList.toggle('hidden', mode !== 'export' || field('exportFormat').value === 'png');
+  modeToggle.querySelectorAll('button').forEach(btn => { btn.classList.toggle('active', btn.dataset.mode === mode); btn.setAttribute('aria-pressed', String(btn.dataset.mode === mode)); });
+  const titles = { merge: 'Juntar PDFs', compress: 'Comprimir PDFs', images: 'Imagens para PDF', extract: 'Extrair ou dividir PDF', export: 'PDF para imagens' };
+  const descriptions = { merge: 'Adicione os PDFs e organize a ordem.', compress: 'Adicione seus PDFs e escolha a compressão.', images: 'Adicione as imagens e organize a ordem das páginas.', extract: 'Escolha as páginas que deseja salvar.', export: 'Transforme as páginas do PDF em JPG ou PNG.' };
+  field('toolTitle').textContent = titles[mode]; field('toolDescription').textContent = descriptions[mode];
+  const imageMode = mode === 'images', single = bankKey() === 'single';
+  fileInput.accept = imageMode ? 'image/jpeg,image/png,.jpg,.jpeg,.png' : 'application/pdf,.pdf'; fileInput.multiple = !single;
+  fileInput.setAttribute('aria-label', imageMode ? 'Selecionar imagens JPG ou PNG' : 'Selecionar arquivos PDF');
+  field('dropText').innerHTML = `<strong>${imageMode ? 'Arraste as imagens aqui' : single ? 'Arraste um PDF aqui' : 'Arraste os PDFs aqui'}</strong><br>ou clique para selecionar · ${imageMode ? 'JPG, PNG' : 'PDF'}`;
+  invalidateResults(); refresh();
+  if (window.updateAllRangeFills) window.updateAllRangeFills();
 }
 
 qualityIn.addEventListener('input', () => {
@@ -182,8 +187,7 @@ qualityIn.addEventListener('input', () => {
 });
 
 function invalidateResults() {
-  mergedBlob = null;
-  zipBlob = null;
+  outputs = []; setStatus();
   items.forEach((item) => {
     if (item.status === 'done' || item.status === 'working') item.status = 'ready';
     item.outBlob = null;
@@ -200,13 +204,13 @@ function renderList() {
     const row = document.createElement('div');
     row.className = `pdf-row ${item.status}`;
     row.dataset.id = item.id;
-    row.draggable = mode === 'merge' && !busy;
+    row.draggable = reorderable() && !busy;
 
     const meta = item.status === 'loading'
       ? 'lendo arquivo…'
       : item.status === 'error'
         ? item.error
-        : `${item.pages} ${item.pages === 1 ? 'página' : 'páginas'} · ${formatBytes(item.size)}`;
+        : `${mode === 'images' ? `${item.width} × ${item.height} px` : `${item.pages} ${item.pages === 1 ? 'página' : 'páginas'}`} · ${formatBytes(item.size)}`;
 
     const thumb = item.thumbUrl
       ? `<img class="pdf-thumb" src="${item.thumbUrl}" alt="">`
@@ -236,12 +240,12 @@ function renderList() {
                 </div>`;
     }
 
-    const mergeControls = mode === 'merge' && item.status !== 'error'
+    const mergeControls = reorderable() && item.status !== 'error'
       ? `<span class="pdf-drag" title="Arraste para reordenar" aria-hidden="true">⠿</span>
          <span class="pdf-index">${index + 1}</span>`
       : '';
 
-    const moveBtns = mode === 'merge'
+    const moveBtns = reorderable()
       ? `<button class="row-btn" data-act="up" title="Mover para cima" ${index === 0 ? 'disabled' : ''}>↑</button>
          <button class="row-btn" data-act="down" title="Mover para baixo" ${index === items.length - 1 ? 'disabled' : ''}>↓</button>`
       : '';
@@ -269,7 +273,8 @@ function renderList() {
       btn.addEventListener('click', () => rowAction(btn.dataset.act, item.id));
     });
 
-    if (mode === 'merge') attachDrag(row);
+    if (busy) row.querySelectorAll('button').forEach(btn => btn.disabled = true);
+    if (reorderable()) attachDrag(row);
 
     pdfList.appendChild(row);
   });
@@ -286,11 +291,11 @@ function rowAction(act, id) {
   }
   if (act === 'up' && index > 0) {
     [items[index - 1], items[index]] = [items[index], items[index - 1]];
-    mergedBlob = null;
+    invalidateResults();
   }
   if (act === 'down' && index < items.length - 1) {
     [items[index + 1], items[index]] = [items[index], items[index + 1]];
-    mergedBlob = null;
+    invalidateResults();
   }
   if (act === 'download') {
     const item = items[index];
@@ -298,9 +303,7 @@ function rowAction(act, id) {
     return;
   }
 
-  renderList();
-  updateStats();
-  updateButtons();
+  refresh();
 }
 
 /* Drag & drop nas linhas (só no modo Juntar) */
@@ -320,7 +323,7 @@ function attachDrag(row) {
   });
 
   row.addEventListener('dragover', (event) => {
-    if (!dragId || dragId === row.dataset.id) return;
+    if (busy || !dragId || dragId === row.dataset.id) return;
     event.preventDefault();
     row.classList.add('drag-target');
   });
@@ -330,7 +333,7 @@ function attachDrag(row) {
   row.addEventListener('drop', (event) => {
     event.preventDefault();
     row.classList.remove('drag-target');
-    if (!dragId || dragId === row.dataset.id) return;
+    if (busy || !dragId || dragId === row.dataset.id) return;
 
     const from = items.findIndex((item) => item.id === dragId);
     const to = items.findIndex((item) => item.id === row.dataset.id);
@@ -338,10 +341,9 @@ function attachDrag(row) {
 
     const [moved] = items.splice(from, 1);
     items.splice(to, 0, moved);
-    mergedBlob = null;
+    invalidateResults();
 
-    renderList();
-    updateButtons();
+    refresh();
   });
 }
 
@@ -351,7 +353,7 @@ function updateStats() {
   const ready = items.filter((item) => item.status !== 'error' && item.status !== 'loading');
   statsBar.hidden = items.length === 0;
 
-  if (mode === 'merge') {
+  if (mode !== 'compress') {
     const labels = ['Arquivos', 'Páginas', 'Tamanho total', 'Resultado'];
     statLabels.forEach((el, i) => { el.textContent = labels[i]; });
 
@@ -360,7 +362,7 @@ function updateStats() {
     statValues[0].textContent = ready.length;
     statValues[1].textContent = pages || '—';
     statValues[2].textContent = size ? formatBytes(size) : '—';
-    statValues[3].textContent = mergedBlob ? formatBytes(mergedBlob.size) : '—';
+    statValues[3].textContent = outputs.length ? formatBytes(outputs.reduce((sum, output) => sum + output.blob.size, 0)) : '—';
   } else {
     const labels = ['Arquivos', 'Tamanho original', 'Novo tamanho', 'Economia total'];
     statLabels.forEach((el, i) => { el.textContent = labels[i]; });
@@ -379,134 +381,68 @@ function updateStats() {
 }
 
 function updateButtons() {
-  const ready = items.filter((item) => item.status === 'ready' || item.status === 'done');
+  const ready = items.filter(item => item.status === 'ready' || item.status === 'done');
   document.querySelectorAll('#pdfControls input, #pdfControls select, #pdfControls button, #allow-rasterize, #fileInput').forEach(el => el.disabled = busy);
-
-  if (mode === 'merge') {
-    actionBtn.textContent = busy ? 'Juntando…' : 'Juntar PDFs';
-    downloadBtn.textContent = '↓ Baixar PDF';
-    actionBtn.disabled = busy || ready.length < 2;
-    downloadBtn.disabled = busy || !mergedBlob;
-  } else {
-    actionBtn.textContent = busy ? 'Comprimindo…' : 'Comprimir tudo';
-    downloadBtn.textContent = ready.filter((i) => i.status === 'done').length > 1 ? '↓ Baixar ZIP' : '↓ Baixar PDF';
-    const doneCount = items.filter((item) => item.status === 'done').length;
-    actionBtn.disabled = busy || ready.length === 0;
-    downloadBtn.disabled = busy || doneCount === 0;
-  }
-
-  clearBtn.disabled = busy || items.length === 0;
+  const labels = { merge: 'Juntar PDFs', compress: 'Comprimir tudo', images: 'Criar PDF', extract: 'Extrair páginas', export: 'Converter páginas' };
+  actionBtn.textContent = busy ? 'Processando…' : labels[mode];
+  actionBtn.disabled = busy || ready.length < (mode === 'merge' ? 2 : 1) || items.some(item => item.status === 'error');
+  const files = downloadable();
+  downloadBtn.textContent = files.length > 1 ? '↓ Baixar ZIP' : mode === 'export' ? '↓ Baixar imagem' : '↓ Baixar PDF';
+  downloadBtn.disabled = busy || !files.length;
+  clearBtn.disabled = busy || !items.length;
 }
-
-/* ── Ações principais ── */
-
-actionBtn.addEventListener('click', () => {
-  if (mode === 'merge') mergeAll();
-  else compressAll();
-});
-
+function downloadable() {
+  return mode === 'compress' ? items.filter(item => item.outBlob).map((item, index) => ({ name: `${index + 1}-${KompresPDF.safeBase(item.name)}-kompres.pdf`, blob: item.outBlob })) : outputs;
+}
+actionBtn.addEventListener('click', runAction);
 downloadBtn.addEventListener('click', async () => {
-  if (mode === 'merge') {
-    if (mergedBlob) triggerDownload(mergedBlob, 'kompres-unido.pdf');
-    return;
-  }
-
-  const done = items.filter((item) => item.status === 'done' && item.outBlob);
-  if (!done.length) return;
-
-  if (done.length === 1) {
-    triggerDownload(done[0].outBlob, `${baseName(done[0].name)}-kompres.pdf`);
-    return;
-  }
-
-  if (!zipBlob) {
-    const zip = new JSZip();
-    done.forEach((item, index) => zip.file(`${index + 1}-${baseName(item.name)}-kompres.pdf`, item.outBlob));
-    zipBlob = await zip.generateAsync({ type: 'blob' });
-  }
-  triggerDownload(zipBlob, 'kompres-pdfs.zip');
-});
-
-clearBtn.addEventListener('click', () => {
   if (busy) return;
-  items = [];
-  mergedBlob = null;
-  zipBlob = null;
-  renderList();
-  updateStats();
-  updateButtons();
-});
-
-/* ── Juntar ── */
-
-async function mergeAll() {
-  const ready = items.filter((item) => item.status === 'ready' || item.status === 'done');
-  if (ready.length < 2 || busy) return;
-
-  busy = true;
-  updateButtons();
-
+  const files = downloadable(); if (!files.length) return;
+  if (files.length === 1) { triggerDownload(files[0].blob, files[0].name); return; }
+  busy = true; setStatus('Preparando ZIP…'); refresh();
   try {
-    const out = await PDFLib.PDFDocument.create();
-
-    for (const item of ready) {
-      const src = await PDFLib.PDFDocument.load(item.data, { ignoreEncryption: false });
-      const pages = await out.copyPages(src, src.getPageIndices());
-      pages.forEach((page) => out.addPage(page));
+    const zip = new JSZip(); files.forEach(file => zip.file(file.name, file.blob));
+    triggerDownload(await zip.generateAsync({ type: 'blob' }), 'kompres-arquivos.zip'); setStatus();
+  } catch { setStatus('Não foi possível criar o ZIP. Baixe os arquivos individualmente.', true); }
+  finally { busy = false; refresh(); }
+});
+clearBtn.addEventListener('click', () => { if (busy) return; items.length = 0; invalidateResults(); refresh(); });
+async function runAction() {
+  if (busy || actionBtn.disabled) return;
+  let indices;
+  try {
+    if (['extract', 'export'].includes(mode)) indices = KompresPDF.parsePages(field('pageRange').value, items[0].pages);
+  } catch (err) { field('pageRange').setAttribute('aria-invalid', 'true'); setStatus(err.message, true); field('pageRange').focus(); return; }
+  invalidateResults(); busy = true; refresh();
+  const progress = (current, total) => setStatus(`Processando ${current} de ${total}…`);
+  try {
+    if (!window.PDFLib || !window.KompresPDF) throw new Error('Não foi possível carregar a ferramenta. Recarregue a página.');
+    if (mode === 'merge') {
+      const out = await PDFLib.PDFDocument.create();
+      for (let i = 0; i < items.length; i++) {
+        const src = await PDFLib.PDFDocument.load(items[i].data, { ignoreEncryption: false });
+        (await out.copyPages(src, src.getPageIndices())).forEach(page => out.addPage(page)); progress(i + 1, items.length);
+      }
+      outputs = [{ name: 'kompres-unido.pdf', blob: new Blob([await out.save()], { type: 'application/pdf' }) }];
+    } else if (mode === 'images') {
+      outputs = [{ name: 'kompres-imagens.pdf', blob: await KompresPDF.imagesToPdf(items, { pageSize: field('imagePageSize').value, marginMM: field('imageMargin').value }, progress) }];
+    } else if (mode === 'extract') {
+      outputs = await KompresPDF.extract(items[0], indices, field('extractOutput').value === 'split', progress);
+    } else if (mode === 'export') {
+      outputs = await KompresPDF.exportImages(items[0], indices, { format: field('exportFormat').value, dpi: Number(field('exportDpi').value), quality: Number(field('exportQuality').value) / 100 }, progress);
+    } else {
+      for (let i = 0; i < items.length; i++) {
+        const item = items[i]; item.status = 'working'; refresh(); progress(i + 1, items.length);
+        try {
+          const result = await compressSmart(item, Number(dpiSelect.value), Number(qualityIn.value) / 100);
+          item.outBlob = result.blob; item.outSize = result.blob.size; item.method = result.method; item.status = 'done';
+        } catch { item.status = 'error'; item.error = 'Falha ao comprimir este PDF'; }
+      }
     }
-
-    const bytes = await out.save();
-    mergedBlob = new Blob([bytes], { type: 'application/pdf' });
-  } catch (err) {
-    console.error('Erro ao juntar PDFs:', err);
-    alert('Não foi possível juntar os PDFs. Verifique se algum arquivo está protegido por senha.');
-  }
-
-  busy = false;
-  renderList();
-  updateStats();
-  updateButtons();
-}
-
-/* ── Comprimir ── */
-
-async function compressAll() {
-  const targets = items.filter((item) => item.status === 'ready' || item.status === 'done');
-  if (!targets.length || busy) return;
-
-  busy = true;
-  zipBlob = null;
-  const dpi = Number(dpiSelect.value);
-  const quality = Number(qualityIn.value) / 100;
-
-  for (const item of targets) {
-    item.status = 'working';
-    item.outBlob = null;
-    item.outSize = null;
-    renderList();
-    updateButtons();
-
-    try {
-      const result = await compressSmart(item, dpi, quality);
-      item.outBlob = result.blob;
-      item.outSize = result.blob.size;
-      item.method = result.method; // 'render' | 'lossless' | 'original'
-      item.status = 'done';
-    } catch (err) {
-      console.error('Erro ao comprimir:', item.name, err);
-      item.status = 'error';
-      item.error = 'Falha ao comprimir este PDF';
-    }
-
-    renderList();
-    updateStats();
-    updateButtons();
-  }
-
-  busy = false;
-  renderList();
-  updateStats();
-  updateButtons();
+    const failed = items.some(item => item.status === 'error');
+    setStatus(failed ? 'Alguns arquivos não puderam ser processados.' : '', failed);
+  } catch (err) { outputs = []; setStatus(err.message || 'Não foi possível processar o arquivo.', true); }
+  finally { busy = false; refresh(); }
 }
 
 /*
