@@ -1,0 +1,23 @@
+---
+import CompressorPage from '../../../layouts/CompressorPage.astro';
+import { pages } from '../../../data/pages';
+---
+<CompressorPage
+  page={pages.pngToJpg}
+  format="jpeg"
+  hero={{
+    title: 'Converter PNG para JPG',
+    highlight: 'em lote e grátis.',
+    text: 'Transforme imagens PNG em JPG direto no navegador. Ajuste a qualidade, veja quanto cada arquivo diminuiu e baixe tudo em ZIP.',
+  }}
+  heading="Conversor de PNG para JPG"
+  intro="Arraste seus arquivos PNG. O formato JPEG já vem selecionado."
+  guideTitle="Como converter PNG para JPG"
+  faqs={[
+    { q: 'Como converter PNG para JPG?', a: 'Arraste os arquivos PNG para a área acima, confira se o formato de saída está em JPEG e clique em Comprimir tudo. Baixe cada imagem ou todas de uma vez em um arquivo ZIP.' },
+    { q: 'O que acontece com o fundo transparente?', a: 'O JPG não suporta transparência, então as áreas transparentes do PNG recebem fundo branco. Para manter a transparência, escolha WebP ou PNG como formato de saída.' },
+    { q: 'Por que converter PNG para JPG?', a: 'Fotos e imagens com muitas cores costumam ficar bem menores em JPG do que em PNG, o que deixa sites mais rápidos e facilita o envio por e-mail ou WhatsApp. Para logotipos, textos e ilustrações com cores chapadas, o PNG costuma preservar melhor os contornos.' },
+    { q: 'Qual qualidade usar?', a: 'Entre 75% e 85% é um bom equilíbrio para fotos. Se o arquivo precisa caber em um limite, como 300 KB, use o modo Tamanho máx.: o Kompres procura a maior qualidade que cabe no limite.' },
+    { q: 'As imagens são enviadas para algum servidor?', a: 'As imagens não saem do seu dispositivo: a conversão é feita pelo próprio navegador, sem upload. Veja mais detalhes sobre privacidade nas <a href="/">perguntas do compressor</a>.' },
+  ]}
+/>

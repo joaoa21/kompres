@@ -1,0 +1,93 @@
+---
+/** Compressor/conversor de imagens (lógica em /js/compressor.js). */
+interface Props {
+  /** Formato de saída selecionado ao abrir a página. */
+  format?: 'webp' | 'png' | 'jpeg';
+  heading?: string;
+  intro?: string;
+}
+const {
+  format = 'webp',
+  heading = 'Compressor e conversor de imagens',
+  intro = 'Arraste suas imagens, escolha o formato e gere versões otimizadas em poucos cliques.',
+} = Astro.props;
+const formats = [['webp', 'WebP'], ['png', 'PNG'], ['jpeg', 'JPEG']] as const;
+---
+
+<section class="tool-section page2">
+  <div class="tool-header page-inner">
+    <div>
+      <h2>{heading}</h2>
+      <p>{intro}</p>
+    </div>
+  </div>
+
+  <div class="controls page-inner controls-compressor">
+    <div class="control-group">
+      <label>Modo</label>
+      <div class="format-toggle" id="mode-toggle">
+        <button class="fmt-btn active" type="button" data-mode="quality">Qualidade</button>
+        <button class="fmt-btn" type="button" data-mode="size">Tamanho máx.</button>
+      </div>
+    </div>
+
+    <div class="control-group" id="quality-group">
+      <label for="quality-slider">Qualidade</label>
+      <div class="value" id="quality-val">82%</div>
+      <input type="range" min="30" max="100" value="82" step="1" id="quality-slider">
+    </div>
+
+    <div class="control-group hidden" id="size-group">
+      <label for="target-size">Tamanho máximo por arquivo</label>
+      <div class="target-size-row">
+        <input type="number" id="target-size" min="1" step="1" value="300" inputmode="numeric">
+        <select id="target-unit" aria-label="Unidade">
+          <option value="KB" selected>KB</option>
+          <option value="MB">MB</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="control-group">
+      <label>Formato de saída</label>
+      <div class="format-toggle" id="fmt-toggle">
+        {formats.map(([fmt, label]) => (
+          <button class:list={['fmt-btn', { active: fmt === format }]} type="button" data-fmt={fmt}>{label}</button>
+        ))}
+      </div>
+    </div>
+  </div>
+
+  <div class="drop-zone page-inner" id="drop-zone">
+    <input type="file" accept="image/png,image/webp,image/jpeg" multiple id="file-input" aria-label="Selecionar imagens para compressão">
+    <span class="drop-icon">⬇</span>
+    <p><strong>Arraste as imagens aqui</strong><br>ou clique para selecionar · PNG, WebP, JPEG</p>
+  </div>
+
+  <div class="action-bar page-inner">
+    <button class="btn btn-primary" id="btn-compress" disabled>Comprimir tudo</button>
+    <button class="btn btn-outline" id="btn-download-all" disabled>↓ Baixar ZIP</button>
+    <button class="btn btn-outline" id="btn-clear" disabled>Limpar</button>
+  </div>
+
+  <div class="stats-bar page-inner" id="stats-bar" hidden>
+    <div class="stat">
+      <div class="stat-label">Arquivos</div>
+      <div class="stat-value" id="stat-count">0</div>
+    </div>
+    <div class="stat">
+      <div class="stat-label">Tamanho original</div>
+      <div class="stat-value" id="stat-original">—</div>
+    </div>
+    <div class="stat">
+      <div class="stat-label">Novo tamanho</div>
+      <div class="stat-value" id="stat-new">—</div>
+    </div>
+    <div class="stat">
+      <div class="stat-label">Economia total</div>
+      <div class="stat-value" id="stat-saved">—</div>
+    </div>
+  </div>
+
+  <div class="image-grid page-inner" id="image-grid" data-ah-mask></div>
+</section>

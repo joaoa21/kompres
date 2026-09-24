@@ -1,110 +1,22 @@
 ---
-import Base from '../layouts/Base.astro';
-import RelatedTools from '../components/RelatedTools.astro';
+import CompressorPage from '../layouts/CompressorPage.astro';
+import { pages } from '../data/pages';
 ---
-<Base
-  title="Compressor de imagens online grátis: PNG, JPG e WebP | Kompres"
-  description="Comprima e converta PNG, JPG e WebP em lote, grátis e sem enviar imagens ao servidor. Ajuste o tamanho em KB e baixe os arquivos em ZIP."
-  section="image"
-  imageTool="compress"
->
-  <section class="hero page">
-        <div class="hero-content">
-          <h1>Compressor de imagens<br><span>online e grátis.</span></h1>
-          <p class="hero-text">
-            Comprima e converta imagens em lote para WebP, PNG ou JPEG direto
-            no navegador. Ajuste a qualidade, compare a economia e baixe tudo em ZIP.
-          </p>
-        </div>
-      </section>
-
-      <section class="tool-section page2">
-        <div class="tool-header page-inner">
-          <div>
-            <h2>Compressor e conversor de imagens</h2>
-            <p>Arraste suas imagens, escolha o formato e gere versões otimizadas em poucos cliques.</p>
-          </div>
-        </div>
-
-        <div class="controls page-inner controls-compressor">
-          <div class="control-group">
-            <label>Modo</label>
-            <div class="format-toggle" id="mode-toggle">
-              <button class="fmt-btn active" type="button" data-mode="quality">Qualidade</button>
-              <button class="fmt-btn" type="button" data-mode="size">Tamanho máx.</button>
-            </div>
-          </div>
-
-          <div class="control-group" id="quality-group">
-            <label for="quality-slider">Qualidade</label>
-            <div class="value" id="quality-val">82%</div>
-            <input type="range" min="30" max="100" value="82" step="1" id="quality-slider">
-          </div>
-
-          <div class="control-group hidden" id="size-group">
-            <label for="target-size">Tamanho máximo por arquivo</label>
-            <div class="target-size-row">
-              <input type="number" id="target-size" min="1" step="1" value="300" inputmode="numeric">
-              <select id="target-unit" aria-label="Unidade">
-                <option value="KB" selected>KB</option>
-                <option value="MB">MB</option>
-              </select>
-            </div>
-          </div>
-
-          <div class="control-group">
-            <label>Formato de saída</label>
-            <div class="format-toggle" id="fmt-toggle">
-              <button class="fmt-btn active" type="button" data-fmt="webp">WebP</button>
-              <button class="fmt-btn" type="button" data-fmt="png">PNG</button>
-              <button class="fmt-btn" type="button" data-fmt="jpeg">JPEG</button>
-            </div>
-          </div>
-        </div>
-
-        <div class="drop-zone page-inner" id="drop-zone">
-          <input type="file" accept="image/png,image/webp,image/jpeg" multiple id="file-input" aria-label="Selecionar imagens para compressão">
-          <span class="drop-icon">⬇</span>
-          <p><strong>Arraste as imagens aqui</strong><br>ou clique para selecionar · PNG, WebP, JPEG</p>
-        </div>
-
-        <div class="action-bar page-inner">
-          <button class="btn btn-primary" id="btn-compress" disabled>Comprimir tudo</button>
-          <button class="btn btn-outline" id="btn-download-all" disabled>↓ Baixar ZIP</button>
-          <button class="btn btn-outline" id="btn-clear" disabled>Limpar</button>
-        </div>
-
-        <div class="stats-bar page-inner" id="stats-bar" hidden>
-          <div class="stat">
-            <div class="stat-label">Arquivos</div>
-            <div class="stat-value" id="stat-count">0</div>
-          </div>
-          <div class="stat">
-            <div class="stat-label">Tamanho original</div>
-            <div class="stat-value" id="stat-original">—</div>
-          </div>
-          <div class="stat">
-            <div class="stat-label">Novo tamanho</div>
-            <div class="stat-value" id="stat-new">—</div>
-          </div>
-          <div class="stat">
-            <div class="stat-label">Economia total</div>
-            <div class="stat-value" id="stat-saved">—</div>
-          </div>
-        </div>
-
-        <div class="image-grid page-inner" id="image-grid" data-ah-mask></div>
-      </section>
-
-      <section class="guide page" aria-labelledby="guide-title"><h2 id="guide-title">Como comprimir imagens online</h2>
-  <details><summary>Como diminuir o tamanho de uma imagem?</summary><p>Selecione seus arquivos PNG, JPG ou WebP, escolha o formato de saída e clique em Comprimir tudo. Em WebP e JPEG, ajuste a qualidade para equilibrar nitidez e tamanho. Baixe cada resultado ou reúna os arquivos em ZIP.</p></details>
-  <details><summary>Qual formato escolher: WebP, PNG ou JPG?</summary><p>WebP é uma opção para imagens de sites e aceita transparência. JPEG (JPG) é útil para fotos e recebe fundo branco nas áreas transparentes. PNG preserva a transparência e oferece compressão com redução controlada de cores. Use qualidade 100% quando precisar evitar mudanças intencionais nas cores.</p></details>
-  <details><summary>Posso comprimir PNG sem deixar a imagem pontilhada?</summary><p>O Kompres compara opções de compressão sem adicionar dithering, verifica diferenças de cor e mantém a transparência. A redução de cores pode alterar detalhes ou degradês; use 100% para evitá-la. Se não houver economia, o original é mantido. O navegador pode normalizar perfis de cor e metadados.</p></details>
-  <details><summary>Como reduzir uma imagem para 300 KB?</summary><p>Escolha Tamanho máx., informe 300 e selecione KB. O Kompres tenta alcançar o limite. Se não couber, você escolhe se deseja reduzir as dimensões. Em PNG, o modo de tamanho máximo usa compressão inteligente antes de oferecer redimensionamento. Aqui, 300 KB equivalem a 300.000 bytes.</p></details>
-  <details><summary>Comprimir e redimensionar são a mesma coisa?</summary><p>Comprimir altera a codificação para reduzir o peso do arquivo; redimensionar altera a quantidade de pixels. Para definir uma largura antes de comprimir, use o redimensionador de imagens.</p></details>
-  <details><summary>As imagens são enviadas para algum servidor?</summary><p>O processamento dos arquivos acontece no seu navegador, sem upload das imagens. O site usa serviços externos para carregar fontes e bibliotecas. Para melhorar o Kompres, registramos estatísticas anônimas de uso (páginas visitadas e cliques em botões), sem cookies, sem guardar seu IP e sem nada sobre seus arquivos. Para contar visitantes, usamos um código anônimo que muda todos os dias e não permite identificar você. Os cookies do Google Analytics só são ativados se você aceitar.</p></details>
-  <RelatedTools /></section>
-
-  <script is:inline slot="libs" src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-  <script slot="scripts" is:inline src="/js/compressor.js?v=png-target-2"></script>
-</Base>
+<CompressorPage
+  page={pages.compress}
+  hero={{
+    title: 'Compressor de imagens',
+    highlight: 'online e grátis.',
+    text: 'Comprima e converta imagens em lote para WebP, PNG ou JPEG direto no navegador. Ajuste a qualidade, compare a economia e baixe tudo em ZIP.',
+  }}
+  guideTitle="Como comprimir imagens online"
+  faqs={[
+    { q: 'Como diminuir o tamanho de uma imagem?', a: 'Selecione seus arquivos PNG, JPG ou WebP, escolha o formato de saída e clique em Comprimir tudo. Em WebP e JPEG, ajuste a qualidade para equilibrar nitidez e tamanho. Baixe cada resultado ou reúna os arquivos em ZIP.' },
+    { q: 'Qual formato escolher: WebP, PNG ou JPG?', a: 'WebP é uma opção para imagens de sites e aceita transparência. JPEG (JPG) é útil para fotos e recebe fundo branco nas áreas transparentes. PNG preserva a transparência e oferece compressão com redução controlada de cores. Use qualidade 100% quando precisar evitar mudanças intencionais nas cores.' },
+    { q: 'Posso comprimir PNG sem deixar a imagem pontilhada?', a: 'O Kompres compara opções de compressão sem adicionar dithering, verifica diferenças de cor e mantém a transparência. A redução de cores pode alterar detalhes ou degradês; use 100% para evitá-la. Se não houver economia, o original é mantido. O navegador pode normalizar perfis de cor e metadados.' },
+    { q: 'Como reduzir uma imagem para 300 KB?', a: 'Escolha Tamanho máx., informe 300 e selecione KB. O Kompres tenta alcançar o limite. Se não couber, você escolhe se deseja reduzir as dimensões. Em PNG, o modo de tamanho máximo usa compressão inteligente antes de oferecer redimensionamento. Aqui, 300 KB equivalem a 300.000 bytes.' },
+    { q: 'Também dá para converter o formato das imagens?', a: 'Sim. Basta escolher o formato de saída. Há atalhos prontos para as conversões mais buscadas: <a href="/converter/png-para-jpg/">PNG para JPG</a>, <a href="/converter/webp-para-jpg/">WebP para JPG</a> e <a href="/converter/webp-para-png/">WebP para PNG</a>.' },
+    { q: 'Comprimir e redimensionar são a mesma coisa?', a: 'Comprimir altera a codificação para reduzir o peso do arquivo; redimensionar altera a quantidade de pixels. Para definir uma largura antes de comprimir, use o <a href="/resizer/">redimensionador de imagens</a>.' },
+    { q: 'As imagens são enviadas para algum servidor?', a: 'O processamento dos arquivos acontece no seu navegador, sem upload das imagens. O site usa serviços externos para carregar fontes e bibliotecas. Para melhorar o Kompres, registramos estatísticas anônimas de uso (páginas visitadas e cliques em botões), sem cookies, sem guardar seu IP e sem nada sobre seus arquivos. Para contar visitantes, usamos um código anônimo que muda todos os dias e não permite identificar você. Os cookies do Google Analytics só são ativados se você aceitar.' },
+  ]}
+/>

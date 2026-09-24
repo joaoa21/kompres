@@ -3,13 +3,13 @@ import SiteHeader from '../components/SiteHeader.astro';
 import ImageToolsNav, { type ImageTool } from '../components/ImageToolsNav.astro';
 import SiteFooter from '../components/SiteFooter.astro';
 import CookieBanner from '../components/CookieBanner.astro';
+import type { PageInfo } from '../data/pages';
 
 interface Props {
-  title: string;
-  /** Sem descrição, a página não recebe canonical, Open Graph nem JSON-LD. */
-  description?: string;
-  /** Nome no JSON-LD (WebApplication). */
-  appName?: string;
+  /** Página indexável: título, descrição, canonical, Open Graph e JSON-LD vêm do registro. */
+  page?: PageInfo;
+  /** Título de páginas fora do registro (ex.: 404, que não é indexada). */
+  title?: string;
   section: 'image' | 'pdf';
   imageTool?: ImageTool;
   /** CSS extra da ferramenta, depois de style.css. */
@@ -21,18 +21,41 @@ interface Props {
 }
 
 const {
-  title, description, appName = 'Kompres', section, imageTool,
-  styles = [], smoothScroll = true, noscriptNote = true,
+  page, section, imageTool, styles = [], smoothScroll = true, noscriptNote = true,
 } = Astro.props;
+const title = page?.title ?? Astro.props.title ?? 'Kompres';
+const description = page?.description;
 
-const url = new URL(Astro.url.pathname, Astro.site).href;
-const ogImage = new URL('/og-image.png', Astro.site).href;
-const jsonLd = description && {
-  '@context': 'https://schema.org', '@type': 'WebApplication', name: appName, url, description,
-  applicationCategory: 'UtilitiesApplication', operatingSystem: 'Any', inLanguage: 'pt-BR',
-  isAccessibleForFree: true, offers: { '@type': 'Offer', price: '0', priceCurrency: 'BRL' },
-  browserRequirements: 'Requires JavaScript',
-};
+const site = Astro.site!;
+const abs = (path: string) => new URL(path, site).href;
+const url = abs(Astro.url.pathname);
+const ogImage = abs('/og-image.png');
+
+// Dados estruturados: o app da página + WebSite/Organization na home (nome do site
+// nos resultados do Google) ou breadcrumbs nas páginas internas.
+const jsonLd: object[] = [];
+if (page) {
+  jsonLd.push({
+    '@context': 'https://schema.org', '@type': 'WebApplication', name: page.appName, url, description,
+    applicationCategory: 'UtilitiesApplication', operatingSystem: 'Any', inLanguage: 'pt-BR',
+    isAccessibleForFree: true, offers: { '@type': 'Offer', price: '0', priceCurrency: 'BRL' },
+    browserRequirements: 'Requires JavaScript',
+  });
+  if (page.path === '/') {
+    jsonLd.push(
+      { '@context': 'https://schema.org', '@type': 'WebSite', name: 'Kompres', alternateName: 'kompres.com.br', url: abs('/'), inLanguage: 'pt-BR' },
+      { '@context': 'https://schema.org', '@type': 'Organization', name: 'Kompres', url: abs('/'), logo: abs('/apple-touch-icon.png') },
+    );
+  } else {
+    const trail = [{ name: 'Kompres', path: '/' }];
+    if (page.group === 'pdf' && page.path !== '/pdf/') trail.push({ name: 'PDF', path: '/pdf/' });
+    trail.push({ name: page.name, path: page.path });
+    jsonLd.push({
+      '@context': 'https://schema.org', '@type': 'BreadcrumbList',
+      itemListElement: trail.map((item, i) => ({ '@type': 'ListItem', position: i + 1, name: item.name, item: abs(item.path) })),
+    });
+  }
+}
 ---
 <!DOCTYPE html>
 <html lang="pt-BR">
@@ -52,19 +75,18 @@ const jsonLd = description && {
   </script>
 
   <title>{title}</title>
-  {description && (
+  {description ? (
     <>
       <meta name="description" content={description}>
       <meta name="author" content="João Alberto">
       <meta name="robots" content="index, follow, max-image-preview:large">
       <link rel="canonical" href={url}>
     </>
-  )}
+  ) : <meta name="robots" content="noindex">}
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@400;600;700&family=Bebas+Neue&display=swap" rel="stylesheet">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@400;500&family=Inter:wght@100..900&family=Syne:wght@400;600;700&display=swap" rel="stylesheet">
 
   <link rel="icon" type="image/svg+xml" href="/favicon.svg">
   <link rel="apple-touch-icon" href="/apple-touch-icon.png">
@@ -82,7 +104,7 @@ const jsonLd = description && {
       <meta property="og:image" content={ogImage}>
       <meta property="og:image:width" content="1200">
       <meta property="og:image:height" content="630">
-      <meta property="og:image:alt" content="Kompres — Compressor de imagens em lote">
+      <meta property="og:image:alt" content="Kompres — ferramentas de imagem e PDF no navegador">
       <meta property="og:image:type" content="image/png">
       <meta property="og:locale" content="pt_BR">
       <meta property="og:site_name" content="Kompres">
@@ -91,9 +113,9 @@ const jsonLd = description && {
       <meta name="twitter:title" content={title}>
       <meta name="twitter:description" content={description}>
       <meta name="twitter:image" content={ogImage}>
-      <meta name="twitter:image:alt" content="Kompres — Compressor de imagens em lote">
+      <meta name="twitter:image:alt" content="Kompres — ferramentas de imagem e PDF no navegador">
 
-      <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
+      {jsonLd.map((data) => <script type="application/ld+json" set:html={JSON.stringify(data)} />)}
     </>
   )}
 

@@ -1,1 +1,9 @@
-<nav class="related-tools" aria-label="Ferramentas relacionadas"><a href="/">Comprimir e converter imagens</a><a href="/resizer/">Redimensionar imagens</a><a href="/pdf/">Juntar e comprimir PDF</a></nav>
+---
+import { allPages } from '../data/pages';
+interface Props { current: string }
+const { current } = Astro.props;
+const others = allPages.filter((page) => page.path !== current);
+---
+<nav class="related-tools" aria-label="Outras ferramentas">
+  {others.map((page) => <a href={page.path}>{page.name}</a>)}
+</nav>

@@ -1,0 +1,21 @@
+---
+import PdfPage from '../../../layouts/PdfPage.astro';
+import { pages } from '../../../data/pages';
+---
+<PdfPage
+  page={pages.pdfFromImages}
+  mode="images"
+  hero={{
+    title: 'Converter JPG para PDF',
+    highlight: 'em um só arquivo.',
+    text: 'Transforme fotos e imagens JPG ou PNG em um PDF, na ordem que você quiser. Tudo direto no navegador, sem enviar os arquivos.',
+  }}
+  guideTitle="Como transformar imagens em PDF"
+  faqs={[
+    { q: 'Como converter JPG para PDF?', a: 'Adicione as imagens JPG ou PNG, organize a ordem, escolha o tamanho da página e a margem e clique em Criar PDF. Cada imagem vira uma página do documento.' },
+    { q: 'Posso juntar várias fotos em um único PDF?', a: 'Sim. Adicione quantas imagens quiser e arraste os itens da lista, ou use as setas, para definir a ordem das páginas.' },
+    { q: 'Qual tamanho de página escolher?', a: 'A4 retrato ou paisagem é o padrão para documentos e impressão; a imagem é ajustada à página sem distorcer. Em Tamanho da imagem, cada página fica com as proporções da própria foto.' },
+    { q: 'A qualidade das fotos é mantida?', a: 'Sim. As imagens entram no PDF em alta qualidade, e a orientação de fotos tiradas no celular é corrigida automaticamente. Se o PDF ficar grande demais, use depois o <a href="/pdf/comprimir/">compressor de PDF</a>.' },
+    { q: 'As imagens são enviadas ao servidor?', a: 'Não. O PDF é montado no seu navegador, sem upload das imagens.' },
+  ]}
+/>

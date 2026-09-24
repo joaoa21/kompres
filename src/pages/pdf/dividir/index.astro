@@ -1,0 +1,22 @@
+---
+import PdfPage from '../../../layouts/PdfPage.astro';
+import { pages } from '../../../data/pages';
+---
+<PdfPage
+  page={pages.pdfSplit}
+  mode="extract"
+  hero={{
+    title: 'Dividir PDF',
+    highlight: 'e extrair páginas.',
+    text: 'Separe as páginas que você precisa de um PDF ou divida o documento em um arquivo por página, direto no navegador.',
+  }}
+  guideTitle="Como dividir um PDF e extrair páginas"
+  faqs={[
+    { q: 'Como extrair páginas de um PDF?', a: 'Adicione o PDF, informe as páginas no campo Páginas, por exemplo 1-3, 7, e clique em Extrair páginas. Deixe o campo vazio para usar todas.' },
+    { q: 'Como dividir um PDF em vários arquivos?', a: 'Em Salvar como, escolha Um PDF por página. Cada página selecionada vira um arquivo separado, e você pode baixar todos juntos em ZIP.' },
+    { q: 'Como informar as páginas?', a: 'Use números separados por vírgula e intervalos com hífen, como 2, 5-8, 10. Em cada intervalo, o primeiro número deve ser menor que o segundo. Páginas repetidas são ignoradas.' },
+    { q: 'O arquivo original é alterado?', a: 'Não. O Kompres gera novos arquivos com as páginas escolhidas; o PDF original continua intacto no seu computador.' },
+    { q: 'Posso dividir um PDF protegido por senha?', a: 'Esta ferramenta não oferece desbloqueio de PDFs protegidos. Use uma cópia sem senha que você tenha autorização para editar. Assinaturas digitais podem perder a validade ao modificar ou juntar documentos.' },
+    { q: 'Os documentos são enviados ao servidor?', a: 'Não. A leitura e a transformação dos PDFs acontecem no navegador. Documentos muito grandes podem exigir bastante memória; se houver falha, processe menos arquivos por vez.' },
+  ]}
+/>

@@ -1,14 +1,9 @@
 ---
 import Base from '../../layouts/Base.astro';
-import RelatedTools from '../../components/RelatedTools.astro';
+import Guide from '../../components/Guide.astro';
+import { pages } from '../../data/pages';
 ---
-<Base
-  title="Redimensionar imagens online em lote grátis | Kompres"
-  description="Redimensione PNG, JPG e WebP por largura ou porcentagem, mantendo a proporção. Veja as novas dimensões e baixe suas imagens em lote gratuitamente."
-  appName="Kompres Resizer"
-  section="image"
-  imageTool="resize"
->
+<Base page={pages.resize} section="image" imageTool="resize">
   <section class="hero page">
         <div class="hero-content">
           <h1>Redimensionar imagens.<br><span>Simples e em lote.</span></h1>
@@ -94,13 +89,17 @@ import RelatedTools from '../../components/RelatedTools.astro';
         <div class="image-grid page-inner" id="previewList" data-ah-mask></div>
       </section>
 
-      <section class="guide page" aria-labelledby="guide-title"><h2 id="guide-title">Como redimensionar imagens sem distorcer</h2>
-  <details><summary>Como mudar a largura de uma imagem?</summary><p>Adicione imagens PNG, JPG ou WebP e informe a largura máxima em pixels. A altura é calculada automaticamente para manter a proporção. Imagens menores que essa largura não são ampliadas.</p></details>
-  <details><summary>Como reduzir uma imagem pela metade?</summary><p>Escolha o modo Porcentagem e selecione 50%. Tanto a largura quanto a altura serão reduzidas pela metade, respeitando o mínimo de um pixel. Confira as dimensões antes de baixar.</p></details>
-  <details><summary>Redimensionar diminui o tamanho em KB?</summary><p>Reduzir as dimensões geralmente diminui o peso, mas o resultado também depende do formato e da codificação. Se você precisa de um limite específico em KB, use o compressor de imagens após redimensionar.</p></details>
-  <details><summary>É possível redimensionar várias imagens de uma vez?</summary><p>Sim. Selecione vários arquivos, defina a largura ou porcentagem e clique em Redimensionar tudo. Você pode baixar os resultados individualmente ou em um arquivo ZIP.</p></details>
-  <details><summary>O fundo transparente é preservado?</summary><p>PNG e WebP mantêm a transparência na saída. O redimensionamento usa os formatos compatíveis PNG, JPEG e WebP e acontece no navegador, sem enviar seus arquivos ao servidor.</p></details>
-  <RelatedTools /></section>
+  <Guide
+    title="Como redimensionar imagens sem distorcer"
+    current={pages.resize.path}
+    faqs={[
+      { q: 'Como mudar a largura de uma imagem?', a: 'Adicione imagens PNG, JPG ou WebP e informe a largura máxima em pixels. A altura é calculada automaticamente para manter a proporção. Imagens menores que essa largura não são ampliadas.' },
+      { q: 'Como reduzir uma imagem pela metade?', a: 'Escolha o modo Porcentagem e selecione 50%. Tanto a largura quanto a altura serão reduzidas pela metade, respeitando o mínimo de um pixel. Confira as dimensões antes de baixar.' },
+      { q: 'Redimensionar diminui o tamanho em KB?', a: 'Reduzir as dimensões geralmente diminui o peso, mas o resultado também depende do formato e da codificação. Se você precisa de um limite específico em KB, use o <a href="/">compressor de imagens</a> após redimensionar.' },
+      { q: 'É possível redimensionar várias imagens de uma vez?', a: 'Sim. Selecione vários arquivos, defina a largura ou porcentagem e clique em Redimensionar tudo. Você pode baixar os resultados individualmente ou em um arquivo ZIP.' },
+      { q: 'O fundo transparente é preservado?', a: 'PNG e WebP mantêm a transparência na saída. O redimensionamento usa os formatos compatíveis PNG, JPEG e WebP e acontece no navegador, sem enviar seus arquivos ao servidor.' },
+    ]}
+  />
 
   <script is:inline slot="libs" src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
   <script slot="scripts" is:inline src="/js/resizer.js?v=astro-1"></script>

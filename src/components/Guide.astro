@@ -1,0 +1,11 @@
+---
+import RelatedTools from './RelatedTools.astro';
+export interface Faq { q: string; /** HTML permitido (links internos). */ a: string }
+interface Props { title: string; faqs: Faq[]; current: string }
+const { title, faqs, current } = Astro.props;
+---
+<section class="guide page" aria-labelledby="guide-title">
+  <h2 id="guide-title">{title}</h2>
+  {faqs.map(({ q, a }) => <details><summary>{q}</summary><p set:html={a} /></details>)}
+  <RelatedTools current={current} />
+</section>

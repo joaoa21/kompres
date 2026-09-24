@@ -1,0 +1,21 @@
+---
+import PdfPage from '../../../layouts/PdfPage.astro';
+import { pages } from '../../../data/pages';
+---
+<PdfPage
+  page={pages.pdfToImages}
+  mode="export"
+  hero={{
+    title: 'Converter PDF para JPG',
+    highlight: 'página por página.',
+    text: 'Transforme as páginas de um PDF em imagens JPG ou PNG, na resolução que você escolher, direto no navegador.',
+  }}
+  guideTitle="Como converter PDF em imagem"
+  faqs={[
+    { q: 'Como converter PDF para JPG?', a: 'Adicione o PDF, escolha o formato (JPG ou PNG), a resolução e as páginas, e clique em Converter páginas. Baixe as imagens uma a uma ou todas em ZIP.' },
+    { q: 'JPG ou PNG?', a: 'JPG gera arquivos menores e é ideal para páginas com fotos. PNG preserva melhor textos finos e gráficos, mas os arquivos ficam maiores.' },
+    { q: 'Qual resolução usar?', a: '72 DPI é suficiente para ver na tela; 150 DPI é um bom padrão para compartilhar; 200 DPI dá mais nitidez para textos pequenos e impressão.' },
+    { q: 'Posso converter só algumas páginas?', a: 'Sim. No campo Páginas, informe números e intervalos como 1-3, 7. Deixe vazio para converter todas.' },
+    { q: 'Os documentos são enviados ao servidor?', a: 'Não. A leitura e a transformação dos PDFs acontecem no navegador. Documentos muito grandes podem exigir bastante memória; se houver falha, processe menos arquivos por vez.' },
+  ]}
+/>
