@@ -6,6 +6,7 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@400;600;700&family=Inter:wght@400;500;600&display=swap">
 <link rel="stylesheet" href="/css/style.css"><link rel="stylesheet" href="/css/tool-navigation.css?v=1"><link rel="stylesheet" href="/css/background-remover.css?v=1">
 <link rel="stylesheet" href="/css/selects.css?v=1">
+<script src="https://analytics-hub-production-9abd.up.railway.app/t.js" data-key="pk_T-P-dYFljYL8Ss4QDtCCFmb3w0QSwIWP" defer></script>
 </head><body>
   <a class="skip-link" href="#main">Pular para o conteúdo</a>
   <header class="site-header page">
@@ -33,7 +34,7 @@
 <div class="drop-zone page-inner" id="bgDrop"><input id="bgFiles" type="file" accept="image/png,image/jpeg,image/webp" multiple aria-label="Selecionar imagens"><span class="drop-icon">⬇</span><p><strong>Arraste as imagens aqui</strong><br>ou clique para selecionar · PNG, WebP, JPEG</p></div>
 <div class="action-bar page-inner"><button class="btn btn-primary" id="bgRun" disabled>Remover fundo</button><button class="btn btn-outline" id="bgDownload" disabled>↓ Baixar PNG</button><button class="btn btn-outline" id="bgClear" disabled>Limpar</button><button class="btn btn-outline" id="bgCancel" hidden>Cancelar</button></div>
 <p class="bg-status page-inner" id="bgStatus" role="status" aria-live="polite" hidden></p>
-<div class="bg-cards page-inner" id="bgCards"></div>
+<div class="bg-cards page-inner" id="bgCards" data-ah-mask></div>
 </section></main>
 <dialog id="bgEditor" aria-labelledby="editorTitle">
 <div class="editor-header"><h2 id="editorTitle">Ajustar recorte</h2><button type="button" class="btn btn-outline" id="editorClose">Cancelar</button></div>
@@ -56,7 +57,7 @@
   </div>
 
   <div id="cookie-banner" role="dialog" aria-label="Preferência de análise de uso">
-    <p>Podemos usar cookies de análise para entender o uso do site? <strong>Seus arquivos são processados no navegador.</strong></p>
+    <p>Usamos estatísticas anônimas, sem cookies, para melhorar o site. Podemos também usar cookies do Google Analytics? <strong>Seus arquivos são processados no navegador.</strong></p>
     <div class="cookie-actions"><button class="cookie-btn primary" type="button" onclick="acceptCookies()">Aceitar</button><button class="cookie-btn ghost" type="button" onclick="rejectCookies()">Recusar</button></div>
   </div>
 
