@@ -1,0 +1,23 @@
+---
+import CompressorPage from '../../../layouts/CompressorPage.astro';
+import { pages } from '../../../data/pages';
+---
+<CompressorPage
+  page={pages.webpToPng}
+  format="png"
+  hero={{
+    title: 'Converter WebP para PNG',
+    highlight: 'com transparência.',
+    text: 'Converta imagens WebP para PNG em lote direto no navegador, mantendo o fundo transparente. Baixe tudo em ZIP.',
+  }}
+  heading="Conversor de WebP para PNG"
+  intro="Arraste seus arquivos WebP. O formato PNG já vem selecionado."
+  guideTitle="Como converter WebP para PNG"
+  faqs={[
+    { q: 'Como converter WebP para PNG?', a: 'Arraste os arquivos WebP para a área acima, confira se o formato de saída está em PNG e clique em Comprimir tudo. Baixe cada imagem ou todas de uma vez em um arquivo ZIP.' },
+    { q: 'A transparência é mantida?', a: 'Sim. O PNG suporta transparência, então as áreas transparentes do WebP continuam transparentes.' },
+    { q: 'Qual qualidade escolher?', a: 'Em 100%, o PNG é gerado sem perdas, com as mesmas cores do WebP. Abaixo disso, o Kompres pode reduzir a quantidade de cores para deixar o arquivo menor, sem pontilhado e mantendo a transparência.' },
+    { q: 'Por que o PNG ficou maior que o WebP?', a: 'É normal: o WebP costuma comprimir melhor que o PNG, principalmente em fotos. Se o objetivo é um arquivo leve e compatível, <a href="/converter/webp-para-jpg/">converta para JPG</a>.' },
+    { q: 'As imagens são enviadas para algum servidor?', a: 'As imagens não saem do seu dispositivo: a conversão é feita pelo próprio navegador, sem upload. Veja mais detalhes sobre privacidade nas <a href="/">perguntas do compressor</a>.' },
+  ]}
+/>

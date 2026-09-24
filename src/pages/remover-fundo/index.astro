@@ -1,0 +1,58 @@
+---
+import Base from '../../layouts/Base.astro';
+import Hero from '../../components/Hero.astro';
+import Guide from '../../components/Guide.astro';
+import { pages } from '../../data/pages';
+---
+<Base
+  page={pages.background}
+  section="image"
+  imageTool="background"
+  styles={['/css/background-remover.css?v=1']}
+  smoothScroll={false}
+  noscriptNote={false}
+>
+  <Hero
+    title="Remover fundo de imagem"
+    highlight="grátis, com IA."
+    text="Remova o fundo das suas fotos com inteligência artificial direto no navegador e ajuste os detalhes antes de baixar em PNG transparente."
+  />
+  <section class="tool-section page2 bg-tool">
+  <div class="tool-header page-inner"><div><h2>Removedor de fundo</h2><p>Selecione suas imagens para começar.</p></div></div>
+  <div class="drop-zone page-inner" id="bgDrop"><input id="bgFiles" type="file" accept="image/png,image/jpeg,image/webp" multiple aria-label="Selecionar imagens"><span class="drop-icon">⬇</span><p><strong>Arraste as imagens aqui</strong><br>ou clique para selecionar · PNG, WebP, JPEG</p></div>
+  <div class="action-bar page-inner"><button class="btn btn-primary" id="bgRun" disabled>Remover fundo</button><button class="btn btn-outline" id="bgDownload" disabled>↓ Baixar PNG</button><button class="btn btn-outline" id="bgClear" disabled>Limpar</button><button class="btn btn-outline" id="bgCancel" hidden>Cancelar</button></div>
+  <p class="bg-status page-inner" id="bgStatus" role="status" aria-live="polite" hidden></p>
+  <div class="bg-cards page-inner" id="bgCards" data-ah-mask></div>
+  </section>
+  <Guide
+    title="Como remover o fundo de uma imagem"
+    current={pages.background.path}
+    faqs={[
+      { q: 'Como remover o fundo de uma foto?', a: 'Selecione até 10 imagens PNG, JPG ou WebP e clique em Remover fundo. A inteligência artificial identifica o objeto principal e apaga o restante. Depois, baixe cada resultado em PNG ou todos em um arquivo ZIP.' },
+      { q: 'Posso corrigir o recorte?', a: 'Sim. Clique em Ajustar recorte para abrir o editor: use Apagar para remover sobras do fundo e Restaurar para recuperar detalhes, como cabelo ou bordas. Dá para desfazer, dar zoom e conferir o resultado sobre fundo branco, preto ou verde.' },
+      { q: 'Em qual formato a imagem é salva?', a: 'Em PNG com fundo transparente, pronto para montagens, lojas virtuais, apresentações e redes sociais. Para deixar o arquivo mais leve mantendo a transparência, use depois o <a href="/">compressor de imagens</a> com saída em WebP ou PNG.' },
+      { q: 'Por que a primeira remoção demora mais?', a: 'Na primeira vez, o navegador baixa o modelo de inteligência artificial que faz o recorte. Nas próximas, ele costuma ser reaproveitado e o processamento começa mais rápido. Computadores com placa de vídeo compatível também processam mais rápido.' },
+      { q: 'Existe limite de tamanho?', a: 'Cada imagem pode ter até 40 MB, 12 megapixels e 8192 pixels no maior lado. Para fotos maiores, reduza antes com o <a href="/resizer/">redimensionador de imagens</a>.' },
+      { q: 'As imagens são enviadas para algum servidor?', a: 'Não. O recorte é feito no seu navegador e as imagens não são enviadas a nenhum servidor. Apenas o modelo de IA é baixado na primeira utilização.' },
+    ]}
+  />
+
+  <Fragment slot="after-main">
+    <dialog id="bgEditor" aria-labelledby="editorTitle">
+    <div class="editor-header"><h2 id="editorTitle">Ajustar recorte</h2><button type="button" class="btn btn-outline" id="editorClose">Cancelar</button></div>
+    <div class="editor-controls">
+    <div class="editor-modes" role="group" aria-label="Ferramenta"><button data-brush="erase" class="active" aria-pressed="true">Apagar</button><button data-brush="restore" aria-pressed="false">Restaurar</button><button data-brush="pan" aria-pressed="false">Mover</button></div>
+    <label>Pincel <input id="brushSize" type="range" min="2" max="160" value="30"><output id="brushValue">30 px</output></label>
+    <button id="editorUndo" disabled>Desfazer</button>
+    <label for="editorZoom">Zoom</label><select id="editorZoom"><option value="fit">Ajustar</option><option value="1">100%</option><option value="2">200%</option><option value="4">400%</option></select>
+    <div class="editor-backgrounds" role="group" aria-label="Fundo da prévia"><button data-bg="check" aria-label="Fundo quadriculado" aria-pressed="true">▦</button><button data-bg="white" aria-label="Fundo branco" aria-pressed="false">Branco</button><button data-bg="black" aria-label="Fundo preto" aria-pressed="false">Preto</button><button data-bg="green" aria-label="Fundo verde" aria-pressed="false">Verde</button></div>
+    <button id="editorOriginal" aria-pressed="false">Ver original</button>
+    </div>
+    <div id="editorStage" class="editor-stage"><div id="editorSurface" data-background="check"><canvas id="editorCanvas" aria-label="Área de edição do recorte"></canvas><div id="brushCursor" hidden></div></div></div>
+    <div class="editor-footer"><span id="editorStatus" role="status">Apague o fundo que sobrou ou restaure detalhes.</span><button class="btn btn-primary" id="editorSave">Aplicar ajustes</button></div>
+    </dialog>
+  </Fragment>
+
+  <script is:inline slot="libs" src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+  <script slot="scripts" is:inline type="module" src="/js/background-remover.js?v=1"></script>
+</Base>

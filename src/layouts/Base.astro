@@ -1,0 +1,154 @@
+---
+import SiteHeader from '../components/SiteHeader.astro';
+import ImageToolsNav, { type ImageTool } from '../components/ImageToolsNav.astro';
+import SiteFooter from '../components/SiteFooter.astro';
+import CookieBanner from '../components/CookieBanner.astro';
+import type { PageInfo } from '../data/pages';
+
+interface Props {
+  /** Página indexável: título, descrição, canonical, Open Graph e JSON-LD vêm do registro. */
+  page?: PageInfo;
+  /** Título de páginas fora do registro (ex.: 404, que não é indexada). */
+  title?: string;
+  section: 'image' | 'pdf';
+  imageTool?: ImageTool;
+  /** CSS extra da ferramenta, depois de style.css. */
+  styles?: string[];
+  /** Rolagem suave (Lenis). */
+  smoothScroll?: boolean;
+  /** Aviso <noscript> no topo do conteúdo. */
+  noscriptNote?: boolean;
+}
+
+const {
+  page, section, imageTool, styles = [], smoothScroll = true, noscriptNote = true,
+} = Astro.props;
+const title = page?.title ?? Astro.props.title ?? 'Kompres';
+const description = page?.description;
+
+const site = Astro.site!;
+const abs = (path: string) => new URL(path, site).href;
+const url = abs(Astro.url.pathname);
+const ogImage = abs('/og-image.png');
+
+// Dados estruturados: o app da página + WebSite/Organization na home (nome do site
+// nos resultados do Google) ou breadcrumbs nas páginas internas.
+const jsonLd: object[] = [];
+if (page) {
+  jsonLd.push({
+    '@context': 'https://schema.org', '@type': 'WebApplication', name: page.appName, url, description,
+    applicationCategory: 'UtilitiesApplication', operatingSystem: 'Any', inLanguage: 'pt-BR',
+    isAccessibleForFree: true, offers: { '@type': 'Offer', price: '0', priceCurrency: 'BRL' },
+    browserRequirements: 'Requires JavaScript',
+  });
+  if (page.path === '/') {
+    jsonLd.push(
+      { '@context': 'https://schema.org', '@type': 'WebSite', name: 'Kompres', alternateName: 'kompres.com.br', url: abs('/'), inLanguage: 'pt-BR' },
+      { '@context': 'https://schema.org', '@type': 'Organization', name: 'Kompres', url: abs('/'), logo: abs('/apple-touch-icon.png') },
+    );
+  } else {
+    const trail = [{ name: 'Kompres', path: '/' }];
+    if (page.group === 'pdf' && page.path !== '/pdf/') trail.push({ name: 'PDF', path: '/pdf/' });
+    trail.push({ name: page.name, path: page.path });
+    jsonLd.push({
+      '@context': 'https://schema.org', '@type': 'BreadcrumbList',
+      itemListElement: trail.map((item, i) => ({ '@type': 'ListItem', position: i + 1, name: item.name, item: abs(item.path) })),
+    });
+  }
+}
+---
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script is:inline>
+    // Aplica o tema antes da primeira pintura: evita piscar o tema errado ao trocar de ferramenta.
+    try {
+      const saved = localStorage.getItem('kompres-theme');
+      if (saved ? saved === 'light' : !matchMedia('(prefers-color-scheme: dark)').matches) document.documentElement.classList.add('light');
+    } catch {
+      if (!matchMedia('(prefers-color-scheme: dark)').matches) document.documentElement.classList.add('light');
+    }
+    // Chegou por transição entre ferramentas: sem animação de entrada no que já estava na tela.
+    addEventListener('pagereveal', (event) => { if (event.viewTransition) document.documentElement.classList.add('vt-nav'); });
+  </script>
+
+  <title>{title}</title>
+  {description ? (
+    <>
+      <meta name="description" content={description}>
+      <meta name="author" content="João Alberto">
+      <meta name="robots" content="index, follow, max-image-preview:large">
+      <link rel="canonical" href={url}>
+    </>
+  ) : <meta name="robots" content="noindex">}
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@400;500&family=Inter:wght@100..900&family=Syne:wght@400;600;700&display=swap" rel="stylesheet">
+
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+  <link rel="stylesheet" href="/css/style.css?v=astro-1">
+  {styles.map((href) => <link rel="stylesheet" href={href}>)}
+  <link rel="stylesheet" href="/css/tool-navigation.css?v=1">
+  <link rel="stylesheet" href="/css/selects.css?v=1">
+
+  {description && (
+    <>
+      <meta property="og:type" content="website">
+      <meta property="og:url" content={url}>
+      <meta property="og:title" content={title}>
+      <meta property="og:description" content={description}>
+      <meta property="og:image" content={ogImage}>
+      <meta property="og:image:width" content="1200">
+      <meta property="og:image:height" content="630">
+      <meta property="og:image:alt" content="Kompres — ferramentas de imagem e PDF no navegador">
+      <meta property="og:image:type" content="image/png">
+      <meta property="og:locale" content="pt_BR">
+      <meta property="og:site_name" content="Kompres">
+
+      <meta name="twitter:card" content="summary_large_image">
+      <meta name="twitter:title" content={title}>
+      <meta name="twitter:description" content={description}>
+      <meta name="twitter:image" content={ogImage}>
+      <meta name="twitter:image:alt" content="Kompres — ferramentas de imagem e PDF no navegador">
+
+      {jsonLd.map((data) => <script type="application/ld+json" set:html={JSON.stringify(data)} />)}
+    </>
+  )}
+
+  <meta name="theme-color" content="#0c0c0d" media="(prefers-color-scheme: dark)">
+  <meta name="theme-color" content="#f2f0eb" media="(prefers-color-scheme: light)">
+
+  <script is:inline src="https://analytics-hub-production-9abd.up.railway.app/t.js" data-key="pk_T-P-dYFljYL8Ss4QDtCCFmb3w0QSwIWP" defer></script>
+</head>
+<body>
+  <a class="skip-link" href="#main">Pular para o conteúdo</a>
+  <SiteHeader section={section} />
+  {imageTool && <ImageToolsNav active={imageTool} />}
+
+  <main id="main">
+    {noscriptNote && <noscript><p class="page tool-note">Ative o JavaScript para processar arquivos. As instruções abaixo continuam disponíveis.</p></noscript>}
+    <slot />
+  </main>
+  <slot name="after-main" />
+
+  <SiteFooter />
+  <CookieBanner />
+
+  {/* Bibliotecas externas da ferramenta (carregam antes do tema e do script da página). */}
+  <slot name="libs" />
+  <script is:inline src="/js/theme.js"></script>
+  <slot name="scripts" />
+  {smoothScroll && (
+    <>
+      <script is:inline src="https://unpkg.com/lenis@1.3.13/dist/lenis.min.js"></script>
+      <script is:inline src="/js/lenis-init.js"></script>
+    </>
+  )}
+  <script is:inline src="/js/privacy.js"></script>
+  <script is:inline src="/js/selects.js?v=1"></script>
+</body>
+</html>

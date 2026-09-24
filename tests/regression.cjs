@@ -8,7 +8,7 @@ const engine = { console, Uint8Array, Uint32Array, Uint16Array, Uint8ClampedArra
 engine.window = engine; engine.globalThis = engine;
 vm.createContext(engine);
 for (const file of ['vendor/pako.min.js', 'vendor/UPNG.js', 'png-engine.js']) {
-  vm.runInContext(fs.readFileSync('js/' + file, 'utf8'), engine);
+  vm.runInContext(fs.readFileSync('public/js/' + file, 'utf8'), engine);
 }
 (async () => {
   const width = 256, height = 128;

@@ -1,0 +1,27 @@
+---
+/** Páginas do compressor/conversor de imagens: mesma ferramenta, formato inicial e textos próprios. */
+import Base from './Base.astro';
+import Hero from '../components/Hero.astro';
+import Guide, { type Faq } from '../components/Guide.astro';
+import CompressorTool from '../components/tools/CompressorTool.astro';
+import type { PageInfo } from '../data/pages';
+
+interface Props {
+  page: PageInfo;
+  hero: { title: string; highlight: string; text: string };
+  format?: 'webp' | 'png' | 'jpeg';
+  heading?: string;
+  intro?: string;
+  guideTitle: string;
+  faqs: Faq[];
+}
+const { page, hero, format, heading, intro, guideTitle, faqs } = Astro.props;
+---
+<Base page={page} section="image" imageTool="compress">
+  <Hero {...hero} />
+  <CompressorTool format={format} heading={heading} intro={intro} />
+  <Guide title={guideTitle} faqs={faqs} current={page.path} />
+
+  <script is:inline slot="libs" src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+  <script slot="scripts" is:inline src="/js/compressor.js?v=seo-1"></script>
+</Base>

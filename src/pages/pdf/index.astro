@@ -1,0 +1,22 @@
+---
+import PdfPage from '../../layouts/PdfPage.astro';
+import { pages } from '../../data/pages';
+---
+<PdfPage
+  page={pages.pdfMerge}
+  mode="merge"
+  hero={{
+    title: 'Juntar PDF',
+    highlight: 'direto no navegador.',
+    text: 'Junte vários PDFs em um único arquivo, na ordem que você quiser. Também dá para comprimir, dividir e converter PDFs — tudo no navegador, sem que seus documentos saiam do computador.',
+  }}
+  guideTitle="Como juntar arquivos PDF"
+  faqs={[
+    { q: 'Como juntar vários PDFs em um arquivo?', a: 'Selecione pelo menos dois PDFs, organize a ordem na lista e clique em Juntar PDFs. Depois, baixe o documento combinado. Confira o resultado antes de substituir seus originais.' },
+    { q: 'Posso mudar a ordem dos arquivos?', a: 'Sim. Arraste os itens da lista ou use as setas para mover cada arquivo. O PDF final segue a ordem exibida.' },
+    { q: 'Existe limite de arquivos ou páginas?', a: 'Não há um limite fixo. Como tudo é processado no navegador, documentos muito grandes podem exigir bastante memória; se houver falha, junte menos arquivos por vez.' },
+    { q: 'O que mais dá para fazer com PDFs aqui?', a: 'Você pode <a href="/pdf/comprimir/">comprimir PDF</a>, <a href="/pdf/dividir/">dividir e extrair páginas</a>, <a href="/pdf/jpg-para-pdf/">converter JPG para PDF</a> e <a href="/pdf/pdf-para-jpg/">converter PDF para JPG</a>.' },
+    { q: 'Posso usar PDFs protegidos por senha?', a: 'Esta ferramenta não oferece desbloqueio de PDFs protegidos. Use uma cópia sem senha que você tenha autorização para editar. Assinaturas digitais podem perder a validade ao modificar ou juntar documentos.' },
+    { q: 'Os documentos são enviados ao servidor?', a: 'Não. A leitura e a transformação dos PDFs acontecem no navegador. Documentos muito grandes podem exigir bastante memória; se houver falha, processe menos arquivos por vez.' },
+  ]}
+/>

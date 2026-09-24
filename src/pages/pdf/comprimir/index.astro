@@ -1,0 +1,22 @@
+---
+import PdfPage from '../../../layouts/PdfPage.astro';
+import { pages } from '../../../data/pages';
+---
+<PdfPage
+  page={pages.pdfCompress}
+  mode="compress"
+  hero={{
+    title: 'Comprimir PDF',
+    highlight: 'sem perder o texto.',
+    text: 'Reduza o tamanho de PDFs pesados direto no navegador. Por padrão, o texto continua selecionável e seus documentos nunca saem do computador.',
+  }}
+  guideTitle="Como reduzir o tamanho de um PDF"
+  faqs={[
+    { q: 'Como comprimir um PDF?', a: 'Adicione um ou mais PDFs, escolha a resolução e a qualidade das imagens e clique em Comprimir tudo. Baixe cada arquivo ou todos em um ZIP.' },
+    { q: 'Como funciona a compressão de PDF?', a: 'O Kompres tenta reorganizar a estrutura do documento e recomprimir imagens compatíveis. Se nenhuma opção resultar em um arquivo menor, mantém o original. O ganho depende do conteúdo do PDF.' },
+    { q: 'O texto continua selecionável?', a: 'Por padrão, o Kompres preserva o texto. Você pode permitir a conversão das páginas em imagens para tentar reduzir mais o arquivo; nesse caso, o resultado pode perder texto selecionável, links, campos de formulário e recursos de acessibilidade.' },
+    { q: 'Qual resolução escolher?', a: '150 DPI mantém boa nitidez para leitura e impressão simples; 120 DPI é o equilíbrio padrão; 96 DPI gera arquivos menores, indicado para envio por e-mail ou formulários com limite de tamanho.' },
+    { q: 'Por que meu PDF quase não diminuiu?', a: 'PDFs formados principalmente por texto já costumam ser leves, e imagens já otimizadas têm pouco a ganhar. Experimente uma resolução menor ou permita a compressão mais forte, sabendo que ela transforma as páginas em imagens.' },
+    { q: 'Os documentos são enviados ao servidor?', a: 'Não. A leitura e a transformação dos PDFs acontecem no navegador. Documentos muito grandes podem exigir bastante memória; se houver falha, processe menos arquivos por vez.' },
+  ]}
+/>

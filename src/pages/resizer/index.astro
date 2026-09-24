@@ -1,0 +1,106 @@
+---
+import Base from '../../layouts/Base.astro';
+import Guide from '../../components/Guide.astro';
+import { pages } from '../../data/pages';
+---
+<Base page={pages.resize} section="image" imageTool="resize">
+  <section class="hero page">
+        <div class="hero-content">
+          <h1>Redimensionar imagens.<br><span>Simples e em lote.</span></h1>
+          <p class="hero-text">
+            Redimensione imagens em lote direto no navegador. Escolha por largura ou porcentagem,
+            veja o preview e baixe tudo em ZIP.
+          </p>
+        </div>
+      </section>
+
+      <section class="tool-section page2">
+        <div class="tool-header page-inner">
+          <div>
+            <h2>Redimensionador de imagens</h2>
+            <p>Ideal para reduzir imagens grandes demais antes de subir no site.</p>
+          </div>
+        </div>
+
+        <div class="controls page-inner controls-resizer">
+          <div class="control-group">
+            <label>Modo</label>
+            <div class="format-toggle">
+              <label class="fmt-btn active">
+                <input type="radio" name="resizeMode" value="width" checked>
+                Largura
+              </label>
+              <label class="fmt-btn">
+                <input type="radio" name="resizeMode" value="percent">
+                Porcentagem
+              </label>
+            </div>
+          </div>
+
+          <div class="control-group" id="widthGroup">
+            <label for="maxWidth">Largura máxima</label>
+            <input type="number" id="maxWidth" value="720" min="1">
+          </div>
+
+          <div class="control-group hidden" id="percentGroup">
+            <label for="percent">Porcentagem</label>
+            <select id="percent">
+              <option value="100">100%</option>
+              <option value="75">75%</option>
+              <option value="60">60%</option>
+              <option value="50" selected>50%</option>
+              <option value="33">33%</option>
+              <option value="25">25%</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="drop-zone page-inner" id="dropZone">
+          <input type="file" id="fileInput" accept="image/png,image/jpeg,image/webp" multiple aria-label="Selecionar imagens para redimensionar">
+          <span class="drop-icon">⬇</span>
+          <p><strong>Arraste as imagens aqui</strong><br>ou clique para selecionar · PNG, WebP, JPEG</p>
+        </div>
+
+        <div class="action-bar page-inner">
+          <button class="btn btn-primary" id="processBtn">Redimensionar tudo</button>
+          <button class="btn btn-outline" id="downloadZipBtn" disabled>↓ Baixar ZIP</button>
+          <button class="btn btn-outline" id="clearBtn" disabled>Limpar</button>
+        </div>
+
+        <div class="stats-bar page-inner" id="statsBar" hidden>
+          <div class="stat">
+            <div class="stat-label">Arquivos</div>
+            <div class="stat-value" id="statCount">0</div>
+          </div>
+          <div class="stat">
+            <div class="stat-label">Tamanho original</div>
+            <div class="stat-value" id="statOriginal">—</div>
+          </div>
+          <div class="stat">
+            <div class="stat-label">Novo tamanho</div>
+            <div class="stat-value" id="statNew">—</div>
+          </div>
+          <div class="stat">
+            <div class="stat-label">Economia total</div>
+            <div class="stat-value" id="statSaved">—</div>
+          </div>
+        </div>
+
+        <div class="image-grid page-inner" id="previewList" data-ah-mask></div>
+      </section>
+
+  <Guide
+    title="Como redimensionar imagens sem distorcer"
+    current={pages.resize.path}
+    faqs={[
+      { q: 'Como mudar a largura de uma imagem?', a: 'Adicione imagens PNG, JPG ou WebP e informe a largura máxima em pixels. A altura é calculada automaticamente para manter a proporção. Imagens menores que essa largura não são ampliadas.' },
+      { q: 'Como reduzir uma imagem pela metade?', a: 'Escolha o modo Porcentagem e selecione 50%. Tanto a largura quanto a altura serão reduzidas pela metade, respeitando o mínimo de um pixel. Confira as dimensões antes de baixar.' },
+      { q: 'Redimensionar diminui o tamanho em KB?', a: 'Reduzir as dimensões geralmente diminui o peso, mas o resultado também depende do formato e da codificação. Se você precisa de um limite específico em KB, use o <a href="/">compressor de imagens</a> após redimensionar.' },
+      { q: 'É possível redimensionar várias imagens de uma vez?', a: 'Sim. Selecione vários arquivos, defina a largura ou porcentagem e clique em Redimensionar tudo. Você pode baixar os resultados individualmente ou em um arquivo ZIP.' },
+      { q: 'O fundo transparente é preservado?', a: 'PNG e WebP mantêm a transparência na saída. O redimensionamento usa os formatos compatíveis PNG, JPEG e WebP e acontece no navegador, sem enviar seus arquivos ao servidor.' },
+    ]}
+  />
+
+  <script is:inline slot="libs" src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+  <script slot="scripts" is:inline src="/js/resizer.js?v=astro-1"></script>
+</Base>

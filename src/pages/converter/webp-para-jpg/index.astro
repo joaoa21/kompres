@@ -1,0 +1,23 @@
+---
+import CompressorPage from '../../../layouts/CompressorPage.astro';
+import { pages } from '../../../data/pages';
+---
+<CompressorPage
+  page={pages.webpToJpg}
+  format="jpeg"
+  hero={{
+    title: 'Converter WebP para JPG',
+    highlight: 'sem instalar nada.',
+    text: 'Abra imagens WebP em qualquer programa: converta para JPG em lote direto no navegador e baixe tudo em ZIP.',
+  }}
+  heading="Conversor de WebP para JPG"
+  intro="Arraste seus arquivos WebP. O formato JPEG já vem selecionado."
+  guideTitle="Como converter WebP para JPG"
+  faqs={[
+    { q: 'Como converter WebP para JPG?', a: 'Arraste os arquivos WebP para a área acima, confira se o formato de saída está em JPEG e clique em Comprimir tudo. Baixe cada imagem ou todas de uma vez em um arquivo ZIP.' },
+    { q: 'Por que não consigo abrir um arquivo WebP?', a: 'WebP é um formato moderno usado por muitos sites para deixar as páginas mais leves. Alguns programas de edição, sistemas mais antigos e formulários de envio ainda não aceitam WebP. Convertido para JPG, o arquivo abre em praticamente qualquer lugar.' },
+    { q: 'A conversão perde qualidade?', a: 'O JPG usa compressão com perdas, mas com qualidade entre 85% e 100% a diferença costuma ser imperceptível. Para evitar qualquer perda, <a href="/converter/webp-para-png/">converta WebP para PNG</a>.' },
+    { q: 'E se o WebP tiver fundo transparente?', a: 'O JPG não suporta transparência, então essas áreas recebem fundo branco. Para manter a transparência, <a href="/converter/webp-para-png/">converta para PNG</a>.' },
+    { q: 'As imagens são enviadas para algum servidor?', a: 'As imagens não saem do seu dispositivo: a conversão é feita pelo próprio navegador, sem upload. Veja mais detalhes sobre privacidade nas <a href="/">perguntas do compressor</a>.' },
+  ]}
+/>

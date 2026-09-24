@@ -24,14 +24,15 @@ const statsBar    = document.getElementById('statsBar');
 const statLabels = [1, 2, 3, 4].map((i) => document.getElementById(`statLabel${i}`));
 const statValues = [1, 2, 3, 4].map((i) => document.getElementById(`statValue${i}`));
 
-let mode = 'merge';
+// Modo inicial definido pela página (/pdf/, /pdf/comprimir/, ...).
+let mode = modeToggle.querySelector('.fmt-btn.active')?.dataset.mode || 'merge';
 const banks = { pdf: [], single: [], images: [] };
 const bankKey = () => mode === 'images' ? 'images' : ['extract', 'export'].includes(mode) ? 'single' : 'pdf';
 let outputs = [];
 const field = id => document.getElementById(id);
 function setStatus(message = '', error = false) { const el = field('pdfStatus'); el.textContent = message; el.hidden = !message; el.classList.toggle('error', error); }
 const reorderable = () => mode === 'merge' || mode === 'images';
-let items = banks.pdf;     // { id, name, size, pages, data, thumbUrl, status, outBlob, outSize }
+let items = banks[bankKey()];     // { id, name, size, pages, data, thumbUrl, status, outBlob, outSize }
 let busy = false;
 let uid = 0;
 const rasterizeInput = document.getElementById('allow-rasterize');

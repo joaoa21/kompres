@@ -1,0 +1,15 @@
+---
+export type ImageTool = 'compress' | 'resize' | 'background';
+interface Props { active: ImageTool }
+const { active } = Astro.props;
+const tools: { key: ImageTool; href: string; label: string }[] = [
+  { key: 'compress', href: '/', label: 'Comprimir e converter' },
+  { key: 'resize', href: '/resizer/', label: 'Redimensionar' },
+  { key: 'background', href: '/remover-fundo/', label: 'Remover fundo' },
+];
+---
+<nav class="image-tools page" aria-label="Ferramentas de imagem">
+  {tools.map(({ key, href, label }) => (
+    <a href={href} class={key === active ? 'active' : undefined} aria-current={key === active ? 'page' : undefined}>{label}</a>
+  ))}
+</nav>

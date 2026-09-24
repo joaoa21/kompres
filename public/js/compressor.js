@@ -19,7 +19,8 @@ const sizeGroup = document.getElementById('size-group');
 const targetSizeInput = document.getElementById('target-size');
 const targetUnit = document.getElementById('target-unit');
 
-let selectedFormat = 'webp';
+// Formato inicial definido pela página (/, /converter/png-para-jpg/, ...).
+let selectedFormat = fmtToggle.querySelector('.fmt-btn.active')?.dataset.fmt || 'webp';
 let compressMode = 'quality'; // 'quality' | 'size'
 let images = [];
 let busy = false;

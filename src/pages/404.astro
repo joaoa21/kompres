@@ -1,0 +1,11 @@
+---
+import Base from '../layouts/Base.astro';
+import Hero from '../components/Hero.astro';
+import RelatedTools from '../components/RelatedTools.astro';
+---
+<Base title="Página não encontrada | Kompres" section="image" noscriptNote={false}>
+  <Hero title="Página não encontrada." highlight="Mas as ferramentas estão aqui." text="O endereço pode ter mudado. Escolha uma das ferramentas abaixo." />
+  <section class="guide page" aria-label="Ferramentas">
+    <RelatedTools current="" />
+  </section>
+</Base>

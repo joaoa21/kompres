@@ -1435,3 +1435,14 @@ html.light .related-tools a { color: #3d7000; }
 :focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; }
 button:disabled { cursor: not-allowed; }
 @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } *, *::before, *::after { transition: none !important; animation: none !important; } }
+
+/* ── Transição entre ferramentas (View Transitions entre documentos) ──
+   Navegadores sem suporte seguem com a navegação normal. */
+@view-transition { navigation: auto; }
+.site-header { view-transition-name: site-header; }
+.image-tools { view-transition-name: image-tools; }
+html.vt-nav .image-tools { animation: none; }
+::view-transition-old(root), ::view-transition-new(root) { animation-duration: 180ms; }
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-group(*), ::view-transition-old(*), ::view-transition-new(*) { animation: none !important; }
+}

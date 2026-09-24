@@ -1,0 +1,116 @@
+---
+/** Ferramentas de PDF (lógica em /js/pdf.js). O modo inicial vem da página;
+ *  o usuário continua podendo trocar de modo sem recarregar. */
+export type PdfMode = 'merge' | 'compress' | 'images' | 'extract' | 'export';
+interface Props { mode?: PdfMode }
+const { mode = 'merge' } = Astro.props;
+const modes = [['merge', 'Juntar'], ['compress', 'Comprimir'], ['images', 'Imagens → PDF'], ['extract', 'Extrair / dividir'], ['export', 'PDF → imagens']] as const;
+// Mesmos textos que o pdf.js aplica ao trocar de modo.
+const titles: Record<PdfMode, string> = { merge: 'Juntar PDFs', compress: 'Comprimir PDFs', images: 'Imagens para PDF', extract: 'Extrair ou dividir PDF', export: 'PDF para imagens' };
+const descriptions: Record<PdfMode, string> = { merge: 'Adicione os PDFs e organize a ordem.', compress: 'Adicione seus PDFs e escolha a compressão.', images: 'Adicione as imagens e organize a ordem das páginas.', extract: 'Escolha as páginas que deseja salvar.', export: 'Transforme as páginas do PDF em JPG ou PNG.' };
+---
+
+<section class="tool-section page2">
+  <div class="tool-header page-inner">
+    <div>
+      <h2 id="toolTitle">{titles[mode]}</h2>
+      <p id="toolDescription">{descriptions[mode]}</p>
+    </div>
+  </div>
+
+  <div class="controls page-inner controls-pdf" id="pdfControls">
+    <div class="control-group pdf-mode-group">
+      <label>Ferramenta</label>
+      <div class="format-toggle" id="modeToggle">
+        {modes.map(([key, label]) => (
+          <button class:list={['fmt-btn', { active: key === mode }]} type="button" data-mode={key}>{label}</button>
+        ))}
+      </div>
+    </div>
+
+    <div class="control-group compress-only hidden" id="dpiGroup">
+      <label for="dpiSelect">Resolução</label>
+      <select id="dpiSelect">
+        <option value="150">Alta qualidade · 150 DPI</option>
+        <option value="120" selected>Equilibrado · 120 DPI</option>
+        <option value="96">Máxima compressão · 96 DPI</option>
+      </select>
+    </div>
+
+    <div class="control-group compress-only hidden" id="qualityGroup">
+      <label for="pdfQuality">Qualidade</label>
+      <div class="value" id="pdfQualityVal">80%</div>
+      <input type="range" min="30" max="95" value="80" step="1" id="pdfQuality">
+    </div>
+    <div class="control-group hidden" data-for="images">
+      <label for="imagePageSize">Tamanho da página</label>
+      <select id="imagePageSize"><option value="a4">A4 · retrato</option><option value="a4-landscape">A4 · paisagem</option><option value="image">Tamanho da imagem</option></select>
+    </div>
+    <div class="control-group hidden" data-for="images">
+      <label for="imageMargin">Margem</label>
+      <select id="imageMargin"><option value="0">Sem margem</option><option value="10" selected>10 mm</option><option value="20">20 mm</option></select>
+    </div>
+    <div class="control-group hidden" data-for="extract export">
+      <label for="pageRange">Páginas</label>
+      <input type="text" id="pageRange" placeholder="Todas ou 1-3, 7" autocomplete="off" spellcheck="false" aria-describedby="rangeHint">
+      <small id="rangeHint" class="pdf-field-hint">Deixe vazio para todas as páginas.</small>
+    </div>
+    <div class="control-group hidden" data-for="extract">
+      <label for="extractOutput">Salvar como</label>
+      <select id="extractOutput"><option value="single">PDF único</option><option value="split">Um PDF por página</option></select>
+    </div>
+    <div class="control-group hidden" data-for="export">
+      <label for="exportFormat">Formato de saída</label>
+      <select id="exportFormat"><option value="jpeg">JPG</option><option value="png">PNG</option></select>
+    </div>
+    <div class="control-group hidden" data-for="export">
+      <label for="exportDpi">Resolução</label>
+      <select id="exportDpi"><option value="72">72 DPI</option><option value="150" selected>150 DPI</option><option value="200">200 DPI</option></select>
+    </div>
+    <div class="control-group hidden" id="exportQualityGroup" data-for="export">
+      <label for="exportQuality">Qualidade JPG</label>
+      <div class="value" id="exportQualityVal">90%</div>
+      <input type="range" min="30" max="100" value="90" id="exportQuality">
+    </div>
+  </div>
+
+  <div class="pdf-compression-option page-inner compress-only hidden">
+    <label for="allow-rasterize"><input type="checkbox" id="allow-rasterize" aria-describedby="rasterize-hint"><span>Permitir compressão mais forte</span></label>
+    <p id="rasterize-hint">Pode transformar páginas em imagens, removendo texto selecionável, links e campos.</p>
+  </div>
+  <div class="drop-zone page-inner" id="dropZone">
+    <input type="file" id="fileInput" accept="application/pdf,.pdf" multiple aria-label="Selecionar arquivos PDF">
+    <span class="drop-icon">⬇</span>
+    <p id="dropText"><strong>Arraste os PDFs aqui</strong><br>ou clique para selecionar · somente .pdf</p>
+  </div>
+
+  <div class="action-bar page-inner">
+    <button class="btn btn-primary" id="actionBtn" disabled>Juntar PDFs</button>
+    <button class="btn btn-outline" id="downloadBtn" disabled>↓ Baixar PDF</button>
+    <button class="btn btn-outline" id="clearBtn" disabled>Limpar</button>
+  </div>
+
+  <p class="page-inner pdf-status" id="pdfStatus" role="status" aria-live="polite" hidden></p>
+
+  <div class="stats-bar page-inner" id="statsBar" hidden>
+    <div class="stat">
+      <div class="stat-label" id="statLabel1">Arquivos</div>
+      <div class="stat-value" id="statValue1">0</div>
+    </div>
+    <div class="stat">
+      <div class="stat-label" id="statLabel2">Páginas</div>
+      <div class="stat-value" id="statValue2">—</div>
+    </div>
+    <div class="stat">
+      <div class="stat-label" id="statLabel3">Tamanho total</div>
+      <div class="stat-value" id="statValue3">—</div>
+    </div>
+    <div class="stat">
+      <div class="stat-label" id="statLabel4">Resultado</div>
+      <div class="stat-value" id="statValue4">—</div>
+    </div>
+  </div>
+
+  <div class="pdf-list page-inner" id="pdfList" data-ah-mask></div>
+  <div class="page-inner pdf-outputs" id="pdfOutputs" data-ah-mask hidden></div>
+</section>
