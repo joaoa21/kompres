@@ -9,7 +9,6 @@ import { pages } from '../../data/pages';
   section="image"
   imageTool="background"
   styles={['/css/background-remover.css?v=1']}
-  smoothScroll={false}
   noscriptNote={false}
 >
   <Hero
@@ -38,7 +37,7 @@ import { pages } from '../../data/pages';
   />
 
   <Fragment slot="after-main">
-    <dialog id="bgEditor" aria-labelledby="editorTitle">
+    <dialog id="bgEditor" aria-labelledby="editorTitle" data-lenis-prevent>
     <div class="editor-header"><h2 id="editorTitle">Ajustar recorte</h2><button type="button" class="btn btn-outline" id="editorClose">Cancelar</button></div>
     <div class="editor-controls">
     <div class="editor-modes" role="group" aria-label="Ferramenta"><button data-brush="erase" class="active" aria-pressed="true">Apagar</button><button data-brush="restore" aria-pressed="false">Restaurar</button><button data-brush="pan" aria-pressed="false">Mover</button></div>
