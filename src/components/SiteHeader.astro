@@ -1,0 +1,25 @@
+---
+interface Props { section: 'image' | 'pdf' }
+const { section } = Astro.props;
+const links = [
+  { key: 'image', href: '/', label: 'Imagem' },
+  { key: 'pdf', href: '/pdf/', label: 'PDF' },
+];
+---
+<header class="site-header page">
+  <a class="brand" href="/" aria-label="Kompres - Página inicial">
+    <img class="brand-mark" src="/favicon.svg" alt="">
+    <span class="brand-name">Kompres</span>
+  </a>
+
+  <nav class="site-nav" aria-label="Categorias de ferramentas">
+    {links.map(({ key, href, label }) => (
+      <a class:list={['nav-link', { active: key === section }]} aria-current={key === section ? 'true' : undefined} href={href}>{label}</a>
+    ))}
+  </nav>
+
+  <button id="theme-switch" class="theme-switch" type="button" aria-label="Alternar tema" title="Alternar tema">
+    <span class="theme-knob"></span>
+    <span class="theme-track"></span>
+  </button>
+</header>
