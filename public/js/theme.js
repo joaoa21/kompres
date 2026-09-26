@@ -40,10 +40,9 @@ function toggleTheme() {
 window.toggleTheme = toggleTheme;
 window.updateAllRangeFills = updateAllRangeFills;
 
-const themeSwitch = document.getElementById('theme-switch');
-if (themeSwitch) {
-  themeSwitch.addEventListener('click', toggleTheme);
-}
-
-setThemeColor();
-updateAllRangeFills();
+// O cabeçalho é trocado a cada navegação: religa o botão e reaplica cores na página nova.
+kompres.register('theme', (signal, document) => {
+  document.getElementById('theme-switch')?.addEventListener('click', toggleTheme, { signal });
+  setThemeColor();
+  updateAllRangeFills();
+});

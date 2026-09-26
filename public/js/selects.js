@@ -1,5 +1,6 @@
-/* Accessible single-choice dropdowns, shared across all tools. */
-(() => {
+/* Accessible single-choice dropdowns, shared across all tools.
+ * Montado a cada página exibida (src/scripts/app.ts). */
+kompres.register('selects', (signal, document) => {
   let closeCurrent = null;
   document.querySelectorAll('select:not([multiple])').forEach(select => {
     const wrapper = document.createElement('div'); wrapper.className = 'kompres-select';
@@ -61,7 +62,7 @@
         if (index >= 0) { if (!open) show(); highlight(index); }
       }
     });
-    document.addEventListener('pointerdown', event => { if (open && !wrapper.contains(event.target)) close(); });
+    document.addEventListener('pointerdown', event => { if (open && !wrapper.contains(event.target)) close(); }, { signal });
     wrapper.addEventListener('focusout', event => { if (!wrapper.contains(event.relatedTarget)) close(); });
     select.addEventListener('kompres:sync', sync);
     select.addEventListener('input', sync); select.addEventListener('change', sync);
@@ -69,4 +70,4 @@
     new MutationObserver(() => { if (select.closest('.hidden')) close(); }).observe(select.parentElement, { attributes: true, attributeFilter: ['class'] });
     select.before(wrapper); wrapper.append(select, trigger, menu); select.hidden = true; sync();
   });
-})();
+});
