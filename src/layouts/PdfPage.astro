@@ -15,7 +15,7 @@ interface Props {
 }
 const { page, hero, mode, guideTitle, faqs } = Astro.props;
 ---
-<Base page={page} section="pdf" styles={['/css/pdf-tools.css?v=pdf-ui-3']}>
+<Base page={page} section="pdf" tool="pdf" styles={['/css/pdf-tools.css?v=pdf-ui-3']}>
   <Hero {...hero} />
   <PdfTool mode={mode} />
   <Guide title={guideTitle} faqs={faqs} current={page.path} />
@@ -24,5 +24,5 @@ const { page, hero, mode, guideTitle, faqs } = Astro.props;
   <script is:inline slot="libs" src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
   <script is:inline slot="libs" src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
   <script slot="scripts" is:inline src="/js/pdf-tools.js?v=pdf-tools-1"></script>
-  <script slot="scripts" is:inline src="/js/pdf.js?v=seo-1"></script>
+  <script slot="scripts" is:inline src="/js/pdf.js?v=app-1"></script>
 </Base>

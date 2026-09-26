@@ -3,7 +3,7 @@ import Base from '../../layouts/Base.astro';
 import Guide from '../../components/Guide.astro';
 import { pages } from '../../data/pages';
 ---
-<Base page={pages.resize} section="image" imageTool="resize">
+<Base page={pages.resize} section="image" imageTool="resize" tool="resizer">
   <section class="hero page">
         <div class="hero-content">
           <h1>Redimensionar imagens.<br><span>Simples e em lote.</span></h1>
@@ -102,5 +102,5 @@ import { pages } from '../../data/pages';
   />
 
   <script is:inline slot="libs" src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-  <script slot="scripts" is:inline src="/js/resizer.js?v=astro-1"></script>
+  <script slot="scripts" is:inline src="/js/resizer.js?v=app-1"></script>
 </Base>
