@@ -881,22 +881,21 @@ html.light .download-btn:hover {
   line-height: 1;
 }
 
+/* Assinatura com a marca do portfólio (joaoa.com.br): Instrument Sans e ponto final translúcido */
 .site-footer a {
   display: inline-flex;
   align-items: baseline;
   line-height: 1;
-  font-family: 'Bebas Neue', sans-serif;
+  font-family: 'Instrument Sans', sans-serif;
+  font-weight: 700;
   text-decoration: none;
   color: var(--footer-link);
-  font-size: 1.3rem;
-  letter-spacing: 0.04em;
+  font-size: 1.05rem;
+  letter-spacing: -0.02em;
 }
 
 .site-footer a span {
-  color: #00d4ff;
-  font-size: 1.8rem;
-  line-height: 0;
-  transform: translateY(0.02em);
+  opacity: 0.35;
 }
 
 #cookie-banner {
