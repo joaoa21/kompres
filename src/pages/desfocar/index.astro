@@ -1,0 +1,130 @@
+---
+import Base from '../../layouts/Base.astro';
+import Hero from '../../components/Hero.astro';
+import Guide from '../../components/Guide.astro';
+import { pages } from '../../data/pages';
+
+const modes = [{ value: 'blur', label: 'Desfocar' }, { value: 'pixel', label: 'Pixelar' }];
+const shapes = [{ value: 'rect', label: 'Retângulo' }, { value: 'oval', label: 'Oval' }];
+const formats = [
+  { value: 'same', label: 'Mesmo formato' }, { value: 'png', label: 'PNG' }, { value: 'jpg', label: 'JPG' }, { value: 'webp', label: 'WebP' },
+];
+---
+<Base
+  page={pages.blurImage}
+  section="image"
+  activeTool="blurImage"
+  tool="blur"
+  styles={['/css/blur.css?v=2']}
+>
+  <Hero
+    title="Desfocar imagem"
+    highlight="esconda só o que precisa."
+    text="Marque rostos, placas, nomes ou dados de um print e aplique desfoque ou pixelização só nessas áreas. Tudo no navegador: a imagem não sai do seu dispositivo."
+  />
+
+  <section class="tool-section page2 blur-tool">
+    <div class="tool-header page-inner">
+      <div>
+        <h2>Desfocar ou pixelar partes da imagem</h2>
+        <p>Solte uma imagem, arraste sobre o que quer esconder e baixe o resultado na resolução original.</p>
+      </div>
+    </div>
+
+    <div class="tool-workspace page-inner">
+      <div class="tool-side">
+        <div class="controls page-inner controls-blur">
+          <div class="control-group">
+            <label>Efeito</label>
+            <div class="format-toggle" role="group" aria-label="Efeito aplicado nas áreas">
+              {modes.map((m, i) => (
+                <label class:list={['fmt-btn', { active: i === 0 }]}><input type="radio" name="blurMode" value={m.value} checked={i === 0}>{m.label}</label>
+              ))}
+            </div>
+          </div>
+
+          <div class="control-group">
+            <label>Formato</label>
+            <div class="format-toggle blur-shapes" role="group" aria-label="Formato da área">
+              {shapes.map((s, i) => (
+                <label class:list={['fmt-btn', { active: i === 0 }]}><input type="radio" name="blurShape" value={s.value} checked={i === 0}><span class:list={['blur-shape-icon', s.value]} aria-hidden="true"></span>{s.label}</label>
+              ))}
+            </div>
+            <small class="field-hint">Oval é ideal para rostos. Vale para as próximas áreas e para a área selecionada.</small>
+          </div>
+
+          <div class="control-group">
+            <label for="blurStrength" class="range-head">Intensidade <span class="range-val" id="blurStrengthVal">50%</span></label>
+            <input type="range" id="blurStrength" min="1" max="100" value="50" step="1">
+            <small class="field-hint">Para textos e números, prefira intensidade alta: com efeito fraco, letras podem continuar legíveis.</small>
+          </div>
+
+          <div class="control-group blur-areas-group">
+            <label id="blurAreasLabel">Áreas <span class="blur-count" id="blurCount">0</span></label>
+            <small class="field-hint blur-tip">Arraste sobre a imagem para marcar o que esconder: rostos, placas, nomes, dados de prints.</small>
+            <ul class="blur-list" id="blurList" aria-labelledby="blurAreasLabel"></ul>
+            <div class="blur-area-actions">
+              <button type="button" class="btn btn-outline" id="blurUndo" disabled>Desfazer</button>
+              <button type="button" class="btn btn-outline" id="blurClearAreas" disabled>Limpar áreas</button>
+            </div>
+          </div>
+
+          <div class="control-group">
+            <label>Formato de saída</label>
+            <div class="format-toggle" role="group" aria-label="Formato de saída">
+              {formats.map((f, i) => (
+                <label class:list={['fmt-btn', { active: i === 0 }]}><input type="radio" name="blurFormat" value={f.value} checked={i === 0}>{f.label}</label>
+              ))}
+            </div>
+            <small class="field-hint">PNG e WebP mantêm a transparência; JPG recebe fundo branco.</small>
+          </div>
+        </div>
+
+        <div class="action-bar page-inner">
+          <button class="btn btn-primary" id="blurRun" disabled>Baixar imagem</button>
+          <button class="btn btn-outline" id="blurClear" disabled>Limpar</button>
+        </div>
+      </div>
+
+      <div class="tool-main">
+        <p class="tool-status page-inner" id="blurStatus" role="status" aria-live="polite" hidden></p>
+
+        <div class="drop-zone page-inner" id="blurDrop">
+          <input type="file" id="blurFile" accept="image/png,image/jpeg,image/webp" aria-label="Selecionar imagem para desfocar">
+          <span class="drop-icon">⬇</span>
+          <p><strong>Arraste a imagem aqui</strong><br>ou clique para selecionar · PNG, JPG, WebP<br><span class="drop-hint">Também dá para colar com Ctrl+V</span></p>
+        </div>
+
+        <div class="tool-stage page-inner blur-editor" id="blurEditor" hidden>
+          <div class="blur-meta">
+            <strong id="blurName" data-ah-mask></strong>
+            <span id="blurDims"></span>
+            <button type="button" class="blur-change" id="blurChange">Trocar imagem</button>
+          </div>
+          <div class="blur-frame" id="blurFrame">
+            <div class="blur-stage" id="blurStage" tabindex="0" role="application" aria-label="Imagem. Arraste para marcar uma área; arraste uma área para movê-la ou as alças para redimensionar. Com uma área selecionada, as setas movem e Delete remove.">
+              <canvas id="blurCanvas" width="1" height="1" aria-hidden="true"></canvas>
+              <div class="blur-layer" id="blurLayer"></div>
+            </div>
+          </div>
+          <small class="field-hint blur-help">Toque ou clique numa área para selecioná-la. Com a imagem em foco: setas movem a área, Delete remove e Ctrl+Z desfaz.</small>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <Guide
+    title="Como desfocar parte de uma imagem online"
+    current={pages.blurImage.path}
+    faqs={[
+      { q: 'Como desfocar um rosto ou uma placa numa foto?', a: 'Arraste a foto para a página, cole com Ctrl+V ou clique na área pontilhada para escolher um arquivo. Depois, arraste o dedo ou o mouse sobre o rosto ou a placa: um retângulo aparece e o desfoque é aplicado na hora. Marque quantas áreas quiser, ajuste cada uma pelas alças e clique em <strong>Baixar imagem</strong>.' },
+      { q: 'Qual a diferença entre desfocar e pixelar?', a: '<strong>Desfocar</strong> borra a área de forma suave e fica mais discreto em fotos, bom para rostos e fundos. <strong>Pixelar</strong> troca a área por blocos grandes de cor, o visual clássico de censura, e deixa claro que algo foi escondido. Para textos sensíveis, como senhas, CPF ou números de cartão, use intensidade alta em qualquer um dos dois: com efeito fraco, letras grandes podem continuar legíveis. A intensidade acompanha o tamanho da imagem, então a prévia mostra exatamente o que vai para o arquivo.' },
+      { q: 'Dá para desfazer o desfoque depois de baixar?', a: 'Não. No arquivo baixado, os pixels das áreas marcadas são substituídos pelo efeito, e não há como recuperar o conteúdo original a partir dele. É isso que garante a privacidade. O arquivo original continua intacto no seu dispositivo, então guarde-o se precisar. Antes de baixar, dá para corrigir à vontade: <strong>Desfazer</strong> remove a última área, o × remove uma área específica e <strong>Limpar áreas</strong> remove todas.' },
+      { q: 'A imagem é enviada para algum servidor?', a: 'Não. A imagem é aberta e processada pelo seu próprio navegador e nunca sai do seu dispositivo, o que é importante justamente quando ela tem dados pessoais. Além disso, o arquivo gerado não leva os metadados EXIF da foto original, como a localização do GPS.' },
+      { q: 'Quais formatos são aceitos?', a: 'Você pode abrir imagens PNG, JPG e WebP. Por padrão, o resultado sai no mesmo formato do original, mas dá para escolher PNG, JPG ou WebP em Formato de saída. PNG e WebP mantêm a transparência; no JPG, as áreas transparentes ficam brancas. A imagem é salva na resolução original, com o sufixo <em>-desfocada-kompres</em>.' },
+      { q: 'Dá para recortar ou diminuir a imagem também?', a: 'Sim. Para tirar uma parte da foto em vez de escondê-la, use o <a href="/recortar/">recortador de imagens</a>. Para deixar o arquivo mais leve antes de enviar ou publicar, passe o resultado pelo <a href="/">compressor de imagens</a>. Ambos também funcionam direto no navegador.' },
+    ]}
+  />
+
+  <script slot="scripts" is:inline src="/js/blur.js?v=2"></script>
+</Base>

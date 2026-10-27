@@ -1,0 +1,22 @@
+---
+import PdfPage from '../../../layouts/PdfPage.astro';
+import { pages } from '../../../data/pages';
+---
+<PdfPage
+  page={pages.pngToPdf}
+  mode="images"
+  hero={{
+    title: 'Converter PNG para PDF',
+    highlight: 'sem perder nitidez.',
+    text: 'Junte prints de tela, logos e imagens PNG em um único PDF, na ordem que você quiser. Tudo direto no navegador, sem enviar os arquivos.',
+  }}
+  guideTitle="Como transformar PNG em PDF"
+  faqs={[
+    { q: 'Como converter PNG para PDF?', a: 'Adicione as imagens PNG, organize a ordem, escolha o tamanho da página e a margem e clique em Criar PDF. Cada imagem vira uma página do documento.' },
+    { q: 'O que acontece com o fundo transparente do PNG?', a: 'As áreas transparentes ficam brancas, que é a cor da página do PDF. Logos e ícones com fundo transparente aparecem limpos, sem quadriculado nem fundo preto.' },
+    { q: 'Posso juntar vários prints em um só PDF?', a: 'Sim. Adicione quantos prints quiser, de uma vez ou aos poucos, e arraste os itens da lista, ou use as setas, para definir a ordem das páginas. Também dá para colar um print com Ctrl+V.' },
+    { q: 'Qual tamanho de página usar para prints de celular?', a: 'Em Tamanho da imagem, cada página fica com o formato do próprio print, sem faixas brancas nas laterais: bom para ler na tela. Para imprimir, prefira A4; a imagem é ajustada à folha sem distorcer.' },
+    { q: 'A qualidade é mantida? E se o PDF ficar grande?', a: 'Sim. O PNG entra no PDF sem perdas, então textos e linhas de prints e logos continuam nítidos. Por isso o arquivo pode ficar maior que com fotos; se precisar, reduza depois com o <a href="/pdf/comprimir/">compressor de PDF</a>. Para fotos, use <a href="/pdf/jpg-para-pdf/">JPG para PDF</a>, e para o caminho inverso, <a href="/pdf/pdf-para-jpg/">PDF para JPG ou PNG</a>.' },
+    { q: 'As imagens são enviadas ao servidor?', a: 'Não. O PDF é montado no seu navegador, sem upload das imagens.' },
+  ]}
+/>

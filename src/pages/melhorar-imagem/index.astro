@@ -1,0 +1,125 @@
+---
+import Base from '../../layouts/Base.astro';
+import Hero from '../../components/Hero.astro';
+import Guide from '../../components/Guide.astro';
+import { pages } from '../../data/pages';
+
+const formats = [{ value: 'png', label: 'PNG' }, { value: 'jpg', label: 'JPG' }, { value: 'webp', label: 'WebP' }];
+---
+<Base
+  page={pages.upscaleImage}
+  section="image"
+  activeTool="upscaleImage"
+  tool="upscale"
+  styles={['/css/upscale.css?v=4']}
+  noscriptNote={false}
+>
+  <Hero
+    title="Melhorar imagem"
+    highlight="com IA, em 2x."
+    text="Dobre a largura e a altura de fotos pequenas ou borradas e recupere nitidez com inteligência artificial, direto no navegador. A imagem não sai do seu aparelho."
+  />
+
+  <section class="tool-section page2 upscale-tool">
+    <div class="tool-header page-inner">
+      <div>
+        <h2>Ampliar imagem com IA</h2>
+        <p>Solte uma imagem, clique em Melhorar imagem e compare o antes e o depois antes de baixar.</p>
+      </div>
+    </div>
+
+    <div class="tool-workspace page-inner">
+      <div class="tool-side">
+        <div class="controls page-inner controls-upscale">
+          <div class="control-group">
+            <label>Formato de saída</label>
+            <div class="format-toggle" role="group" aria-label="Formato de saída">
+              {formats.map((f, i) => (
+                <label class="fmt-btn"><input type="radio" name="upFormat" value={f.value} checked={i === 0}>{f.label}</label>
+              ))}
+            </div>
+            <small class="field-hint">Começa no formato da imagem enviada. PNG e WebP mantêm a transparência; JPG recebe fundo branco.</small>
+          </div>
+
+          <div class="control-group">
+            <label>Resultado</label>
+            <dl class="up-info">
+              <div><dt>Dimensões</dt><dd id="upInfoDims">—</dd></div>
+              <div><dt>Tempo</dt><dd id="upInfoTime">—</dd></div>
+            </dl>
+          </div>
+        </div>
+
+        <div class="action-bar page-inner">
+          <button class="btn btn-primary" id="upRun" disabled>Melhorar imagem</button>
+          <button class="btn btn-outline" id="upCancel" hidden>Cancelar</button>
+          <button class="btn btn-outline" id="upClear" disabled>Limpar</button>
+          <small class="field-hint up-note">Na primeira vez, o navegador baixa o modelo de IA (cerca de 8 MB). Em computadores sem placa de vídeo compatível, o processamento pode levar alguns minutos.</small>
+        </div>
+      </div>
+
+      <div class="tool-main">
+        <p class="tool-status page-inner" id="upStatus" role="status" aria-live="polite" hidden></p>
+
+        <div class="drop-zone page-inner" id="upDrop">
+          <input type="file" id="upFile" accept="image/png,image/jpeg,image/webp" aria-label="Selecionar imagem para melhorar">
+          <span class="drop-icon">⬇</span>
+          <p><strong>Arraste a imagem aqui</strong><br>ou clique para selecionar · PNG, JPG, WebP<br><span class="drop-hint">Também dá para colar com Ctrl+V</span></p>
+        </div>
+
+        <div class="tool-stage page-inner up-stage" id="upStage" hidden>
+          <div class="up-meta">
+            <strong id="upName" data-ah-mask></strong>
+            <span id="upDims"></span>
+            <span class="up-meta-actions">
+              <button type="button" class="up-link" id="upZoom" aria-pressed="false">Ver em 100%</button>
+              <button type="button" class="up-link" id="upChange">Trocar imagem</button>
+            </span>
+          </div>
+
+          <div class="up-notice" id="upNotice" hidden>
+            <p id="upNoticeText"></p>
+            <button type="button" class="btn btn-outline" id="upReduce">Reduzir e continuar</button>
+          </div>
+
+          <div class="up-progress" id="upProgress" hidden aria-hidden="true"><span id="upProgressBar"></span></div>
+
+          <div class="up-frame" id="upFrame">
+            <div class="up-viewer" id="upViewer">
+              <div class="up-scroll" id="upScroll">
+                <div class="up-compare" id="upCompare">
+                  <canvas id="upAfter" width="1" height="1" aria-label="Depois: imagem melhorada pela IA" role="img"></canvas>
+                  <canvas id="upBefore" width="1" height="1" aria-label="Antes: imagem ampliada do jeito comum" role="img"></canvas>
+                  <div class="up-handle" id="upHandle" role="slider" tabindex="0" aria-label="Comparar antes e depois" aria-valuemin="0" aria-valuemax="100" aria-valuenow="50" aria-valuetext="50% antes, 50% depois"><span class="up-knob" aria-hidden="true"></span></div>
+                </div>
+              </div>
+              <!-- Durante o processamento: imagem desfocada e círculo girando; a comparação só aparece no fim. -->
+              <div class="up-loading" aria-hidden="true">
+                <span class="up-spinner"></span>
+                <span class="up-loading-text" id="upLoadingText">Preparando…</span>
+              </div>
+              <span class="up-label up-label-before" aria-hidden="true">Antes</span>
+              <span class="up-label up-label-after" aria-hidden="true">Depois</span>
+            </div>
+          </div>
+          <small class="field-hint up-help" id="upHelp">Arraste a linha (ou use as setas do teclado) para comparar: à esquerda, a ampliação comum; à direita, a IA.</small>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <Guide
+    title="Como melhorar a qualidade de uma imagem com IA"
+    current={pages.upscaleImage.path}
+    faqs={[
+      { q: 'O que a inteligência artificial faz com a minha foto?', a: 'Ela dobra a largura e a altura da imagem (uma foto de 800 × 600 vira 1600 × 1200) e, em vez de só esticar os pixels, reconstrói bordas, texturas e contornos que a ampliação comum deixa borrados ou serrilhados. Funciona melhor em fotos pequenas, prints e imagens que ficaram borradas por terem sido reduzidas ou comprimidas. A IA não inventa detalhes que nunca estiveram na foto: um rosto fora de foco não ganha traços novos e um texto ilegível continua ilegível. Use a comparação <strong>Antes</strong> e <strong>Depois</strong> e o botão <strong>Ver em 100%</strong> para conferir a diferença.' },
+      { q: 'Por que a primeira vez demora mais?', a: 'Na primeira vez, o navegador baixa o modelo de IA (cerca de 8 MB) e o guarda no cache; nas próximas, ele já está no aparelho e o processamento começa logo. O tempo depois disso depende do computador: com uma placa de vídeo compatível com WebGPU, leva segundos; sem ela, a IA roda no processador e uma imagem grande pode levar alguns minutos. A barra mostra a porcentagem, e dá para cancelar a qualquer momento.' },
+      { q: 'Por que só 2x? Dá para ampliar 4x?', a: 'O modelo usado foi treinado para dobrar a resolução, que é onde ele entrega mais nitidez com um arquivo leve o bastante para rodar no navegador. Para 4x, rode a imagem melhorada mais uma vez (até o limite de tamanho) ou amplie o resultado no <a href="/resizer/">redimensionador de imagens</a>. Lembre que cada ampliação além do que a foto tem de informação deixa o resultado mais artificial.' },
+      { q: 'Qual o tamanho máximo da imagem?', a: 'O maior lado pode ter até 1280 pixels, o que gera um resultado de até 2560 pixels. Se a imagem for maior, a ferramenta avisa e oferece reduzi-la para 1280 pixels antes de melhorar, mantendo a proporção. Fotos grandes de celular costumam já ter nitidez de sobra; nelas, a IA ajuda mais em um recorte ou depois de reduzir no <a href="/resizer/">redimensionador</a>.' },
+      { q: 'Em qual formato o resultado é salvo?', a: 'Em PNG, JPG ou WebP, à sua escolha em Formato de saída; a ferramenta já começa no formato da imagem enviada. PNG e WebP mantêm o fundo transparente, que é ampliado separadamente para as bordas ficarem suaves; no JPG, as áreas transparentes ficam brancas. O arquivo é baixado com o sufixo <em>-2x-kompres</em>. Uma imagem com o dobro de pixels pesa mais: para deixá-la leve, passe o resultado pelo <a href="/">compressor de imagens</a>.' },
+      { q: 'A foto é enviada para algum servidor?', a: 'Não. O modelo de IA é baixado para o seu navegador, e a imagem é processada ali mesmo, no seu aparelho. Nenhuma foto é enviada ao Kompres ou a terceiros, por isso a ferramenta serve também para documentos e imagens pessoais.' },
+    ]}
+  />
+
+  <script slot="scripts" is:inline src="/js/upscale.js?v=2"></script>
+</Base>

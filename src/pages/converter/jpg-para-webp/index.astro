@@ -1,0 +1,24 @@
+---
+import CompressorPage from '../../../layouts/CompressorPage.astro';
+import { pages } from '../../../data/pages';
+---
+<CompressorPage
+  page={pages.jpgToWebp}
+  format="webp"
+  hero={{
+    title: 'Converter JPG para WebP',
+    highlight: 'fotos bem mais leves.',
+    text: 'Converta fotos JPG para WebP direto no navegador e reduza o peso sem perda visível. Em lote, com ajuste de qualidade e download em ZIP.',
+  }}
+  heading="Conversor de JPG para WebP"
+  intro="Arraste suas fotos JPG. O formato WebP já vem selecionado."
+  guideTitle="Como converter JPG para WebP"
+  faqs={[
+    { q: 'Como converter JPG para WebP?', a: 'Arraste as fotos JPG para a área acima ou cole com Ctrl+V. O formato WebP já vem selecionado e a conversão começa sozinha. Baixe cada foto ou todas em ZIP.' },
+    { q: 'O WebP perde qualidade?', a: 'Na qualidade padrão (80%), a diferença costuma ser imperceptível e o arquivo fica bem menor que o JPG. Segure a miniatura do resultado para comparar com o original.' },
+    { q: 'Quanto o arquivo diminui?', a: 'Em fotos, o WebP costuma ficar de 25% a 35% menor que um JPG de qualidade parecida. Cada cartão mostra o tamanho antes e depois, e a barra de resumo mostra a economia total.' },
+    { q: 'Vale a pena usar WebP no meu site?', a: 'Sim: imagens mais leves deixam o site mais rápido, o que melhora a experiência e conta pontos no Google. Todos os navegadores atuais exibem WebP.' },
+    { q: 'Preciso que a foto fique abaixo de um tamanho. Dá?', a: 'Dá. Escolha o modo Tamanho máx. e informe o limite, como 300 KB: o Kompres procura a maior qualidade que cabe nele.' },
+    { q: 'As fotos são enviadas para algum servidor?', a: 'Não. A conversão acontece no seu navegador e os arquivos não saem do dispositivo.' },
+  ]}
+/>

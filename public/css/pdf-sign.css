@@ -1,0 +1,324 @@
+/* Fonte manuscrita da assinatura digitada (precisa vir antes de qualquer regra). */
+/* Mesma letra de mão da assinatura do Propostaria. */
+@import url('https://fonts.googleapis.com/css2?family=Mrs+Saint+Delafield&display=swap');
+
+/* Assinar PDF: quadro de assinatura, prévia da página com assinaturas arrastáveis e
+ * miniaturas. Complementa style.css (variáveis de tema, .control-group, .format-toggle). */
+.sign-tool { --sign-accent: var(--accent); }
+html.light .sign-tool { --sign-accent: #3d7000; }
+.sign-tool [hidden] { display: none !important; }
+
+.controls-sign { grid-template-columns: minmax(0, 1fr); }
+.controls-sign .format-toggle { flex-wrap: wrap; }
+.sign-modes { margin-bottom: .9rem; }
+.sign-modes .fmt-btn { flex: 1 1 0; min-width: 0; white-space: nowrap; }
+/* Na coluna estreita os três modos ficam lado a lado (o padrão é dois por linha). */
+@media (min-width: 901px) { .tool-side .sign-modes .fmt-btn { flex: 1 1 0; } }
+
+/* Rótulos internos: sem o estilo em caixa alta dos títulos de .control-group. */
+.sign-tool .control-group .sign-inline-label,
+.sign-tool .control-group .sign-check,
+.sign-tool .control-group .sign-file-btn {
+  margin: 0;
+  text-transform: none;
+  letter-spacing: 0;
+  font-size: .82rem;
+}
+.sign-inline-label { color: var(--muted); flex-shrink: 0; }
+
+/* ── Quadro de desenho ── */
+.sign-pad-wrap {
+  position: relative;
+  aspect-ratio: 2 / 1;
+  border: 1px dashed var(--border-hover);
+  border-radius: 10px;
+  background: #fff; /* papel: a tinta preta e a azul aparecem nos dois temas */
+  overflow: hidden;
+}
+.sign-pad {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  touch-action: none; /* o dedo desenha em vez de rolar a página */
+  cursor: crosshair;
+}
+.sign-pad-hint {
+  position: absolute;
+  left: 0; right: 0; top: 38%;
+  text-align: center;
+  color: #9a9a96;
+  font-size: .85rem;
+  pointer-events: none;
+}
+.sign-pad-line {
+  position: absolute;
+  left: 8%; right: 8%; bottom: 24%;
+  border-bottom: 1px solid #d6d6d2;
+  pointer-events: none;
+}
+.sign-row { display: flex; align-items: center; gap: .7rem; margin-top: .75rem; }
+.sign-row input[type="range"] { flex: 1; min-width: 0; }
+.sign-mini-btn {
+  flex-shrink: 0;
+  padding: .45rem .75rem;
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  background: var(--surface2);
+  color: var(--text);
+  font: .75rem var(--font-text);
+  cursor: pointer;
+}
+.sign-mini-btn:hover { color: var(--sign-accent); border-color: var(--sign-accent); }
+
+/* ── Digitar ── */
+.sign-name {
+  width: 100%;
+  padding: .55rem .9rem;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: #fff;
+  color: #16181d;
+  font: 400 2.4rem/1.3 'Mrs Saint Delafield', 'Segoe Script', cursive;
+  outline: none;
+}
+.sign-name::placeholder { color: #a5a5a1; }
+.sign-name:focus { border-color: var(--sign-accent); }
+.control-group[data-ink="blue"] .sign-name { color: #1b3fa6; }
+
+/* ── Imagem ── */
+.sign-file-btn {
+  position: relative;
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+  min-height: 2.8rem;
+  padding: .6rem .9rem;
+  border: 1px dashed var(--border-hover);
+  border-radius: 8px;
+  background: var(--surface2);
+  color: var(--text) !important;
+  text-align: center;
+  cursor: pointer;
+  overflow-wrap: anywhere;
+}
+.sign-file-btn:hover, .sign-file-btn:focus-within { border-color: var(--sign-accent); color: var(--sign-accent) !important; }
+.sign-file-btn input { position: absolute; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
+.sign-image-preview {
+  display: flex;
+  justify-content: center;
+  margin-top: .7rem;
+  padding: .6rem;
+  border-radius: 8px;
+  /* Quadriculado: mostra o que ficou transparente. */
+  background-color: #fff;
+  background-image: conic-gradient(#e6e6e6 25%, #fff 0 50%, #e6e6e6 0 75%, #fff 0);
+  background-size: 14px 14px;
+}
+.sign-image-preview canvas { max-width: 100%; max-height: 110px; width: auto; height: auto; display: block; }
+
+.sign-check {
+  display: flex !important;
+  align-items: center;
+  gap: .55rem;
+  margin-top: .8rem !important;
+  color: var(--text) !important;
+  cursor: pointer;
+  line-height: 1.4;
+}
+.sign-check input { flex: 0 0 17px; width: 17px; height: 17px; margin: 0; accent-color: var(--accent); cursor: pointer; }
+html.light .sign-check input { accent-color: #3d7000; }
+.sign-date-sample { color: var(--muted); font-family: var(--font-mono); font-size: .75rem; }
+
+/* ── Cor da tinta ── */
+.sign-ink { display: flex; align-items: center; gap: .7rem; margin-top: .85rem; }
+.sign-ink .format-toggle { flex: 1; flex-wrap: nowrap; }
+.sign-ink .fmt-btn { display: inline-flex; align-items: center; justify-content: center; gap: .4rem; flex: 1 1 0 !important; }
+.sign-swatch { width: 11px; height: 11px; border-radius: 50%; background: #16181d; box-shadow: 0 0 0 1px rgba(255,255,255,.35); }
+.sign-ink-btn[data-ink="blue"] .sign-swatch { background: #1b3fa6; }
+html.light .sign-swatch { box-shadow: none; }
+
+/* ── Colocar ── */
+.sign-place-btns { display: flex; flex-direction: column; gap: .5rem; }
+.sign-place-btns .btn { width: 100%; padding: .7rem 1rem; font-size: .85rem; }
+.sign-place-btns .btn:hover { transform: none; }
+.sign-place-btns .btn:disabled { opacity: .45; cursor: not-allowed; }
+
+.sign-notice {
+  margin: 0;
+  padding: .7rem .9rem;
+  border-left: 2px solid var(--border-hover);
+  color: var(--muted);
+  font-size: .75rem;
+  line-height: 1.5;
+}
+
+/* ── Palco: barra, página e miniaturas ── */
+.tool-workspace .sign-stage { order: 5; } /* celular: depois da área de arrastar, antes dos botões */
+.sign-stage { min-width: 0; margin-block: 1rem 1.5rem; }
+.sign-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: .5rem 1rem;
+  margin-bottom: .8rem;
+  min-height: 44px;
+}
+.sign-file-name {
+  min-width: 0;
+  color: var(--muted);
+  font: .78rem/1.5 var(--font-mono);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 100%;
+}
+.sign-nav { display: flex; align-items: center; gap: .5rem; margin-left: auto; }
+.sign-page-label { min-width: 8.5em; text-align: center; color: var(--text); font: .8rem var(--font-mono); }
+.sign-nav-btn {
+  width: 36px; height: 36px;
+  display: grid; place-items: center;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface2);
+  color: var(--text);
+  font-size: 1.2rem;
+  line-height: 1;
+  cursor: pointer;
+}
+.sign-nav-btn:hover:not(:disabled) { color: var(--sign-accent); border-color: var(--sign-accent); }
+.sign-nav-btn:disabled { opacity: .35; cursor: not-allowed; }
+
+/* Folga ao redor da página para as alças que saem da borda. */
+.sign-view { padding: 14px; display: flex; justify-content: center; min-width: 0; }
+.sign-page {
+  position: relative;
+  flex-shrink: 0;
+  max-width: 100%;
+  background: #fff;
+  box-shadow: 0 2px 16px rgba(0, 0, 0, .3);
+  --pt: 1;
+}
+html.light .sign-page { box-shadow: 0 2px 14px rgba(0, 0, 0, .14); }
+.sign-page canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.sign-layer { position: absolute; inset: 0; cursor: copy; }
+
+.sign-place {
+  position: absolute;
+  box-sizing: border-box;
+  outline: 1px dashed transparent;
+  outline-offset: 2px;
+  cursor: move;
+  touch-action: none; /* arrastar com o dedo move a assinatura, não a página */
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+}
+.sign-place img { display: block; width: 100%; height: auto; pointer-events: none; }
+.sign-place:hover, .sign-place.selected { outline-color: var(--sign-accent); }
+.sign-place:focus-visible { outline: 2px solid var(--sign-accent); }
+.sign-place.dragging { opacity: .85; }
+/* Data em Helvetica abaixo da assinatura, no mesmo tamanho (em pontos) que vai para o PDF. */
+.sign-date {
+  position: absolute;
+  left: 0;
+  top: 100%;
+  margin-top: calc((var(--date-gap) - .13 * var(--date-size)) * var(--pt) * 1px);
+  font: calc(var(--date-size) * var(--pt) * 1px)/1 Helvetica, Arial, sans-serif;
+  white-space: nowrap;
+  pointer-events: none;
+}
+.sign-remove, .sign-resize { position: absolute; opacity: 0; transition: opacity .15s; }
+.sign-place:hover .sign-remove, .sign-place.selected .sign-remove, .sign-place:focus-within .sign-remove,
+.sign-place:hover .sign-resize, .sign-place.selected .sign-resize { opacity: 1; }
+.sign-remove {
+  top: -13px; right: -13px;
+  width: 24px; height: 24px;
+  display: grid; place-items: center;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: var(--danger);
+  color: #fff;
+  font-size: 1rem;
+  line-height: 1;
+  cursor: pointer;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, .3);
+}
+.sign-resize {
+  right: -9px; bottom: -9px;
+  width: 18px; height: 18px;
+  border: 2px solid #fff;
+  border-radius: 50%;
+  background: var(--sign-accent);
+  cursor: nwse-resize;
+  touch-action: none;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, .3);
+}
+/* Área de toque maior que o círculo visível. */
+.sign-resize::before { content: ''; position: absolute; inset: -12px; }
+
+/* Miniaturas: faixa com rolagem horizontal. */
+.sign-thumbs {
+  display: flex;
+  gap: .5rem;
+  margin-top: .9rem;
+  padding: .2rem .2rem .6rem;
+  overflow-x: auto;
+
+}
+/* A moldura fica só na miniatura; o número da página vai solto embaixo, fora dela. */
+.sign-thumb {
+  position: relative;
+  flex: 0 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: .35rem;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--muted);
+  cursor: pointer;
+}
+.sign-thumb-img {
+  width: 76px; height: 76px; display: grid; place-items: center;
+  padding: .35rem; border: 1px solid var(--border); border-radius: 8px; background: var(--surface2);
+  transition: border-color .15s;
+}
+.sign-thumb:hover .sign-thumb-img { border-color: var(--border-hover); }
+.sign-thumb.active .sign-thumb-img { border-color: var(--sign-accent); }
+.sign-thumb.active .sign-thumb-num { color: var(--sign-accent); font-weight: 600; }
+.sign-thumb:focus-visible { outline: none; }
+.sign-thumb:focus-visible .sign-thumb-img { outline: 2px solid var(--sign-accent); outline-offset: 2px; }
+.sign-thumb img { max-width: 100%; max-height: 100%; display: block; opacity: 0; transition: opacity .2s; box-shadow: 0 1px 4px rgba(0, 0, 0, .25); }
+.sign-thumb.loaded img { opacity: 1; }
+.sign-thumb-num { font: .72rem var(--font-mono); line-height: 1; }
+/* Ponto verde: a página já tem assinatura. */
+.sign-thumb.has-sign::after {
+  content: '';
+  position: absolute;
+  top: 5px; right: 5px;
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: var(--sign-accent);
+}
+
+@media (min-width: 901px) {
+  .tool-main > .sign-stage { order: 8; margin: 0; }
+  /* O "+" verde fica no canto superior esquerdo do palco: a barra começa depois dele. */
+  .sign-bar { padding-left: 64px; }
+}
+
+@media (max-width: 768px) {
+  .sign-view { padding: 10px 6px; }
+  .sign-bar { justify-content: center; }
+  .sign-nav { margin-left: 0; }
+  .sign-file-name { flex-basis: 100%; text-align: center; }
+  /* Botões de toque maiores no celular. */
+  .sign-remove { width: 30px; height: 30px; top: -16px; right: -16px; }
+  .sign-resize { width: 22px; height: 22px; right: -11px; bottom: -11px; }
+  .sign-remove, .sign-resize { opacity: 1; }
+}

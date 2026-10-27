@@ -1,0 +1,149 @@
+---
+import Base from '../../layouts/Base.astro';
+import Hero from '../../components/Hero.astro';
+import Guide from '../../components/Guide.astro';
+import { pages } from '../../data/pages';
+
+const widths = [320, 480, 640, 800];
+const fits = [
+  { value: 'fit', label: 'Caber com fundo' },
+  { value: 'fill', label: 'Preencher cortando' },
+];
+const repeats = [
+  { value: 'forever', label: 'Sempre' },
+  { value: 'once', label: 'Uma vez' },
+];
+const colors = [
+  { value: '256', label: '256' },
+  { value: '128', label: '128' },
+  { value: '64', label: '64' },
+];
+---
+<Base page={pages.gifMaker} section="image" activeTool="gifMaker" tool="gif-maker" styles={['/css/gif-maker.css?v=1']}>
+  <Hero
+    title="Criar GIF com fotos"
+    highlight="na ordem e na velocidade que você quiser."
+    text="Solte as imagens, arraste para mudar a ordem, escolha o tempo de cada quadro e veja a animação antes de baixar. Tudo no navegador: as fotos não saem do seu computador e o GIF sai sem marca d’água."
+  />
+
+  <section class="tool-section page2 gif-tool">
+    <div class="tool-header page-inner">
+      <div>
+        <h2>Criador de GIF animado</h2>
+        <p>Cada imagem vira um quadro, na ordem em que entrou. A prévia mostra a animação com os ajustes atuais; quando estiver bom, crie e baixe o GIF.</p>
+      </div>
+    </div>
+
+    <div class="tool-workspace page-inner">
+      <div class="tool-side">
+        <div class="controls page-inner controls-gif">
+          <div class="control-group">
+            <label for="gifDelay" class="gif-range-head">Tempo por quadro <span class="gif-range-val" id="gifDelayVal">500 ms</span></label>
+            <input type="range" id="gifDelay" min="100" max="3000" step="50" value="500">
+            <small class="field-hint" id="gifDelayHint">Menos tempo deixa a animação mais rápida.</small>
+          </div>
+
+          <div class="control-group">
+            <label for="gifWidth">Largura</label>
+            <select id="gifWidth">
+              {widths.map((w) => <option value={w} selected={w === 480}>{w} px</option>)}
+            </select>
+            <small class="field-hint" id="gifSizeHint">A altura segue a proporção do primeiro quadro.</small>
+          </div>
+
+          <div class="control-group">
+            <label>Enquadramento</label>
+            <div class="format-toggle" role="group" aria-label="Enquadramento das imagens">
+              {fits.map((f, i) => (
+                <label class="fmt-btn"><input type="radio" name="gifFit" value={f.value} checked={i === 0}>{f.label}</label>
+              ))}
+            </div>
+            <small class="field-hint">Caber mostra a foto inteira com faixas de fundo; Preencher ocupa o quadro todo e corta as sobras.</small>
+          </div>
+
+          <div class="control-group">
+            <label for="gifBg">Cor de fundo</label>
+            <div class="gif-color-row">
+              <input type="color" id="gifBg" value="#ffffff">
+              <span class="gif-color-hex" id="gifBgHex" aria-hidden="true">#FFFFFF</span>
+            </div>
+            <small class="field-hint">Preenche as faixas do modo Caber e as áreas transparentes de PNG.</small>
+          </div>
+
+          <div class="control-group">
+            <label>Repetir</label>
+            <div class="format-toggle" role="group" aria-label="Repetição da animação">
+              {repeats.map((r, i) => (
+                <label class="fmt-btn"><input type="radio" name="gifRepeat" value={r.value} checked={i === 0}>{r.label}</label>
+              ))}
+            </div>
+          </div>
+
+          <div class="control-group">
+            <label>Cores</label>
+            <div class="format-toggle gif-colors" role="group" aria-label="Número de cores do GIF">
+              {colors.map((c, i) => (
+                <label class="fmt-btn"><input type="radio" name="gifColors" value={c.value} checked={i === 0}>{c.label}</label>
+              ))}
+            </div>
+            <small class="field-hint">Menos cores = arquivo menor, com degradês mais marcados.</small>
+          </div>
+        </div>
+
+        <div class="action-bar page-inner">
+          <button class="btn btn-primary" id="gifRun" disabled>Criar e baixar GIF</button>
+          <button class="btn btn-outline" id="gifClear" disabled>Limpar</button>
+        </div>
+      </div>
+
+      <div class="tool-main">
+        <p class="tool-status page-inner" id="gifStatus" role="status" aria-live="polite" hidden></p>
+
+        <div class="drop-zone page-inner" id="gifDrop">
+          <input type="file" id="gifFile" accept="image/png,image/jpeg,image/webp" multiple aria-label="Selecionar imagens para o GIF">
+          <span class="drop-icon">⬇</span>
+          <p><strong>Arraste as imagens aqui</strong><br>ou clique para selecionar · PNG, WebP, JPEG<br><span class="drop-hint">Também dá para colar com Ctrl+V</span></p>
+        </div>
+
+        <div class="tool-stage page-inner gif-stage" id="gifStage" hidden>
+          <div class="gif-player">
+            <button type="button" class="gif-play" id="gifPlay" aria-label="Tocar prévia">
+              <svg class="icon-pause" viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg>
+              <svg class="icon-play" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5.5v13a1 1 0 0 0 1.5.86l10.5-6.5a1 1 0 0 0 0-1.72L9.5 4.64A1 1 0 0 0 8 5.5z"/></svg>
+            </button>
+            <span class="gif-counter" id="gifCounter">Quadro 1 de 1</span>
+            <span class="gif-info" id="gifInfo"></span>
+          </div>
+
+          <div class="gif-preview">
+            <canvas id="gifCanvas" width="480" height="360" role="img" aria-label="Prévia animada do GIF"></canvas>
+          </div>
+
+          <div class="gif-queue-head">
+            <h3>Quadros</h3>
+            <small>Arraste para mudar a ordem (no celular, pela alça ⠿) ou use ‹ ›. Clique numa miniatura para vê-la na prévia.</small>
+          </div>
+          <div class="gif-queue-wrap">
+            <ol class="gif-queue" id="gifQueue" data-ah-mask></ol>
+            <div class="gif-drop-indicator" id="gifIndicator" hidden></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <Guide
+    title="Como criar um GIF com fotos"
+    current={pages.gifMaker.path}
+    faqs={[
+      { q: 'Como fazer um GIF com fotos?', a: 'Arraste as fotos para a página, cole com Ctrl+V ou clique na área pontilhada para escolher arquivos PNG, JPG ou WebP. Cada imagem vira um quadro, na ordem em que entrou; para mudar a sequência, arraste as miniaturas ou use os botões ‹ e ›, e remova um quadro com ×. A prévia já mostra a animação com os ajustes atuais. Quando estiver como você quer, clique em <strong>Criar e baixar GIF</strong>. São aceitos até 60 quadros.' },
+      { q: 'Qual a velocidade ideal para um GIF?', a: 'Depende do efeito. Para uma sequência de fotos que a pessoa precisa olhar (antes e depois, passo a passo, álbum), algo entre <strong>500 ms e 1 segundo</strong> por quadro funciona bem. Para dar sensação de movimento com fotos tiradas em sequência, use de 100 a 200 ms. Acima de 2 segundos o GIF parece uma apresentação de slides. Ajuste em Tempo por quadro: a prévia muda na hora.' },
+      { q: 'Por que o GIF fica pesado e como deixar o arquivo menor?', a: 'O GIF guarda cada quadro inteiro, com no máximo 256 cores e uma compressão antiga, então fotos com muitos detalhes geram arquivos grandes. Para reduzir: escolha uma <strong>largura menor</strong> (320 ou 480 px costumam bastar para mensagens e redes sociais), use <strong>menos cores</strong> (128 ou 64), tire quadros repetidos e prefira imagens com fundo liso. Se as fotos forem enormes, você também pode reduzi-las antes no <a href="/resizer/">redimensionador de imagens</a>.' },
+      { q: 'O que fazer quando as fotos têm tamanhos diferentes?', a: 'O GIF usa a largura escolhida e a proporção do primeiro quadro; as outras imagens se ajustam a esse quadro. Em <strong>Caber com fundo</strong>, cada foto aparece inteira e as sobras ficam com a cor de fundo escolhida. Em <strong>Preencher cortando</strong>, a foto ocupa todo o quadro e as bordas que passam são cortadas pelo centro. Para mudar a proporção do GIF, coloque primeiro uma imagem com o formato desejado.' },
+      { q: 'O GIF pode ter fundo transparente?', a: 'Não nesta ferramenta: o GIF sai sempre com fundo sólido. A transparência do GIF é de um bit só (cada pixel é totalmente visível ou invisível), o que deixa bordas serrilhadas em fotos e logos com sombra. As áreas transparentes de imagens PNG recebem a cor de fundo escolhida. Se precisar de transparência de verdade, use uma imagem PNG ou WebP, que você pode otimizar no <a href="/">compressor de imagens</a>.' },
+      { q: 'Minhas fotos são enviadas para algum servidor?', a: 'Não. As imagens são abertas, montadas e codificadas como GIF pelo seu próprio navegador e nunca saem do seu dispositivo. Nenhum arquivo é enviado ao Kompres ou a terceiros; só o código do codificador de GIF é baixado de uma CDN pública na hora de criar o arquivo.' },
+    ]}
+  />
+
+  <script slot="scripts" is:inline src="/js/gif-maker.js?v=1"></script>
+</Base>

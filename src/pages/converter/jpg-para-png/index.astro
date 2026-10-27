@@ -1,0 +1,24 @@
+---
+import CompressorPage from '../../../layouts/CompressorPage.astro';
+import { pages } from '../../../data/pages';
+---
+<CompressorPage
+  page={pages.jpgToPng}
+  format="png"
+  hero={{
+    title: 'Converter JPG para PNG',
+    highlight: 'em lote e grátis.',
+    text: 'Transforme fotos e imagens JPG em PNG direto no navegador. A conversão começa assim que você solta os arquivos, e dá para baixar tudo em ZIP.',
+  }}
+  heading="Conversor de JPG para PNG"
+  intro="Arraste seus arquivos JPG. O formato PNG já vem selecionado."
+  guideTitle="Como converter JPG para PNG"
+  faqs={[
+    { q: 'Como converter JPG para PNG?', a: 'Arraste os arquivos JPG para a área acima ou cole com Ctrl+V. O formato PNG já vem selecionado e a conversão começa sozinha. Baixe cada imagem ou todas de uma vez em ZIP.' },
+    { q: 'Converter para PNG melhora a qualidade?', a: 'Não. O PNG guarda a imagem exatamente como ela está, mas não recupera detalhes que o JPG já perdeu. A vantagem é que, a partir daí, editar e salvar de novo não gera mais perdas.' },
+    { q: 'O fundo fica transparente?', a: 'Não automaticamente: o JPG não tem transparência, então o PNG sai com o mesmo fundo. Para tirar o fundo, use o <a href="/remover-fundo/">removedor de fundo</a>, que entrega PNG transparente.' },
+    { q: 'Por que o PNG ficou maior que o JPG?', a: 'É esperado em fotos: o PNG não descarta informação, e o JPG sim. Para fotos, o JPG ou o <a href="/converter/jpg-para-webp/">WebP</a> costumam ser bem mais leves. O PNG brilha em prints, logotipos e imagens com texto.' },
+    { q: 'Qual qualidade escolher?', a: 'Em 100%, o PNG é gerado sem perdas. Abaixo disso, o Kompres reduz a quantidade de cores para diminuir o arquivo, sem pontilhado. Para prints e ilustrações, 80% costuma ser imperceptível.' },
+    { q: 'As imagens são enviadas para algum servidor?', a: 'Não. A conversão acontece no seu navegador e os arquivos não saem do dispositivo. Veja mais em <a href="/">perguntas do compressor</a>.' },
+  ]}
+/>

@@ -1,0 +1,22 @@
+---
+import PdfPage from '../../../layouts/PdfPage.astro';
+import { pages } from '../../../data/pages';
+---
+<PdfPage
+  page={pages.pdfToText}
+  mode="text"
+  hero={{
+    title: 'Converter PDF para texto',
+    highlight: 'pronto para copiar.',
+    text: 'Tire o texto de um PDF para colar onde quiser ou salvar em .txt. Todas as páginas ou só algumas, direto no navegador.',
+  }}
+  guideTitle="Como extrair o texto de um PDF"
+  faqs={[
+    { q: 'Como converter um PDF em texto?', a: 'Adicione o PDF: o texto é extraído na hora e aparece na caixa abaixo do arquivo. Depois é só clicar em Copiar texto ou em Baixar .txt.' },
+    { q: 'Dá para extrair o texto de só algumas páginas?', a: 'Sim. No campo Páginas, informe números e intervalos, como 2 ou 5-8, e clique em Extrair texto. Marque Separar páginas para que cada trecho venha com "--- Página N ---" e fique fácil saber de onde saiu. Se preferir um PDF só com essas páginas, use <a href="/pdf/dividir/">Dividir PDF</a>.' },
+    { q: 'Por que aparece "Este PDF parece ser uma imagem escaneada"?', a: 'PDFs gerados por scanner ou por foto guardam cada página como imagem, sem texto por baixo, e a ferramenta não faz reconhecimento de caracteres (OCR). Para usar essas páginas como imagens, converta com <a href="/pdf/pdf-para-jpg/">PDF para JPG</a>.' },
+    { q: 'A formatação do PDF é mantida?', a: 'O resultado é texto puro: linhas e parágrafos são preservados, mas negrito, fontes, imagens e tabelas não. Tabelas viram linhas com as células separadas por espaço, e páginas com várias colunas podem ter as colunas misturadas na mesma linha.' },
+    { q: 'O arquivo .txt abre com os acentos certos?', a: 'Sim. O .txt é salvo em UTF-8 com a marca que o Bloco de Notas reconhece, então acentos, cedilha e símbolos aparecem corretamente no Windows, no Mac e no celular.' },
+    { q: 'O PDF é enviado para algum servidor?', a: 'Não. A leitura acontece no seu navegador, e o documento não sai do aparelho. PDFs protegidos por senha não podem ser abertos.' },
+  ]}
+/>

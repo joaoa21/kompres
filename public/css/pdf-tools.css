@@ -48,3 +48,103 @@ html.light .pdf-file-field:has(input:focus-visible) .pdf-file-btn { outline-colo
 .pdf-compression-option input { flex: 0 0 18px; width: 18px; height: 18px; margin: 0; accent-color: var(--accent); cursor: pointer; }
 .pdf-compression-option p { margin: 6px 0 0 28px; color: var(--muted); font-size: .8rem; line-height: 1.6; }
 html.light .pdf-compression-option input { accent-color: #3d7000; }
+
+/* PDF para texto: caixa "Separar páginas" e área com o texto extraído. */
+.control-group label.pdf-check { display: flex; align-items: center; gap: 10px; width: fit-content; margin: 0; color: var(--text); font-size: .9rem; line-height: 1.5; text-transform: none; letter-spacing: 0; cursor: pointer; }
+.pdf-check input { flex: 0 0 18px; width: 18px; height: 18px; margin: 0; accent-color: var(--accent); cursor: pointer; }
+html.light .pdf-check input { accent-color: #3d7000; }
+.pdf-check:has(input:disabled) { opacity: .5; cursor: default; }
+.tool-workspace .pdf-text-result { order: 8; }
+.pdf-text-result { margin-block: .25rem 2rem; min-width: 0; }
+.pdf-text-result[hidden] { display: none; }
+.pdf-text-result > label { display: block; margin-bottom: .6rem; color: var(--muted); font-size: .8rem; text-transform: uppercase; letter-spacing: .08em; }
+.pdf-text-result textarea { display: block; width: 100%; box-sizing: border-box; min-height: 420px; resize: vertical; padding: 1rem; background: var(--surface2); color: var(--text); border: 1px solid var(--border); border-radius: 10px; font: inherit; font-size: .9rem; line-height: 1.6; white-space: pre-wrap; overflow-wrap: anywhere; }
+.pdf-text-result textarea:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+html.light .pdf-text-result textarea:focus-visible { outline-color: #3d7000; }
+.pdf-text-actions { display: flex; flex-wrap: wrap; gap: .6rem; margin-top: .8rem; }
+@media (max-width: 600px) {
+  .pdf-text-result textarea { min-height: 320px; }
+  .pdf-text-actions .btn { flex: 1 1 100%; }
+}
+
+/* Câmera (Imagens → PDF): só em telas de toque; o campo de arquivo fica invisível e o botão o abre. */
+.pdf-camera { display: none; }
+.tool-workspace .pdf-camera { order: 4; }
+.pdf-camera input[type="file"] { position: absolute; width: 1px; height: 1px; opacity: 0; overflow: hidden; pointer-events: none; }
+@media (hover: none) and (pointer: coarse) {
+  .pdf-camera:not(.hidden) { display: flex; position: relative; margin-block: 0 1rem; }
+  .pdf-camera .btn { flex: 1; min-height: 3rem; }
+}
+
+/* Marca d'água: prévia de uma página com a marca arrastável (posição Livre).
+   O palco segue a ordem comum de .tool-stage (no celular, depois dos botões). */
+.wm-stage { min-width: 0; margin-block: 1rem 1.5rem; }
+.wm-stage[hidden], .wm-stage [hidden] { display: none !important; }
+.wm-bar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .5rem 1rem; margin-bottom: .8rem; min-height: 40px; }
+.wm-hint { flex: 1 1 16rem; min-width: 0; margin: 0; color: var(--muted); font-size: .8rem; line-height: 1.5; }
+.wm-nav { display: flex; align-items: center; gap: .5rem; margin-left: auto; }
+.wm-page-label { min-width: 8.5em; text-align: center; color: var(--text); font: .8rem var(--font-mono); }
+.wm-nav-btn { width: 36px; height: 36px; display: grid; place-items: center; padding: 0; border: 1px solid var(--border); border-radius: 8px; background: var(--surface2); color: var(--text); font-size: 1.2rem; line-height: 1; cursor: pointer; }
+.wm-nav-btn:hover:not(:disabled) { color: var(--accent); border-color: var(--accent); }
+html.light .wm-nav-btn:hover:not(:disabled) { color: #3d7000; border-color: #3d7000; }
+.wm-nav-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+html.light .wm-nav-btn:focus-visible { outline-color: #3d7000; }
+.wm-nav-btn:disabled { opacity: .35; cursor: not-allowed; }
+
+/* Folga ao redor da página para a alça que sai da borda. */
+/* Corta a moldura que passar da folga: uma marca grande perto da borda não abre rolagem horizontal. */
+.wm-view { display: flex; justify-content: center; min-width: 0; padding: 16px; overflow: hidden; overflow: clip; }
+.wm-page { position: relative; flex-shrink: 0; max-width: 100%; background: #fff; box-shadow: 0 2px 16px rgba(0, 0, 0, .3); }
+html.light .wm-page { box-shadow: 0 2px 14px rgba(0, 0, 0, .14); }
+.wm-page canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+/* A tinta é cortada na borda da página, como no PDF; a moldura de arrastar fica por cima, sem corte. */
+.wm-clip { position: absolute; inset: 0; overflow: hidden; pointer-events: none; }
+.wm-layer { position: absolute; inset: 0; pointer-events: none; }
+.wm-ink, .wm-mark { position: absolute; box-sizing: border-box; transform-origin: 50% 50%; }
+/* Texto com a mesma métrica da Helvetica Bold do PDF: sem kerning nem ligaduras (o PDF não usa). */
+.wm-ink-text {
+  position: absolute; left: 0; top: 0;
+  font-family: Helvetica, Arial, sans-serif; font-weight: 700; font-style: normal;
+  line-height: 1; letter-spacing: 0; text-transform: none; white-space: pre;
+  font-kerning: none; font-variant-ligatures: none; font-synthesis: none;
+}
+/* Marcador de altura zero: sua posição é a linha de base do texto (o pdf.js mede com offsetTop). */
+.wm-baseline { display: inline-block; width: 0; height: 0; vertical-align: baseline; }
+/* image-orientation: none: o PDF embute o JPG sem aplicar a rotação EXIF, então a prévia também não. */
+.wm-ink-img { position: absolute; inset: 0; width: 100%; height: 100%; display: block; image-orientation: none; }
+
+/* A página é sempre branca: moldura e alça em verde escuro com halo branco nos dois temas. */
+.wm-mark {
+  pointer-events: auto;
+  cursor: move;
+  touch-action: none; /* arrastar com o dedo move a marca, não a página */
+  user-select: none; -webkit-user-select: none; -webkit-touch-callout: none;
+  outline: 1px dashed rgba(61, 112, 0, .55);
+  outline-offset: 3px;
+}
+.wm-mark::before { content: ''; position: absolute; inset: -8px; } /* área de toque maior que a marca */
+.wm-mark:hover, .wm-mark.dragging { outline: 1.5px dashed #3d7000; }
+.wm-mark:focus-visible { outline: 2px solid #3d7000; box-shadow: 0 0 0 5px rgba(255, 255, 255, .8); }
+.wm-mark.dragging { cursor: grabbing; }
+.wm-resize {
+  position: absolute; right: -13px; bottom: -13px;
+  width: 20px; height: 20px; box-sizing: border-box;
+  border: 2px solid #fff; border-radius: 50%;
+  background: #3d7000;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, .35);
+  cursor: nwse-resize;
+  touch-action: none;
+}
+.wm-resize::before { content: ''; position: absolute; inset: -8px; border-radius: 50%; }
+.wm-notice { margin: .8rem 0 0; padding: .7rem .9rem; border-left: 2px solid var(--border-hover); color: var(--muted); font-size: .8rem; line-height: 1.5; }
+
+@media (min-width: 901px) { .tool-main > .wm-stage { margin: .25rem 0 0; } }
+@media (max-width: 768px), (pointer: coarse) {
+  /* Alça grande para o dedo. */
+  .wm-resize { width: 28px; height: 28px; right: -17px; bottom: -17px; }
+}
+@media (max-width: 768px) {
+  .wm-view { padding: 14px 8px; }
+  .wm-bar { justify-content: center; text-align: center; }
+  .wm-nav { margin-left: 0; }
+}

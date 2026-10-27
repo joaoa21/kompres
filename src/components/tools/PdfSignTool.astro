@@ -1,0 +1,126 @@
+---
+/** Assinar PDF (lógica em /js/pdf-sign.js): cria a assinatura (desenho, nome digitado
+ *  ou imagem), posiciona sobre as páginas e grava com pdf-lib, tudo no navegador. */
+const modes = [
+  { value: 'draw', label: 'Desenhar' },
+  { value: 'type', label: 'Digitar' },
+  { value: 'image', label: 'Imagem' },
+];
+const inks = [
+  { value: 'black', label: 'Preta' },
+  { value: 'blue', label: 'Azul' },
+];
+---
+<section class="tool-section page2 sign-tool">
+  <div class="tool-header page-inner">
+    <div>
+      <h2>Assinar PDF</h2>
+      <p>Crie sua assinatura, clique na página para colocá-la, ajuste a posição e o tamanho e baixe o PDF assinado.</p>
+    </div>
+  </div>
+
+  <div class="tool-workspace page-inner">
+    <div class="tool-side">
+      <div class="controls page-inner controls-sign">
+        <div class="control-group">
+          <label>Sua assinatura</label>
+          <div class="format-toggle sign-modes" role="group" aria-label="Como criar a assinatura">
+            {modes.map((m, i) => (
+              <label class:list={['fmt-btn', { active: i === 0 }]}><input type="radio" name="signMode" value={m.value} checked={i === 0}>{m.label}</label>
+            ))}
+          </div>
+
+          <div class="sign-panel" data-panel="draw">
+            <div class="sign-pad-wrap">
+              <canvas id="signPad" class="sign-pad" aria-label="Área para desenhar a assinatura com o mouse, a caneta ou o dedo" role="img"></canvas>
+              <span class="sign-pad-hint" id="signPadHint" aria-hidden="true">Assine aqui</span>
+              <span class="sign-pad-line" aria-hidden="true"></span>
+            </div>
+            <div class="sign-row">
+              <label class="sign-inline-label" for="signWidth">Espessura</label>
+              <input type="range" id="signWidth" min="1" max="8" step="0.5" value="3">
+              <button type="button" class="sign-mini-btn" id="signPadClear">Limpar</button>
+            </div>
+          </div>
+
+          <div class="sign-panel" data-panel="type" hidden>
+            <input type="text" id="signName" class="sign-name" maxlength="60" autocomplete="name" placeholder="Seu nome" aria-label="Nome para a assinatura digitada">
+            <small class="field-hint">O nome vira uma assinatura em letra de mão.</small>
+          </div>
+
+          <div class="sign-panel" data-panel="image" hidden>
+            <label class="sign-file-btn">
+              <input type="file" id="signImageFile" accept="image/png,image/jpeg,.png,.jpg,.jpeg">
+              <span id="signImageLabel" data-ah-mask>Escolher imagem PNG ou JPG</span>
+            </label>
+            <div class="sign-image-preview" id="signImagePreview" hidden>
+              <canvas id="signImageCanvas" aria-label="Prévia da imagem da assinatura" role="img"></canvas>
+            </div>
+            <label class="sign-check">
+              <input type="checkbox" id="signRemoveBg" checked>
+              <span>Remover fundo branco</span>
+            </label>
+            <small class="field-hint">Use uma foto da assinatura em papel branco, bem iluminada e recortada rente.</small>
+          </div>
+
+          <div class="sign-ink" id="signInkGroup">
+            <span class="sign-inline-label" id="signInkLabel">Cor</span>
+            <div class="format-toggle" role="group" aria-labelledby="signInkLabel">
+              {inks.map((ink, i) => (
+                <label class:list={['fmt-btn', 'sign-ink-btn', { active: i === 0 }]} data-ink={ink.value}><input type="radio" name="signInk" value={ink.value} checked={i === 0}><span class="sign-swatch" aria-hidden="true"></span>{ink.label}</label>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        <div class="control-group">
+          <label>Colocar no PDF</label>
+          <div class="sign-place-btns">
+            <button type="button" class="btn btn-outline" id="signAdd" disabled>Adicionar à página</button>
+            <button type="button" class="btn btn-outline" id="signAll" disabled>Aplicar em todas as páginas</button>
+          </div>
+          <label class="sign-check">
+            <input type="checkbox" id="signDate">
+            <span>Adicionar data <span class="sign-date-sample" id="signDateSample"></span></span>
+          </label>
+          <small class="field-hint">Também dá para clicar na página para colocar a assinatura ali. Arraste para mover e use a alça do canto para mudar o tamanho.</small>
+        </div>
+
+        <p class="sign-notice">Assinatura visual. Não substitui assinatura digital com certificado (ICP-Brasil).</p>
+      </div>
+
+      <div class="action-bar page-inner">
+        <button class="btn btn-primary" id="signDownload" disabled>Baixar PDF assinado</button>
+        <button class="btn btn-outline" id="signClear" disabled>Limpar</button>
+      </div>
+    </div>
+
+    <div class="tool-main">
+      <p class="tool-status page-inner" id="signStatus" role="status" aria-live="polite" hidden></p>
+
+      <div class="drop-zone page-inner" id="signDrop">
+        <input type="file" id="signFile" accept="application/pdf,.pdf" aria-label="Selecionar arquivo PDF">
+        <span class="drop-icon">⬇</span>
+        <p><strong>Arraste o PDF aqui</strong><br>ou clique para selecionar · um arquivo .pdf<br><span class="drop-hint">Também dá para colar com Ctrl+V</span></p>
+      </div>
+
+      <div class="tool-stage page-inner sign-stage" id="signStage" hidden>
+        <div class="sign-bar">
+          <span class="sign-file-name" id="signFileName" data-ah-mask></span>
+          <div class="sign-nav">
+            <button type="button" class="sign-nav-btn" id="signPrev" aria-label="Página anterior">‹</button>
+            <span class="sign-page-label" id="signPageLabel" aria-live="polite">Página 1 de 1</span>
+            <button type="button" class="sign-nav-btn" id="signNext" aria-label="Próxima página">›</button>
+          </div>
+        </div>
+        <div class="sign-view" id="signView">
+          <div class="sign-page" id="signPage">
+            <canvas id="signCanvas" aria-hidden="true"></canvas>
+            <div class="sign-layer" id="signLayer" role="group" aria-label="Página do PDF. Clique para colocar a assinatura."></div>
+          </div>
+        </div>
+        <div class="sign-thumbs" id="signThumbs" role="group" aria-label="Miniaturas das páginas"></div>
+      </div>
+    </div>
+  </div>
+</section>

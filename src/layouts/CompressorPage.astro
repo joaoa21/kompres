@@ -5,6 +5,7 @@ import Hero from '../components/Hero.astro';
 import Guide, { type Faq } from '../components/Guide.astro';
 import CompressorTool from '../components/tools/CompressorTool.astro';
 import type { PageInfo } from '../data/pages';
+import type { ToolKey } from '../data/tools';
 
 interface Props {
   page: PageInfo;
@@ -13,12 +14,14 @@ interface Props {
   heading?: string;
   intro?: string;
   svg?: boolean;
+  /** Cartão marcado na navegação (o padrão é o compressor). */
+  activeTool?: ToolKey;
   guideTitle: string;
   faqs: Faq[];
 }
-const { page, hero, format, heading, intro, svg, guideTitle, faqs } = Astro.props;
+const { page, hero, format, heading, intro, svg, activeTool = 'compress', guideTitle, faqs } = Astro.props;
 ---
-<Base page={page} section="image" activeTool="compress" tool="compressor">
+<Base page={page} section="image" activeTool={activeTool} tool="compressor">
   <Hero {...hero} />
   <CompressorTool format={format} heading={heading} intro={intro} svg={svg} />
   <Guide title={guideTitle} faqs={faqs} current={page.path} />
