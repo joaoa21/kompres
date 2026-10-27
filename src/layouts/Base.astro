@@ -96,9 +96,9 @@ if (page) {
 
   <link rel="icon" type="image/svg+xml" href="/favicon.svg">
   <link rel="apple-touch-icon" href="/apple-touch-icon.png">
-  <link rel="stylesheet" href="/css/style.css?v=astro-1">
+  <link rel="stylesheet" href="/css/style.css?v=ux-1">
   {styles.map((href) => <link rel="stylesheet" href={href}>)}
-  <link rel="stylesheet" href="/css/tool-navigation.css?v=1">
+  <link rel="stylesheet" href="/css/tool-navigation.css?v=ux-1">
   <link rel="stylesheet" href="/css/selects.css?v=1">
 
   {description && (
@@ -147,9 +147,9 @@ if (page) {
   {/* Bibliotecas externas da ferramenta (carregam antes do tema e do script da página). */}
   <slot name="libs" />
   <script is:inline src="/js/theme.js?v=app-1"></script>
+  <script is:inline src="/js/input.js?v=ux-1"></script>
+  <script is:inline src="/js/png-client.js?v=ux-1"></script>
   <slot name="scripts" />
-  <script is:inline src="https://unpkg.com/lenis@1.3.13/dist/lenis.min.js"></script>
-  <script is:inline src="/js/lenis-init.js?v=app-1"></script>
   <script is:inline src="/js/privacy.js"></script>
   <script is:inline src="/js/selects.js?v=app-1"></script>
 

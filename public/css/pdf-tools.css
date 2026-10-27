@@ -25,4 +25,7 @@ html.light .pdf-status.error { color: #ad2424; }
 .pdf-compression-option input { flex: 0 0 18px; width: 18px; height: 18px; margin: 0; accent-color: var(--accent); cursor: pointer; }
 .pdf-compression-option p { margin: 6px 0 0 28px; color: var(--muted); font-size: .8rem; line-height: 1.6; }
 html.light .pdf-compression-option input { accent-color: #3d7000; }
-
+/* Celular: modos em duas colunas em vez de um por linha. */
+@media (max-width: 768px) {
+  #modeToggle .fmt-btn { flex: 1 1 calc(50% - .25rem); white-space: normal; height: auto; min-height: 2.9rem; padding: .5rem .4rem; line-height: 1.2; }
+}

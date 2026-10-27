@@ -31,7 +31,8 @@ kompres.register('pdf', (signal, document) => {
   // Modo inicial definido pela página (/pdf/, /pdf/comprimir/, ...).
   let mode = modeToggle.querySelector('.fmt-btn.active')?.dataset.mode || 'merge';
   const banks = { pdf: [], single: [], images: [] };
-  const bankKey = () => mode === 'images' ? 'images' : ['extract', 'export'].includes(mode) ? 'single' : 'pdf';
+  const SINGLE = ['extract', 'export', 'rotate', 'remove']; // um PDF por vez
+  const bankKey = () => mode === 'images' ? 'images' : SINGLE.includes(mode) ? 'single' : 'pdf';
   let outputs = [];
   const field = id => document.getElementById(id);
   function setStatus(message = '', error = false) { const el = field('pdfStatus'); el.textContent = message; el.hidden = !message; el.classList.toggle('error', error); }
@@ -50,7 +51,7 @@ kompres.register('pdf', (signal, document) => {
     invalidateResults(); refresh();
     if (window.updateAllRangeFills) window.updateAllRangeFills();
   }));
-  function refresh() { renderList(); renderOutputs(); updateStats(); updateButtons(); }
+  function refresh() { renderList(); renderOutputs(); updateStats(); updateButtons(); updateRangePlaceholder(); }
   function renderOutputs() {
     const root = field('pdfOutputs'); root.replaceChildren(); root.hidden = !outputs.length;
     outputs.forEach(output => {
@@ -93,25 +94,16 @@ kompres.register('pdf', (signal, document) => {
     fileInput.value = '';
   });
 
-  dropZone.addEventListener('dragover', (event) => {
-    event.preventDefault();
-    dropZone.classList.add('dragover');
-  });
-
-  dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
-
-  dropZone.addEventListener('drop', async (event) => {
-    event.preventDefault();
-    dropZone.classList.remove('dragover');
-    await handleFiles([...event.dataTransfer.files]);
-  });
+  kompres.fileDrop({ signal, document, zone: dropZone, onFiles: handleFiles });
 
   async function handleFiles(files) {
-    if (!files.length || busy) return;
+    if (!files.length) return;
     const imageMode = mode === 'images';
     const single = bankKey() === 'single';
+    if (busy) return;
     if (single && files.length > 1) { setStatus('Selecione um PDF por vez.', true); return; }
-    const valid = files.filter(file => imageMode ? /\.(png|jpe?g)$/i.test(file.name) : /\.pdf$/i.test(file.name));
+    const isImage = file => /^image\/(png|jpeg)$/.test(file.type) || /\.(png|jpe?g)$/i.test(file.name);
+    const valid = files.filter(file => imageMode ? isImage(file) : /\.pdf$/i.test(file.name) || file.type === 'application/pdf');
     if (valid.length !== files.length) { setStatus(imageMode ? 'Selecione apenas imagens JPG ou PNG.' : 'Selecione apenas arquivos PDF.', true); return; }
     if (single) { items.length = 0; field('pageRange').value = ''; }
     invalidateResults(); busy = true;
@@ -166,6 +158,8 @@ kompres.register('pdf', (signal, document) => {
       banks[bankKey()] = items;
       mode = btn.dataset.mode;
       items = banks[bankKey()];
+      // "Páginas" muda de sentido entre extrair, remover e girar: começa vazio no modo novo.
+      field('pageRange').value = ''; field('pageRange').removeAttribute('aria-invalid');
       applyMode();
     });
   });
@@ -175,9 +169,11 @@ kompres.register('pdf', (signal, document) => {
     document.querySelectorAll('[data-for]').forEach(el => el.classList.toggle('hidden', !el.dataset.for.split(' ').includes(mode)));
     field('exportQualityGroup').classList.toggle('hidden', mode !== 'export' || field('exportFormat').value === 'png');
     modeToggle.querySelectorAll('button').forEach(btn => { btn.classList.toggle('active', btn.dataset.mode === mode); btn.setAttribute('aria-pressed', String(btn.dataset.mode === mode)); });
-    const titles = { merge: 'Juntar PDFs', compress: 'Comprimir PDFs', images: 'Imagens para PDF', extract: 'Extrair ou dividir PDF', export: 'PDF para imagens' };
-    const descriptions = { merge: 'Adicione os PDFs e organize a ordem.', compress: 'Adicione seus PDFs e escolha a compressão.', images: 'Adicione as imagens e organize a ordem das páginas.', extract: 'Escolha as páginas que deseja salvar.', export: 'Transforme as páginas do PDF em JPG ou PNG.' };
+    const titles = { merge: 'Juntar PDFs', compress: 'Comprimir PDFs', images: 'Imagens para PDF', extract: 'Extrair ou dividir PDF', remove: 'Remover páginas do PDF', rotate: 'Girar páginas do PDF', export: 'PDF para imagens' };
+    const descriptions = { merge: 'Adicione os PDFs e organize a ordem.', compress: 'Adicione seus PDFs e escolha a compressão.', images: 'Adicione as imagens e organize a ordem das páginas.', extract: 'Escolha as páginas que deseja salvar.', remove: 'Informe as páginas que devem sair do arquivo.', rotate: 'Escolha o ângulo e, se quiser, só algumas páginas.', export: 'Transforme as páginas do PDF em JPG ou PNG.' };
     field('toolTitle').textContent = titles[mode]; field('toolDescription').textContent = descriptions[mode];
+    field('rangeHint').textContent = mode === 'remove' ? 'Separe por vírgula e use hífen para intervalos: 2, 5-7.' : 'Deixe vazio para todas as páginas.';
+    updateRangePlaceholder();
     const imageMode = mode === 'images', single = bankKey() === 'single';
     fileInput.accept = imageMode ? 'image/jpeg,image/png,.jpg,.jpeg,.png' : 'application/pdf,.pdf'; fileInput.multiple = !single;
     fileInput.setAttribute('aria-label', imageMode ? 'Selecionar imagens JPG ou PNG' : 'Selecionar arquivos PDF');
@@ -190,6 +186,12 @@ kompres.register('pdf', (signal, document) => {
     qualityVal.textContent = `${qualityIn.value}%`;
     if (window.updateAllRangeFills) window.updateAllRangeFills();
   });
+
+  // O campo de páginas mostra o total do PDF carregado: "Todas (1-12)".
+  function updateRangePlaceholder() {
+    const pages = SINGLE.includes(mode) ? items[0]?.pages : null;
+    field('pageRange').placeholder = mode === 'remove' ? (pages ? `Ex.: 2, 5-7 (o PDF tem ${pages})` : 'Ex.: 2, 5-7') : pages ? `Todas (1-${pages})` : 'Todas ou 1-3, 7';
+  }
 
   function invalidateResults() {
     outputs = []; setStatus();
@@ -388,7 +390,7 @@ kompres.register('pdf', (signal, document) => {
   function updateButtons() {
     const ready = items.filter(item => item.status === 'ready' || item.status === 'done');
     document.querySelectorAll('#pdfControls input, #pdfControls select, #pdfControls button, #allow-rasterize, #fileInput').forEach(el => el.disabled = busy);
-    const labels = { merge: 'Juntar PDFs', compress: 'Comprimir tudo', images: 'Criar PDF', extract: 'Extrair páginas', export: 'Converter páginas' };
+    const labels = { merge: 'Juntar PDFs', compress: 'Comprimir tudo', images: 'Criar PDF', extract: 'Extrair páginas', remove: 'Remover páginas', rotate: 'Girar páginas', export: 'Converter páginas' };
     actionBtn.textContent = busy ? 'Processando…' : labels[mode];
     actionBtn.disabled = busy || ready.length < (mode === 'merge' ? 2 : 1) || items.some(item => item.status === 'error');
     const files = downloadable();
@@ -416,7 +418,10 @@ kompres.register('pdf', (signal, document) => {
     if (busy || actionBtn.disabled) return;
     let indices;
     try {
-      if (['extract', 'export'].includes(mode)) indices = KompresPDF.parsePages(field('pageRange').value, items[0].pages);
+      if (SINGLE.includes(mode)) {
+        if (mode === 'remove' && !field('pageRange').value.trim()) throw new Error('Informe as páginas que devem ser removidas.');
+        indices = KompresPDF.parsePages(field('pageRange').value, items[0].pages);
+      }
     } catch (err) { field('pageRange').setAttribute('aria-invalid', 'true'); setStatus(err.message, true); field('pageRange').focus(); return; }
     invalidateResults(); busy = true; refresh();
     const progress = (current, total) => setStatus(`Processando ${current} de ${total}…`);
@@ -433,6 +438,10 @@ kompres.register('pdf', (signal, document) => {
         outputs = [{ name: 'kompres-imagens.pdf', blob: await KompresPDF.imagesToPdf(items, { pageSize: field('imagePageSize').value, marginMM: field('imageMargin').value }, progress) }];
       } else if (mode === 'extract') {
         outputs = await KompresPDF.extract(items[0], indices, field('extractOutput').value === 'split', progress);
+      } else if (mode === 'remove') {
+        outputs = await KompresPDF.removePages(items[0], indices);
+      } else if (mode === 'rotate') {
+        outputs = await KompresPDF.rotate(items[0], indices, Number(field('rotateAngle').value));
       } else if (mode === 'export') {
         outputs = await KompresPDF.exportImages(items[0], indices, { format: field('exportFormat').value, dpi: Number(field('exportDpi').value), quality: Number(field('exportQuality').value) / 100 }, progress);
       } else {

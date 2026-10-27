@@ -1,13 +1,13 @@
 ---
 /** Ferramentas de PDF (lógica em /js/pdf.js). O modo inicial vem da página;
  *  o usuário continua podendo trocar de modo sem recarregar. */
-export type PdfMode = 'merge' | 'compress' | 'images' | 'extract' | 'export';
+export type PdfMode = 'merge' | 'compress' | 'images' | 'extract' | 'remove' | 'rotate' | 'export';
 interface Props { mode?: PdfMode }
 const { mode = 'merge' } = Astro.props;
-const modes = [['merge', 'Juntar'], ['compress', 'Comprimir'], ['images', 'Imagens → PDF'], ['extract', 'Extrair / dividir'], ['export', 'PDF → imagens']] as const;
+const modes = [['merge', 'Juntar'], ['compress', 'Comprimir'], ['images', 'Imagens → PDF'], ['extract', 'Extrair / dividir'], ['remove', 'Remover páginas'], ['rotate', 'Girar'], ['export', 'PDF → imagens']] as const;
 // Mesmos textos que o pdf.js aplica ao trocar de modo.
-const titles: Record<PdfMode, string> = { merge: 'Juntar PDFs', compress: 'Comprimir PDFs', images: 'Imagens para PDF', extract: 'Extrair ou dividir PDF', export: 'PDF para imagens' };
-const descriptions: Record<PdfMode, string> = { merge: 'Adicione os PDFs e organize a ordem.', compress: 'Adicione seus PDFs e escolha a compressão.', images: 'Adicione as imagens e organize a ordem das páginas.', extract: 'Escolha as páginas que deseja salvar.', export: 'Transforme as páginas do PDF em JPG ou PNG.' };
+const titles: Record<PdfMode, string> = { merge: 'Juntar PDFs', compress: 'Comprimir PDFs', images: 'Imagens para PDF', extract: 'Extrair ou dividir PDF', remove: 'Remover páginas do PDF', rotate: 'Girar páginas do PDF', export: 'PDF para imagens' };
+const descriptions: Record<PdfMode, string> = { merge: 'Adicione os PDFs e organize a ordem.', compress: 'Adicione seus PDFs e escolha a compressão.', images: 'Adicione as imagens e organize a ordem das páginas.', extract: 'Escolha as páginas que deseja salvar.', remove: 'Informe as páginas que devem sair do arquivo.', rotate: 'Escolha o ângulo e, se quiser, só algumas páginas.', export: 'Transforme as páginas do PDF em JPG ou PNG.' };
 ---
 
 <section class="tool-section page2">
@@ -50,10 +50,14 @@ const descriptions: Record<PdfMode, string> = { merge: 'Adicione os PDFs e organ
       <label for="imageMargin">Margem</label>
       <select id="imageMargin"><option value="0">Sem margem</option><option value="10" selected>10 mm</option><option value="20">20 mm</option></select>
     </div>
-    <div class="control-group hidden" data-for="extract export">
+    <div class="control-group hidden" data-for="extract export remove rotate">
       <label for="pageRange">Páginas</label>
       <input type="text" id="pageRange" placeholder="Todas ou 1-3, 7" autocomplete="off" spellcheck="false" aria-describedby="rangeHint">
       <small id="rangeHint" class="pdf-field-hint">Deixe vazio para todas as páginas.</small>
+    </div>
+    <div class="control-group hidden" data-for="rotate">
+      <label for="rotateAngle">Ângulo</label>
+      <select id="rotateAngle"><option value="90">90° no sentido horário</option><option value="270">90° no sentido anti-horário</option><option value="180">180° (de cabeça para baixo)</option></select>
     </div>
     <div class="control-group hidden" data-for="extract">
       <label for="extractOutput">Salvar como</label>

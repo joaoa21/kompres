@@ -8,10 +8,14 @@ kompres.register('resizer', (signal, document) => {
   const downloadZipBtn = document.getElementById('downloadZipBtn');
   const clearBtn = document.getElementById('clearBtn');
   const previewList = document.getElementById('previewList');
-  const widthGroup = document.getElementById('widthGroup');
-  const percentGroup = document.getElementById('percentGroup');
+  const statusLine = document.getElementById('resizer-status');
+  const groups = { width: document.getElementById('widthGroup'), height: document.getElementById('heightGroup'), percent: document.getElementById('percentGroup'), exact: document.getElementById('exactGroup') };
   const maxWidthInput = document.getElementById('maxWidth');
+  const maxHeightInput = document.getElementById('maxHeight');
   const percentSelect = document.getElementById('percent');
+  const exactWidthInput = document.getElementById('exactWidth');
+  const exactHeightInput = document.getElementById('exactHeight');
+  const exactFitSelect = document.getElementById('exactFit');
   const statsBar = document.getElementById('statsBar');
   const statCount = document.getElementById('statCount');
   const statOriginal = document.getElementById('statOriginal');
@@ -20,62 +24,55 @@ kompres.register('resizer', (signal, document) => {
 
   let imageData = [];
   let busy = false;
+  let rerun = false; // configurações mudaram ou chegaram arquivos durante um processamento
+  let settingsTimer;
+
+  function setStatus(message = '', error = false) {
+    statusLine.textContent = message; statusLine.hidden = !message; statusLine.classList.toggle('error', error);
+  }
 
   fileInput.addEventListener('change', async (event) => {
     await handleFiles([...event.target.files]);
   });
-
-  dropZone.addEventListener('dragover', (event) => {
-    event.preventDefault();
-    dropZone.classList.add('dragover');
-  });
-
-  dropZone.addEventListener('dragleave', () => {
-    dropZone.classList.remove('dragover');
-  });
-
-  dropZone.addEventListener('drop', async (event) => {
-    event.preventDefault();
-    dropZone.classList.remove('dragover');
-
-    const files = [...event.dataTransfer.files].filter((file) => file.type.startsWith('image/'));
-    await handleFiles(files);
-  });
+  kompres.fileDrop({ signal, document, zone: dropZone, onFiles: handleFiles });
 
   document.querySelectorAll('input[name="resizeMode"]').forEach((radio) => {
     radio.addEventListener('change', () => {
       const mode = getResizeMode();
-      widthGroup.classList.toggle('hidden', mode !== 'width');
-      percentGroup.classList.toggle('hidden', mode !== 'percent');
+      Object.entries(groups).forEach(([key, group]) => group.classList.toggle('hidden', key !== mode));
       updateActiveToggle('resizeMode');
-      updatePreviewDimensions();
+      settingsChanged();
     });
   });
 
-  [maxWidthInput, percentSelect].forEach((input) => {
-    input.addEventListener('input', updatePreviewDimensions);
-    input.addEventListener('change', updatePreviewDimensions);
+  // Digitar um número refaz o resultado depois de uma pequena pausa.
+  [maxWidthInput, maxHeightInput, exactWidthInput, exactHeightInput].forEach((input) => {
+    input.addEventListener('input', () => { clearTimeout(settingsTimer); settingsTimer = setTimeout(settingsChanged, 350); });
+    input.addEventListener('change', settingsChanged);
   });
+  [percentSelect, exactFitSelect].forEach((select) => select.addEventListener('change', settingsChanged));
 
-  processBtn.addEventListener('click', processImages);
+  processBtn.addEventListener('click', () => processImages(true));
   downloadZipBtn.addEventListener('click', downloadAllAsZip);
   clearBtn.addEventListener('click', clearAll);
 
   async function handleFiles(files) {
-    if (!files.length || busy) return;
-    busy = true;
-    updateUI();
+    const valid = files.filter((file) => ['image/png', 'image/jpeg', 'image/webp'].includes(file.type));
+    const skipped = files.length - valid.length;
+    setStatus(skipped ? `${skipped} ${skipped === 1 ? 'arquivo ignorado' : 'arquivos ignorados'}: use PNG, JPG ou WebP.` : '', skipped > 0);
+    fileInput.value = '';
+    if (!valid.length) return;
 
-    for (const file of files) {
-      if (!['image/png', 'image/jpeg', 'image/webp'].includes(file.type)) continue;
-      try { imageData.push(await getImageInfo(file)); } catch { alert(`Não foi possível abrir: ${file.name}`); }
+    const failed = [];
+    for (const file of valid) {
+      try { imageData.push(await getImageInfo(file)); } catch { failed.push(file.name); }
     }
+    if (failed.length) setStatus(`Não foi possível abrir: ${failed.join(', ')}`, true);
 
-    busy = false;
     renderPreviews();
     updateStats();
     updateUI();
-    fileInput.value = '';
+    scheduleRun();
   }
 
   function getResizeMode() {
@@ -99,34 +96,60 @@ kompres.register('resizer', (signal, document) => {
         resolve({
           file,
           previewUrl,
-          originalWidth: image.width,
-          originalHeight: image.height,
+          originalWidth: image.naturalWidth,
+          originalHeight: image.naturalHeight,
           originalSize: file.size,
           processed: null,
           downloadUrl: null,
+          failed: false,
         });
       };
 
-      image.onerror = reject;
+      image.onerror = () => { URL.revokeObjectURL(previewUrl); reject(new Error('Imagem inválida.')); };
       image.src = previewUrl;
     });
   }
 
+  const positive = (input, fallback) => {
+    const value = Math.round(Number(input.value));
+    return Number.isFinite(value) && value > 0 ? value : fallback;
+  };
+
+  /**
+   * Dimensões finais e recorte de origem (sx, sy, sw, sh) para o drawImage.
+   * Largura/Altura/Porcentagem mantêm a proporção e não ampliam.
+   * Exato produz o tamanho pedido: "cortar" preenche a caixa recortando o centro;
+   * "caber" ajusta dentro da caixa sem cortar (o resultado pode ser menor que a caixa).
+   */
   function calculateNewDimensions(originalWidth, originalHeight) {
     const mode = getResizeMode();
+    const full = { sx: 0, sy: 0, sw: originalWidth, sh: originalHeight };
+    const ratio = originalHeight / originalWidth;
 
     if (mode === 'width') {
-      const requested = Number(maxWidthInput.value);
-      const width = Math.min(originalWidth, Math.max(1, Math.round(Number.isFinite(requested) ? requested : originalWidth)));
-      const height = Math.max(1, Math.round((originalHeight / originalWidth) * width));
-      return { width, height };
+      const width = Math.min(originalWidth, positive(maxWidthInput, originalWidth));
+      return { width, height: Math.max(1, Math.round(width * ratio)), ...full };
+    }
+    if (mode === 'height') {
+      const height = Math.min(originalHeight, positive(maxHeightInput, originalHeight));
+      return { width: Math.max(1, Math.round(height / ratio)), height, ...full };
+    }
+    if (mode === 'percent') {
+      const percent = Math.max(Number(percentSelect.value), 1) / 100;
+      return { width: Math.max(1, Math.round(originalWidth * percent)), height: Math.max(1, Math.round(originalHeight * percent)), ...full };
     }
 
-    const percent = Math.max(Number(percentSelect.value), 1) / 100;
-    return {
-      width: Math.max(1, Math.round(originalWidth * percent)),
-      height: Math.max(1, Math.round(originalHeight * percent)),
-    };
+    const boxWidth = positive(exactWidthInput, originalWidth);
+    const boxHeight = positive(exactHeightInput, originalHeight);
+    if (exactFitSelect.value === 'contain') {
+      const scale = Math.min(boxWidth / originalWidth, boxHeight / originalHeight);
+      return { width: Math.max(1, Math.round(originalWidth * scale)), height: Math.max(1, Math.round(originalHeight * scale)), ...full };
+    }
+    // cover: recorta o centro para preencher exatamente a caixa
+    const scale = Math.max(boxWidth / originalWidth, boxHeight / originalHeight);
+    const sw = Math.min(originalWidth, Math.round(boxWidth / scale));
+    const sh = Math.min(originalHeight, Math.round(boxHeight / scale));
+    return { width: boxWidth, height: boxHeight, sx: Math.round((originalWidth - sw) / 2), sy: Math.round((originalHeight - sh) / 2), sw, sh };
   }
 
   function renderPreviews() {
@@ -151,13 +174,13 @@ kompres.register('resizer', (signal, document) => {
         : `
           <small>Dimensão atual: ${data.originalWidth}x${data.originalHeight}</small>
           <small class="future-size">Nova dimensão: ${dimensions.width}x${dimensions.height}</small>
-          <small>${formatBytes(data.originalSize)} → aguardando</small>
+          <small class="${data.failed ? 'card-error' : ''}">${data.failed ? 'Não foi possível redimensionar' : `${formatBytes(data.originalSize)} → aguardando`}</small>
           <button class="download-btn" type="button" disabled>↓ baixar</button>
         `;
 
       card.innerHTML = `
         <div class="card-thumb-wrap">
-          <img src="${data.previewUrl}" alt="Preview da imagem">
+          <img src="${data.processed ? data.downloadUrl : data.previewUrl}" alt="Preview da imagem">
           <button class="card-remove" type="button" data-index="${index}" aria-label="Remover imagem">×</button>
           <span class="card-saving-overlay">-${savingPercent}%</span>
         </div>
@@ -175,139 +198,118 @@ kompres.register('resizer', (signal, document) => {
     });
   }
 
-  function updatePreviewDimensions() {
-    if (busy) return;
+  // Configuração mudou: descarta os resultados e refaz com a nova.
+  function settingsChanged() {
+    clearTimeout(settingsTimer);
     imageData.forEach(item => {
       if (item.downloadUrl) URL.revokeObjectURL(item.downloadUrl);
-      item.processed = null; item.downloadUrl = null;
+      item.processed = null; item.downloadUrl = null; item.failed = false;
     });
     renderPreviews(); updateStats(); updateUI();
-    document.querySelectorAll('.preview-card').forEach((card, index) => {
-      const data = imageData[index];
-      if (!data || data.processed) return;
-
-      const dimensions = calculateNewDimensions(data.originalWidth, data.originalHeight);
-      const futureSize = card.querySelector('.future-size');
-
-      if (futureSize) {
-        futureSize.textContent = `Nova dimensão: ${dimensions.width}x${dimensions.height}`;
-      }
-    });
+    scheduleRun();
   }
 
-  async function processImages() {
-    if (busy) return;
-    if (!imageData.length) {
-      alert('Selecione pelo menos uma imagem.');
-      return;
-    }
+  function scheduleRun() {
+    if (!imageData.length) return;
+    if (busy) { rerun = true; return; }
+    processImages();
+  }
+
+  const pendingItems = () => imageData.filter((item) => !item.processed && !item.failed);
+
+  async function processImages(force = false) {
+    if (busy) { rerun = true; return; }
+    if (force) imageData.forEach(item => { if (item.downloadUrl) URL.revokeObjectURL(item.downloadUrl); item.processed = null; item.downloadUrl = null; item.failed = false; });
+    if (!pendingItems().length) { updateUI(); return; }
 
     busy = true;
     updateUI();
-    processBtn.disabled = true;
-    processBtn.textContent = 'Processando...';
 
-    for (let index = 0; index < imageData.length; index++) {
-      const item = imageData[index];
-
-      if (item.downloadUrl) {
-        URL.revokeObjectURL(item.downloadUrl);
+    do {
+      rerun = false;
+      for (const item of pendingItems()) {
+        if (!imageData.includes(item)) continue;
+        try {
+          const processed = await resizeImage(item.file);
+          if (!imageData.includes(item) || item.processed || rerun) continue; // removida ou configurações mudaram
+          item.processed = processed;
+          item.downloadUrl = URL.createObjectURL(processed.blob);
+        } catch { item.failed = true; }
+        renderPreviews();
+        updateStats();
       }
-      item.processed = null; item.downloadUrl = null;
-
-      try {
-      const processed = await resizeImage(item.file);
-      const downloadUrl = URL.createObjectURL(processed.blob);
-
-      imageData[index].processed = processed;
-      imageData[index].downloadUrl = downloadUrl;
-
-      renderPreviews();
-      updateStats();
-      } catch { alert(`Não foi possível redimensionar: ${item.file.name}`); }
-    }
+    } while (rerun);
 
     busy = false;
-    processBtn.disabled = false;
-    processBtn.textContent = 'Redimensionar tudo';
     updateUI();
   }
 
-  function resizeImage(file) {
+  async function resizeImage(file) {
+    const image = await loadImage(file);
+    const dimensions = calculateNewDimensions(image.naturalWidth, image.naturalHeight);
+    const canvas = document.createElement('canvas');
+    canvas.width = dimensions.width;
+    canvas.height = dimensions.height;
+
+    const context = canvas.getContext('2d');
+    context.imageSmoothingQuality = 'high';
+    context.drawImage(image, dimensions.sx, dimensions.sy, dimensions.sw, dimensions.sh, 0, 0, dimensions.width, dimensions.height);
+
+    const mimeType = file.type || 'image/png';
+    const extension = mimeType === 'image/jpeg' ? 'jpg' : mimeType.split('/')[1];
+
+    // PNG passa pelo otimizador sem perdas (png-client.js): o PNG do canvas é grande.
+    const blob = mimeType === 'image/png'
+      ? await kompres.pngFromCanvas(canvas, 1)
+      : await new Promise((resolve, reject) => canvas.toBlob((result) => {
+          if (!result || result.type !== mimeType) reject(new Error('Erro ao gerar imagem.'));
+          else resolve(result);
+        }, mimeType, 0.9));
+
+    const baseName = file.name.replace(/\.[^/.]+$/, '');
+    return { blob, fileName: `${baseName}-${dimensions.width}x${dimensions.height}-kompres.${extension}`, width: dimensions.width, height: dimensions.height };
+  }
+
+  function loadImage(file) {
     return new Promise((resolve, reject) => {
       const image = new Image();
       const url = URL.createObjectURL(file);
-
-      image.onload = () => {
-        const dimensions = calculateNewDimensions(image.width, image.height);
-        const canvas = document.createElement('canvas');
-        canvas.width = dimensions.width;
-        canvas.height = dimensions.height;
-
-        const context = canvas.getContext('2d');
-        context.imageSmoothingQuality = 'high';
-        context.drawImage(image, 0, 0, dimensions.width, dimensions.height);
-
-        const mimeType = file.type || 'image/png';
-        const extension = mimeType === 'image/jpeg' ? 'jpg' : mimeType.split('/')[1];
-
-        canvas.toBlob((blob) => {
-          if (!blob || blob.type !== mimeType) {
-            reject(new Error('Erro ao gerar imagem.'));
-            return;
-          }
-
-          URL.revokeObjectURL(url);
-
-          const baseName = file.name.replace(/\.[^/.]+$/, '');
-          const fileName = `${baseName}-${dimensions.width}x${dimensions.height}-kompres.${extension}`;
-
-          resolve({
-            blob,
-            fileName,
-            width: dimensions.width,
-            height: dimensions.height,
-          });
-        }, mimeType);
-      };
-
-      image.onerror = reject;
+      image.onload = () => { URL.revokeObjectURL(url); resolve(image); };
+      image.onerror = () => { URL.revokeObjectURL(url); reject(new Error('Imagem inválida.')); };
       image.src = url;
     });
+  }
+
+  function downloadBlob(blob, name) {
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = name;
+    link.click();
+    setTimeout(() => URL.revokeObjectURL(url), 4000);
   }
 
   async function downloadAllAsZip() {
     const processedImages = imageData.filter((item) => item.processed);
     if (!processedImages.length) return;
+    if (processedImages.length === 1) { downloadBlob(processedImages[0].processed.blob, processedImages[0].processed.fileName); return; }
 
     downloadZipBtn.disabled = true;
     downloadZipBtn.textContent = 'Gerando ZIP...';
 
     try {
-    const zip = new JSZip();
-    processedImages.forEach((item, index) => {
-      zip.file(`${index + 1}-${item.processed.fileName}`, item.processed.blob);
-    });
-
-    const zipBlob = await zip.generateAsync({ type: 'blob' });
-    const zipUrl = URL.createObjectURL(zipBlob);
-
-    const link = document.createElement('a');
-    link.href = zipUrl;
-    link.download = 'imagens-redimensionadas.zip';
-    link.click();
-
-    URL.revokeObjectURL(zipUrl);
-
-    } catch { alert('Não foi possível gerar o ZIP. Tente novamente.'); }
-    finally { downloadZipBtn.disabled = false; downloadZipBtn.textContent = '↓ Baixar ZIP'; }
-    downloadZipBtn.disabled = false;
-    downloadZipBtn.textContent = '↓ Baixar ZIP';
+      const zip = new JSZip();
+      processedImages.forEach((item, index) => {
+        zip.file(`${index + 1}-${item.processed.fileName}`, item.processed.blob);
+      });
+      downloadBlob(await zip.generateAsync({ type: 'blob' }), 'imagens-redimensionadas.zip');
+    } catch { setStatus('Não foi possível gerar o ZIP. Tente novamente.', true); }
+    finally { updateUI(); }
   }
 
   function removeImage(index) {
-    if (busy) return;
     const item = imageData[index];
+    if (!item) return;
 
     if (item.previewUrl) URL.revokeObjectURL(item.previewUrl);
     if (item.downloadUrl) URL.revokeObjectURL(item.downloadUrl);
@@ -321,7 +323,6 @@ kompres.register('resizer', (signal, document) => {
   }
 
   function clearAll() {
-    if (busy) return;
     imageData.forEach((item) => {
       if (item.previewUrl) URL.revokeObjectURL(item.previewUrl);
       if (item.downloadUrl) URL.revokeObjectURL(item.downloadUrl);
@@ -330,18 +331,21 @@ kompres.register('resizer', (signal, document) => {
     imageData = [];
     previewList.innerHTML = '';
     fileInput.value = '';
+    setStatus('');
     updateStats();
     updateUI();
   }
 
+  // Controles ficam ativos durante o processamento: mudar algo refaz o resultado.
   function updateUI() {
     const hasImages = imageData.length > 0;
-    const hasProcessed = imageData.some((item) => item.processed);
+    const done = imageData.filter((item) => item.processed).length;
 
-    document.querySelectorAll('.controls input, .controls select, .card-remove, #fileInput').forEach(el => el.disabled = busy);
     processBtn.disabled = busy || !hasImages;
-    clearBtn.disabled = busy || !hasImages;
-    downloadZipBtn.disabled = busy || !hasProcessed;
+    processBtn.textContent = busy ? 'Processando…' : hasImages && !pendingItems().length ? 'Redimensionar novamente' : 'Redimensionar tudo';
+    clearBtn.disabled = !hasImages;
+    downloadZipBtn.disabled = !done;
+    downloadZipBtn.textContent = done === 1 ? '↓ Baixar' : '↓ Baixar ZIP';
   }
 
   function updateStats() {
@@ -387,10 +391,6 @@ kompres.register('resizer', (signal, document) => {
     return `${sign}${formatBytes(Math.abs(bytes))}`;
   }
 
-  function getFileExtension(fileName) {
-    return fileName.split('.').pop().toLowerCase();
-  }
-
   function formatBytes(bytes) {
     if (bytes === 0) return '0 B';
     if (bytes < 1024) return `${bytes} B`;
@@ -411,6 +411,7 @@ kompres.register('resizer', (signal, document) => {
 
   // Saiu da página: libera os object URLs das prévias e resultados.
   signal.addEventListener('abort', () => {
+    clearTimeout(settingsTimer);
     imageData.forEach((item) => {
       if (item.previewUrl) URL.revokeObjectURL(item.previewUrl);
       if (item.downloadUrl) URL.revokeObjectURL(item.downloadUrl);

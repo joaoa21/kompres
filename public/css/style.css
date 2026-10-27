@@ -275,13 +275,13 @@ html.light .theme-knob {
 
 .hero-content {
   max-width: 1100px;
-  margin: 8rem auto 6rem;
+  margin: 4.5rem auto 3.25rem;
   text-align: center;
 }
 
 .hero h1 {
   font-family: var(--font-head);
-  font-size: clamp(3rem, 7vw, 6.1rem);
+  font-size: clamp(2.8rem, 6vw, 5.2rem);
   line-height: 1;
   letter-spacing: -0.08em;
 }
@@ -296,7 +296,7 @@ html.light .hero h1 span {
 
 .hero-text {
   max-width: 650px;
-  margin: 1.5rem auto 0;
+  margin: 1.25rem auto 0;
   color: var(--muted);
   font-size: 1.1rem;
   line-height: 1.7;
@@ -494,8 +494,8 @@ html.light .fmt-btn:has(input:checked) {
 }
 
 .drop-zone {
-  min-height: 320px;
-  padding: 5rem 2rem;
+  min-height: 250px;
+  padding: 3.25rem 2rem;
   border: 1.5px dashed var(--border-hover);
   border-radius: 12px;
   text-align: center;
@@ -532,9 +532,16 @@ html.light .drop-zone.dragover {
 }
 
 .drop-icon {
-  font-size: 3rem;
-  margin-bottom: 0.75rem;
+  font-size: 2.4rem;
+  margin-bottom: 0.6rem;
   display: block;
+}
+
+.drop-hint {
+  display: inline-block;
+  margin-top: 0.5rem;
+  font-size: 0.8rem;
+  opacity: 0.75;
 }
 
 .drop-zone p {
@@ -1017,8 +1024,17 @@ html.light .cookie-btn.primary {
   }
 
   .hero-content {
-    margin-block: 2rem 3rem;
+    margin-block: 1.5rem 2rem;
     padding-inline: 1.25rem;
+  }
+
+  .drop-zone {
+    min-height: 190px;
+    padding: 2.25rem 1.25rem;
+  }
+
+  .drop-icon {
+    font-size: 2rem;
   }
 
   .hero h1 {
@@ -1396,22 +1412,38 @@ html.light .card-note-actions .card-download.primary {
   color: #3d7000;
 }
 
-/* Toggles e campos na mesma altura (compressor e PDF misturam os dois) */
+/* Toggles e campos na mesma altura (compressor, redimensionador e PDF misturam os dois) */
 .controls-compressor .fmt-btn,
+.controls-resizer .fmt-btn,
 .controls-pdf .fmt-btn,
 .controls-compressor input[type="number"],
+.controls-resizer input[type="number"],
 .controls-compressor select,
+.controls-resizer select,
 .controls-pdf select {
   box-sizing: border-box;
   height: 2.9rem;
 }
 
 .controls-compressor .fmt-btn,
+.controls-resizer .fmt-btn,
 .controls-pdf .fmt-btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
 }
+
+/* No redimensionador os botões de modo são <label>: não herdam o estilo do rótulo do grupo. */
+.control-group label.fmt-btn {
+  text-transform: none;
+  letter-spacing: 0;
+  margin-bottom: 0;
+  color: var(--muted);
+}
+.control-group label.fmt-btn.active,
+.control-group label.fmt-btn:has(input:checked) { color: var(--accent); }
+html.light .control-group label.fmt-btn.active,
+html.light .control-group label.fmt-btn:has(input:checked) { color: #3d7000; }
 
 .controls-compressor input[type="number"],
 .controls-compressor select,
@@ -1429,6 +1461,27 @@ html.light .card-note-actions .card-download.primary {
 .related-tools { display: flex; flex-wrap: wrap; gap: 16px 28px; margin-top: 28px; }
 .related-tools a { color: var(--accent); line-height: 1.6; }
 html.light .related-tools a { color: #3d7000; }
+.tool-status { color: var(--muted); font-size: .85rem; line-height: 1.6; margin-block: 1rem; }
+.tool-status.error { color: var(--danger); }
+html.light .tool-status.error { color: #ad2424; }
+.field-hint { display: block; margin-top: .65rem; color: var(--muted); font-size: .75rem; line-height: 1.5; }
+.dimension-row { align-items: center; margin-bottom: .6rem; }
+.dimension-row input[type="number"] { width: 100%; }
+.dimension-x { color: var(--muted); font-family: var(--font-mono); flex-shrink: 0; }
+.card-error { color: var(--danger) !important; }
+
+/* Segurar a miniatura de um resultado mostra o original. */
+.image-card.done .card-thumb { cursor: pointer; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }
+.image-card.comparing .card-thumb { transform: none; }
+.image-card.comparing .card-thumb-wrap::after {
+  content: 'original';
+  position: absolute; left: 8px; bottom: 8px; z-index: 4;
+  padding: 3px 8px; border-radius: 6px;
+  background: rgba(0,0,0,.65); color: #fff;
+  font: 500 .7rem/1.4 var(--font-mono); letter-spacing: .04em;
+}
+.image-card.comparing .card-saving-overlay { display: none !important; }
+
 .skip-link { position: fixed; top: -100px; left: 16px; z-index: 10000; background: var(--surface); color: var(--text); padding: 12px; }
 .skip-link:focus { top: 12px; }
 :focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; }
@@ -1441,7 +1494,7 @@ button:disabled { cursor: not-allowed; }
 .site-header { view-transition-name: site-header; }
 .image-tools { view-transition-name: image-tools; }
 html.vt-nav .image-tools { animation: none; }
-::view-transition-old(root), ::view-transition-new(root) { animation-duration: 180ms; }
+::view-transition-old(root), ::view-transition-new(root) { animation-duration: 120ms; }
 @media (prefers-reduced-motion: reduce) {
   ::view-transition-group(*), ::view-transition-old(*), ::view-transition-new(*) { animation: none !important; }
 }

@@ -96,6 +96,22 @@ export const pages = {
     appName: 'Kompres Dividir PDF',
     group: 'pdf',
   },
+  pdfRemove: {
+    path: '/pdf/remover-paginas/',
+    title: 'Remover páginas de PDF online grátis | Kompres',
+    description: 'Apague páginas de um PDF sem instalar nada: informe quais sair, como 2, 5-7, e baixe o arquivo. Grátis, no navegador e sem upload do documento.',
+    name: 'Remover páginas de PDF',
+    appName: 'Kompres Remover Páginas',
+    group: 'pdf',
+  },
+  pdfRotate: {
+    path: '/pdf/girar/',
+    title: 'Girar PDF online grátis: 90° ou 180° | Kompres',
+    description: 'Gire todas as páginas ou só algumas de um PDF em 90° ou 180° e salve o arquivo corrigido. Grátis, direto no navegador e sem enviar o documento.',
+    name: 'Girar PDF',
+    appName: 'Kompres Girar PDF',
+    group: 'pdf',
+  },
   pdfToImages: {
     path: '/pdf/pdf-para-jpg/',
     title: 'Converter PDF para JPG ou PNG online grátis | Kompres',

@@ -28,7 +28,13 @@ kompres.register('compressor', (signal, document) => {
   let compressMode = 'quality'; // 'quality' | 'size'
   let images = [];
   let busy = false;
+  let rerun = false;       // configurações mudaram ou chegaram arquivos durante um processamento
   let inputGeneration = 0;
+  const statusLine = document.getElementById('compressor-status');
+  function setStatus(message = '', error = false) {
+    if (!statusLine) return;
+    statusLine.textContent = message; statusLine.hidden = !message; statusLine.classList.toggle('error', error);
+  }
 
   qualitySlider.addEventListener('input', () => {
     qualityVal.textContent = `${qualitySlider.value}%`;
@@ -73,34 +79,27 @@ kompres.register('compressor', (signal, document) => {
   targetSizeInput.addEventListener('change', resetCompressedResults);
   targetUnit.addEventListener('change', resetCompressedResults);
 
-  dropZone.addEventListener('dragover', (event) => {
-    event.preventDefault();
-    dropZone.classList.add('drag-over');
-  });
-
-  dropZone.addEventListener('dragleave', () => {
-    dropZone.classList.remove('drag-over');
-  });
-
-  dropZone.addEventListener('drop', (event) => {
-    event.preventDefault();
-    dropZone.classList.remove('drag-over');
-    handleFiles([...event.dataTransfer.files]);
-  });
+  kompres.fileDrop({ signal, document, zone: dropZone, onFiles: handleFiles });
 
   fileInput.addEventListener('change', () => {
     handleFiles([...fileInput.files]);
   });
 
-  btnCompress.addEventListener('click', compressAllImages);
+  btnCompress.addEventListener('click', () => compressAllImages(true));
   btnDownloadAll.addEventListener('click', downloadAllAsZip);
   btnClear.addEventListener('click', clearAll);
 
   function handleFiles(files) {
-    if (busy) return;
     const generation = inputGeneration;
     const validFiles = files.filter((file) => ['image/png', 'image/webp', 'image/jpeg'].includes(file.type));
+    const skipped = files.length - validFiles.length;
+    setStatus(skipped ? `${skipped} ${skipped === 1 ? 'arquivo ignorado' : 'arquivos ignorados'}: use PNG, JPG ou WebP.` : '', skipped > 0);
+    fileInput.value = '';
     if (!validFiles.length) return;
+
+    // Quando todos os arquivos terminarem de ser lidos, a compressão começa sozinha.
+    let remaining = validFiles.length;
+    const loaded = () => { if (--remaining === 0 && generation === inputGeneration) scheduleRun(); };
 
     validFiles.forEach((file) => {
       const id = `${Date.now()}-${Math.random()}`;
@@ -119,12 +118,18 @@ kompres.register('compressor', (signal, document) => {
         renderCard(images[images.length - 1]);
         updateUI();
         updateStats();
+        loaded();
       };
+      reader.onerror = loaded;
 
       reader.readAsDataURL(file);
     });
+  }
 
-    fileInput.value = '';
+  // Processa o que estiver pendente; se já houver um processamento, ele repete ao terminar.
+  function scheduleRun() {
+    if (busy) { rerun = true; return; }
+    compressAllImages();
   }
 
   function renderCard(image) {
@@ -153,6 +158,24 @@ kompres.register('compressor', (signal, document) => {
     `;
 
     card.querySelector('.card-remove').addEventListener('click', () => removeImage(image.id));
+
+    // Segurar a miniatura mostra o original; soltar volta ao resultado.
+    const thumb = card.querySelector('.card-thumb');
+    thumb.draggable = false;
+    thumb.addEventListener('pointerdown', (event) => {
+      if (!image.resultUrl || event.button !== 0) return;
+      event.preventDefault();
+      thumb.src = image.dataUrl;
+      card.classList.add('comparing');
+    });
+    const release = () => {
+      if (!card.classList.contains('comparing')) return;
+      card.classList.remove('comparing');
+      thumb.src = image.resultUrl || image.dataUrl;
+    };
+    ['pointerup', 'pointerleave', 'pointercancel'].forEach((type) => thumb.addEventListener(type, release));
+    thumb.addEventListener('contextmenu', (event) => { if (image.resultUrl) event.preventDefault(); });
+
     imageGrid.appendChild(card);
   }
 
@@ -176,12 +199,14 @@ kompres.register('compressor', (signal, document) => {
     updateStats();
   }
 
-  function resetCompressedResults() {
+  function resetCompressedResults({ run = true } = {}) {
     images.forEach((image) => {
       if (image.resultUrl) URL.revokeObjectURL(image.resultUrl);
       image.resultUrl = null;
       image.compressed = null;
       image.compressedName = null;
+      image.awaiting = false;
+      image.failed = false;
       image.runId = (image.runId || 0) + 1;
       setNote(image, '');
 
@@ -218,63 +243,70 @@ kompres.register('compressor', (signal, document) => {
 
     updateUI();
     updateStats();
+    if (run && images.length) scheduleRun();
   }
 
-  async function compressAllImages() {
-    if (!images.length || busy) return;
+  // Imagens ainda sem resultado (e que não estão esperando uma resposta do usuário).
+  const pendingImages = () => images.filter((image) => !image.compressed && !image.awaiting && !image.failed);
 
-    const format = selectedFormat;
-    const quality = Number(qualitySlider.value) / 100;
-    const target = getTarget();
+  async function compressAllImages(force = false) {
+    if (busy) { rerun = true; return; }
+    if (force) resetCompressedResults({ run: false });
+    if (!pendingImages().length) { updateUI(); return; }
 
-    if (compressMode === 'size' && !target) {
-      targetSizeInput.focus();
-      alert('Informe um tamanho máximo válido.');
-      return;
-    }
-
-    resetCompressedResults();
     busy = true;
     updateUI();
-    btnCompress.disabled = true;
-    btnCompress.textContent = 'Comprimindo...';
 
-    for (const image of [...images]) {
-      if (!images.includes(image)) continue;
+    do {
+      rerun = false;
+      // Lidas a cada rodada: podem ter mudado durante o processamento.
+      const format = selectedFormat;
+      const quality = Number(qualitySlider.value) / 100;
+      const target = getTarget();
 
-      const run = (image.runId = (image.runId || 0) + 1);
-      setNote(image, '');
-      const progress = document.getElementById(`prog-${image.id}`);
-      if (progress) progress.style.width = '15%';
-
-      try {
-      if (compressMode === 'size') {
-        const result = await compressToTarget(image, format, target.bytes, progress);
-        if (image.runId !== run) continue;
-
-        if (result.fits) {
-          showResult(image, result.blob, format, { note: `${result.label} · até ${target.label}` });
-        } else {
-          askResize(image, format, target, result.blob);
-        }
-      } else {
-        let blob = await compressImage(image.dataUrl, format, quality);
-        if (image.runId !== run) continue;
-
-        if (!isConversion(image, format) && blob.size >= image.file.size) {
-          blob = image.file;
-        }
-        showResult(image, blob, format, { note: blob === image.file ? 'Original mantido: não houve redução com esta qualidade.' : '' });
+      if (compressMode === 'size' && !target) {
+        setStatus('Informe um tamanho máximo válido para começar.', true);
+        break;
       }
-      } catch (error) {
-        setNote(image, 'Não foi possível processar esta imagem. Recarregue a página e verifique o arquivo antes de tentar novamente.', true);
-        if (progress) progress.style.width = '0%';
+      setStatus('');
+
+      for (const image of pendingImages()) {
+        if (!images.includes(image)) continue;
+
+        const run = (image.runId = (image.runId || 0) + 1);
+        setNote(image, '');
+        const progress = document.getElementById(`prog-${image.id}`);
+        if (progress) progress.style.width = '15%';
+
+        try {
+          if (compressMode === 'size') {
+            const result = await compressToTarget(image, format, target.bytes, progress);
+            if (image.runId !== run) continue;
+
+            if (result.fits) {
+              showResult(image, result.blob, format, { note: `${result.label} · até ${target.label}` });
+            } else {
+              askResize(image, format, target, result.blob);
+            }
+          } else {
+            let blob = await compressImage(image.dataUrl, format, quality);
+            if (image.runId !== run) continue;
+
+            if (!isConversion(image, format) && blob.size >= image.file.size) {
+              blob = image.file;
+            }
+            showResult(image, blob, format, { note: blob === image.file ? 'Original mantido: não houve redução com esta qualidade.' : '' });
+          }
+        } catch (error) {
+          if (image.runId !== run) continue;
+          image.failed = true;
+          setNote(image, 'Não foi possível processar esta imagem. Verifique o arquivo e tente novamente.', true);
+          if (progress) progress.style.width = '0%';
+        }
       }
-    }
+    } while (rerun);
+
     busy = false;
-
-    btnCompress.textContent = 'Comprimir tudo';
-    btnCompress.disabled = false;
     updateUI();
   }
 
@@ -392,6 +424,7 @@ kompres.register('compressor', (signal, document) => {
 
   // Não coube nem na qualidade mínima: pergunta antes de redimensionar
   function askResize(image, format, target, minBlob) {
+    image.awaiting = true;
     const progress = document.getElementById(`prog-${image.id}`);
     if (progress) progress.style.width = '100%';
 
@@ -419,6 +452,7 @@ kompres.register('compressor', (signal, document) => {
 
     note.querySelector('[data-act="resize"]').onclick = async () => {
       if (image.runId !== run || busy) return;
+      image.awaiting = false;
       busy = true; updateUI();
       try {
       setNote(image, 'Redimensionando…');
@@ -438,12 +472,13 @@ kompres.register('compressor', (signal, document) => {
           warn: true,
         });
       }
-      } catch { setNote(image, 'Falha ao redimensionar. Tente novamente.', true); }
-      finally { busy = false; updateUI(); }
+      } catch { image.failed = true; setNote(image, 'Falha ao redimensionar. Tente novamente.', true); }
+      finally { busy = false; updateUI(); if (rerun) scheduleRun(); }
     };
 
     note.querySelector('[data-act="keep"]').onclick = () => {
       if (image.runId !== run) return;
+      image.awaiting = false;
       showResult(image, minBlob, format, {
         note: `acima de ${target.label} · dimensões originais`,
         warn: true,
@@ -501,6 +536,7 @@ kompres.register('compressor', (signal, document) => {
   async function downloadAllAsZip() {
     const doneImages = images.filter((image) => image.compressed);
     if (!doneImages.length) return;
+    if (doneImages.length === 1) { downloadBlob(doneImages[0].compressed, doneImages[0].compressedName); return; }
 
     btnDownloadAll.textContent = 'Gerando ZIP...';
     btnDownloadAll.disabled = true;
@@ -514,10 +550,8 @@ kompres.register('compressor', (signal, document) => {
     const blob = await zip.generateAsync({ type: 'blob' });
     downloadBlob(blob, 'imagens-kompres.zip');
 
-    } catch { alert('Não foi possível gerar o ZIP. Tente novamente.'); }
-    finally { btnDownloadAll.disabled = false; btnDownloadAll.textContent = '↓ Baixar ZIP'; }
-    btnDownloadAll.textContent = '↓ Baixar ZIP';
-    btnDownloadAll.disabled = false;
+    } catch { setStatus('Não foi possível gerar o ZIP. Tente novamente.', true); }
+    finally { updateUI(); }
   }
 
   function clearAll() {
@@ -529,18 +563,22 @@ kompres.register('compressor', (signal, document) => {
     images = [];
     imageGrid.innerHTML = '';
     fileInput.value = '';
+    setStatus('');
     updateUI();
     updateStats();
   }
 
+  // Controles ficam ativos durante o processamento: mudar algo refaz o resultado.
   function updateUI() {
     const hasImages = images.length > 0;
-    const hasCompressed = images.some((image) => image.compressed);
+    const done = images.filter((image) => image.compressed).length;
 
-    document.querySelectorAll('.controls button, .controls input, .controls select, .card-remove, .card-note-actions button, #file-input').forEach((el) => el.disabled = busy);
+    document.querySelectorAll('.card-note-actions button').forEach((el) => el.disabled = busy);
     btnCompress.disabled = busy || !hasImages;
-    btnClear.disabled = busy || !hasImages;
-    btnDownloadAll.disabled = busy || !hasCompressed;
+    btnCompress.textContent = busy ? 'Comprimindo…' : hasImages && !pendingImages().length ? 'Comprimir novamente' : 'Comprimir tudo';
+    btnClear.disabled = !hasImages;
+    btnDownloadAll.disabled = !done;
+    btnDownloadAll.textContent = done === 1 ? '↓ Baixar' : '↓ Baixar ZIP';
   }
 
   function updateStats() {
@@ -619,35 +657,8 @@ kompres.register('compressor', (signal, document) => {
     if (scale === 1) context.drawImage(image, 0, 0);
     else context.drawImage(image, 0, 0, canvas.width, canvas.height);
 
-    const nativeBlob = await new Promise((resolve, reject) => canvas.toBlob((blob) => {
-      if (blob) resolve(blob);
-      else reject(new Error('Não foi possível gerar o PNG.'));
-    }, 'image/png'));
-    const pixels = context.getImageData(0, 0, canvas.width, canvas.height);
-    // Offload optimization, freeing every worker after a file. No image upload.
-    const optimized = await optimizePNG(pixels, quality, targetBytes);
-    if (optimized.buffer.byteLength >= nativeBlob.size) return nativeBlob;
-    const blob = new Blob([optimized.buffer], { type: 'image/png' });
-    return blob;
-  }
-
-  function optimizePNG(pixels, quality, targetBytes = null) {
-    return new Promise((resolve, reject) => {
-      let worker;
-      let timer;
-      const finish = (error, result) => {
-        clearTimeout(timer);
-        if (worker) worker.terminate();
-        if (error) reject(error); else resolve(result);
-      };
-      try {
-        worker = new Worker('/js/png-worker.js?v=png-target-2');
-        timer = setTimeout(() => finish(new Error('O PNG demorou demais para processar.')), 120000);
-        worker.onmessage = ({ data }) => data.error ? finish(new Error(data.error)) : finish(null, data);
-        worker.onerror = () => finish(new Error('Não foi possível carregar o otimizador PNG.'));
-        worker.postMessage({ buffer: pixels.data.buffer, width: pixels.width, height: pixels.height, quality, targetBytes }, [pixels.data.buffer]);
-      } catch (error) { finish(error); }
-    });
+    // Otimização em Web Worker (png-client.js). Sem upload.
+    return kompres.pngFromCanvas(canvas, quality, targetBytes);
   }
 
   function loadImage(src) {

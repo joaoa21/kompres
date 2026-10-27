@@ -6,6 +6,7 @@
  * ao sair, o `signal` é abortado para liberar listeners globais, workers e memória.
  */
 import type { TransitionBeforeSwapEvent } from 'astro:transitions/client';
+import { PDF_LIBS } from '../data/libs';
 
 type Mount = (signal: AbortSignal, doc: Document) => void;
 declare global {
@@ -31,8 +32,31 @@ function scopedDocument(root: HTMLElement): Document {
   });
 }
 
+/**
+ * As bibliotecas de PDF são pesadas e só entram na página de PDF. Ao passar o mouse
+ * (ou o foco) num link para /pdf/, pedimos ao navegador que as baixe com prioridade
+ * baixa: quando o clique vier, elas já estão no cache.
+ */
+let pdfLibsPrefetched = false;
+function prefetchPdfLibs(event: Event) {
+  if (pdfLibsPrefetched) return;
+  const link = (event.target as Element).closest?.('a[href]') as HTMLAnchorElement | null;
+  if (!link || !link.pathname.startsWith('/pdf/') || document.body.dataset.tools?.includes('pdf')) return;
+  pdfLibsPrefetched = true;
+  for (const href of PDF_LIBS) {
+    const tag = document.createElement('link');
+    tag.rel = 'prefetch';
+    tag.as = 'script';
+    tag.href = href;
+    document.head.append(tag);
+  }
+}
+
 export function mountTools() {
   controller = new AbortController();
+  for (const type of ['mouseover', 'focusin', 'touchstart']) {
+    document.addEventListener(type, prefetchPdfLibs, { signal: controller.signal, passive: true });
+  }
   const doc = scopedDocument(document.body);
   for (const name of (document.body.dataset.tools ?? '').split(' ').filter(Boolean)) {
     try {

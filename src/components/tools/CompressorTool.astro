@@ -61,7 +61,7 @@ const formats = [['webp', 'WebP'], ['png', 'PNG'], ['jpeg', 'JPEG']] as const;
   <div class="drop-zone page-inner" id="drop-zone">
     <input type="file" accept="image/png,image/webp,image/jpeg" multiple id="file-input" aria-label="Selecionar imagens para compressão">
     <span class="drop-icon">⬇</span>
-    <p><strong>Arraste as imagens aqui</strong><br>ou clique para selecionar · PNG, WebP, JPEG</p>
+    <p><strong>Arraste as imagens aqui</strong><br>ou clique para selecionar · PNG, WebP, JPEG<br><span class="drop-hint">Também dá para colar com Ctrl+V</span></p>
   </div>
 
   <div class="action-bar page-inner">
@@ -69,6 +69,7 @@ const formats = [['webp', 'WebP'], ['png', 'PNG'], ['jpeg', 'JPEG']] as const;
     <button class="btn btn-outline" id="btn-download-all" disabled>↓ Baixar ZIP</button>
     <button class="btn btn-outline" id="btn-clear" disabled>Limpar</button>
   </div>
+  <p class="tool-status page-inner" id="compressor-status" role="status" aria-live="polite" hidden></p>
 
   <div class="stats-bar page-inner" id="stats-bar" hidden>
     <div class="stat">

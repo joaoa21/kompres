@@ -113,5 +113,25 @@
     } finally { await doc.destroy(); }
     return files;
   }
-  scope.KompresPDF = { parsePages, safeBase, loadPdf, imageInfo, imagesToPdf, extract, exportImages };
+  async function rotate(item, indices, angle) {
+    const doc = await PDFLib.PDFDocument.load(item.data, { ignoreEncryption: false });
+    const pages = doc.getPages();
+    for (const index of indices) {
+      const page = pages[index];
+      page.setRotation(PDFLib.degrees((page.getRotation().angle + angle) % 360));
+    }
+    const bytes = await doc.save({ useObjectStreams: true });
+    return [{ name: `${safeBase(item.name)}-girado-kompres.pdf`, blob: new Blob([bytes], { type: 'application/pdf' }) }];
+  }
+  async function removePages(item, indices) {
+    const source = await PDFLib.PDFDocument.load(item.data, { ignoreEncryption: false });
+    const remove = new Set(indices);
+    const keep = source.getPageIndices().filter(index => !remove.has(index));
+    if (!keep.length) throw new Error('O PDF ficaria sem páginas. Deixe pelo menos uma.');
+    const output = await PDFLib.PDFDocument.create();
+    (await output.copyPages(source, keep)).forEach(page => output.addPage(page));
+    const bytes = await output.save({ useObjectStreams: true });
+    return [{ name: `${safeBase(item.name)}-sem-paginas-kompres.pdf`, blob: new Blob([bytes], { type: 'application/pdf' }) }];
+  }
+  scope.KompresPDF = { parsePages, safeBase, loadPdf, imageInfo, imagesToPdf, extract, exportImages, rotate, removePages };
 })(window);
