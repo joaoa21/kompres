@@ -27,7 +27,7 @@ const actions = [
     </div>
   </section>
 
-  <section class="tool-section page2">
+  <section data-ah-label="Área da ferramenta" class="tool-section page2">
     <div class="tool-header page-inner">
       <div>
         <h2>Girar e espelhar imagens</h2>
@@ -36,7 +36,7 @@ const actions = [
     </div>
 
     <div class="tool-workspace page-inner">
-      <div class="tool-side">
+      <div class="tool-side" data-ah-label="Coluna de ajustes">
         <div class="controls page-inner controls-edit">
       <div class="control-group rotate-group">
         <div class="rotate-head">
@@ -59,7 +59,7 @@ const actions = [
       <button class="btn btn-outline" id="clearBtn" disabled>Limpar</button>
     </div>
       </div>
-      <div class="tool-main">
+      <div class="tool-main" data-ah-label="Área de pré-visualização">
         <p class="tool-status page-inner" id="rotate-status" role="status" aria-live="polite" hidden></p>
 
     <div class="drop-zone page-inner" id="dropZone">
@@ -70,7 +70,7 @@ const actions = [
 
     
 
-    <div class="image-grid page-inner rotate-grid" id="imageGrid" data-ah-mask></div>
+    <div class="image-grid page-inner rotate-grid" id="imageGrid" data-ah-mask data-ah-label="Cartão de resultado"></div>
       </div>
     </div>
   </section>

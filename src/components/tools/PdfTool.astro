@@ -9,7 +9,7 @@ const titles: Record<PdfMode, string> = { merge: 'Juntar PDFs', compress: 'Compr
 const descriptions: Record<PdfMode, string> = { merge: 'Adicione os PDFs e organize a ordem.', compress: 'Adicione seus PDFs e escolha a compressão.', images: 'Adicione as imagens e organize a ordem das páginas.', extract: 'Escolha as páginas que deseja salvar.', remove: 'Informe as páginas que devem sair do arquivo.', rotate: 'Escolha o ângulo e, se quiser, só algumas páginas.', export: 'Transforme as páginas do PDF em JPG ou PNG.', watermark: 'Escolha texto ou imagem e a posição, ou arraste a marca na prévia.', number: 'Escolha posição, formato e número inicial.', crop: 'Informe quanto cortar de cada margem.', text: 'Copie ou baixe o texto do PDF em .txt.' };
 ---
 
-<section class="tool-section page2">
+<section data-ah-label="Área da ferramenta" class="tool-section page2">
   <div class="tool-header page-inner">
     <div>
       <h2 id="toolTitle">{titles[mode]}</h2>
@@ -18,7 +18,7 @@ const descriptions: Record<PdfMode, string> = { merge: 'Adicione os PDFs e organ
   </div>
 
   <div class="tool-workspace page-inner">
-    <div class="tool-side">
+    <div class="tool-side" data-ah-label="Coluna de ajustes">
       <div class="controls page-inner controls-pdf" id="pdfControls" data-mode={mode}>
     <div class="control-group compress-only hidden" id="dpiGroup">
       <label for="dpiSelect">Resolução</label>
@@ -184,7 +184,7 @@ const descriptions: Record<PdfMode, string> = { merge: 'Adicione os PDFs e organ
     <button class="btn btn-outline" id="clearBtn" disabled>Limpar</button>
   </div>
     </div>
-    <div class="tool-main">
+    <div class="tool-main" data-ah-label="Área de pré-visualização">
       <div class="drop-zone page-inner" id="dropZone">
     <input type="file" id="fileInput" accept="application/pdf,.pdf" multiple aria-label="Selecionar arquivos PDF">
     <span class="drop-icon">⬇</span>
@@ -220,7 +220,7 @@ const descriptions: Record<PdfMode, string> = { merge: 'Adicione os PDFs e organ
     </div>
   </div>
 
-  <div class="pdf-list page-inner" id="pdfList" data-ah-mask></div>
+  <div class="pdf-list page-inner" id="pdfList" data-ah-mask data-ah-label="Lista de arquivos"></div>
   <!-- PDF para texto: o texto extraído fica aqui, pronto para copiar ou baixar. -->
   <div class="page-inner pdf-text-result" id="pdfTextResult" hidden>
     <label for="pdfText">Texto extraído</label>

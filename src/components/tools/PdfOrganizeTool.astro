@@ -2,7 +2,7 @@
 /** Organizar páginas de PDF (lógica em /js/pdf-organize.js): miniaturas de cada
  *  página para reordenar arrastando, girar e excluir antes de baixar. */
 ---
-<section class="tool-section page2 organize-tool">
+<section data-ah-label="Área da ferramenta" class="tool-section page2 organize-tool">
   <div class="tool-header page-inner">
     <div>
       <h2>Organizar páginas do PDF</h2>
@@ -11,7 +11,7 @@
   </div>
 
   <div class="tool-workspace page-inner">
-    <div class="tool-side">
+    <div class="tool-side" data-ah-label="Coluna de ajustes">
       <div class="org-file page-inner" id="orgFileInfo" hidden>
     <span class="org-file-name" id="orgFileName" data-ah-mask></span>
     <span class="org-summary" id="orgSummary"></span>
@@ -24,7 +24,7 @@
     <button class="btn btn-outline" id="orgClear" disabled>Limpar</button>
   </div>
     </div>
-    <div class="tool-main">
+    <div class="tool-main" data-ah-label="Área de pré-visualização">
       <div class="drop-zone page-inner" id="orgDrop">
     <input type="file" id="orgFile" accept="application/pdf,.pdf" aria-label="Selecionar arquivo PDF">
     <span class="drop-icon">⬇</span>

@@ -17,7 +17,7 @@ const categories = [...new Set(items.map((item) => item.category))] as ToolCateg
 </div>
 <nav class:list={['tools-nav', 'page', `tools-nav-${group}`]} data-filter="todas" aria-label={group === 'pdf' ? 'Ferramentas de PDF' : 'Ferramentas de imagem'}>
   {items.map(({ key, href, label, description, icon, category }) => (
-    <a href={href} data-category={category} class:list={{ active: key === active }} aria-current={key === active ? 'page' : undefined}>
+    <a href={href} data-ah-label={label} data-category={category} class:list={{ active: key === active }} aria-current={key === active ? 'page' : undefined}>
       <span class="tools-nav-icon" aria-hidden="true">
         <svg viewBox="0 0 24 24" set:html={icon} />
       </span>

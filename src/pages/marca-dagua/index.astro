@@ -21,7 +21,7 @@ const positions = [
     </div>
   </section>
 
-  <section class="tool-section page2">
+  <section data-ah-label="Área da ferramenta" class="tool-section page2">
     <div class="tool-header page-inner">
       <div>
         <h2>Marca d'água em imagens</h2>
@@ -30,7 +30,7 @@ const positions = [
     </div>
 
     <div class="tool-workspace page-inner">
-      <div class="tool-side">
+      <div class="tool-side" data-ah-label="Coluna de ajustes">
         <div class="controls page-inner controls-edit controls-watermark">
       <div class="control-group">
         <label>Tipo</label>
@@ -84,18 +84,18 @@ const positions = [
 
       <div class="control-group">
         <label for="wmSize" class="range-head">Tamanho <span class="range-val" id="wmSizeVal">25%</span></label>
-        <input type="range" id="wmSize" min="5" max="80" value="25" step="1">
+        <input type="range" id="wmSize" data-ah-label="Tamanho" min="5" max="80" value="25" step="1">
         <small class="field-hint">Largura da marca em relação à largura da imagem.</small>
       </div>
 
       <div class="control-group">
         <label for="wmOpacity" class="range-head">Opacidade <span class="range-val" id="wmOpacityVal">50%</span></label>
-        <input type="range" id="wmOpacity" min="5" max="100" value="50" step="1">
+        <input type="range" id="wmOpacity" data-ah-label="Opacidade" min="5" max="100" value="50" step="1">
       </div>
 
       <div class="control-group">
         <label for="wmMargin" class="range-head">Margem <span class="range-val" id="wmMarginVal">3%</span></label>
-        <input type="range" id="wmMargin" min="0" max="15" value="3" step="1">
+        <input type="range" id="wmMargin" data-ah-label="Margem" min="0" max="15" value="3" step="1">
         <small class="field-hint">Distância da borda, em relação ao lado menor da imagem.</small>
       </div>
     </div>
@@ -107,7 +107,7 @@ const positions = [
       <button class="btn btn-outline" id="clearBtn" disabled>Limpar</button>
     </div>
       </div>
-      <div class="tool-main">
+      <div class="tool-main" data-ah-label="Área de pré-visualização">
         <p class="tool-status page-inner" id="watermark-status" role="status" aria-live="polite" hidden></p>
 
     <div class="drop-zone page-inner" id="dropZone">
@@ -137,7 +137,7 @@ const positions = [
       </div>
     </div>
 
-    <div class="image-grid page-inner wm-grid" id="imageGrid" data-ah-mask></div>
+    <div class="image-grid page-inner wm-grid" id="imageGrid" data-ah-mask data-ah-label="Cartão de resultado"></div>
     <!-- Atalho logo abaixo da prévia: espelha o botão de download da coluna. -->
     <div class="wm-below page-inner" id="wmBelow" hidden>
       <button type="button" class="btn btn-primary" id="wmDownloadBelow">↓ Baixar</button>

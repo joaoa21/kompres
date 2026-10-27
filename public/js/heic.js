@@ -223,7 +223,7 @@
         <div class="card-thumb-wrap">
           <img class="card-thumb" alt="${name}" hidden>
           <span class="heic-placeholder" aria-hidden="true"></span>
-          <button class="card-remove" type="button" aria-label="Remover ${name}">✕</button>
+          <button class="card-remove" type="button" data-ah-label="Remover imagem" aria-label="Remover ${name}">✕</button>
         </div>
         <div class="card-body">
           <div class="card-name" title="${name}">${name}</div>
@@ -270,8 +270,8 @@
       note.textContent = item.frames > 1 ? `Arquivo com ${item.frames} imagens: convertida a primeira` : '';
 
       card.querySelector('.heic-card-action').innerHTML = item.result
-        ? `<a class="card-download" href="${item.resultUrl}" download="${escapeHtml(item.result.fileName)}">↓ baixar</a>`
-        : '<button class="card-download" type="button" disabled>↓ baixar</button>';
+        ? `<a class="card-download" data-ah-label="Baixar resultado" href="${item.resultUrl}" download="${escapeHtml(item.result.fileName)}">↓ baixar</a>`
+        : '<button class="card-download" type="button" data-ah-label="Baixar resultado" disabled>↓ baixar</button>';
     }
 
     // ── Download e limpeza ────────────────────────────────────────────

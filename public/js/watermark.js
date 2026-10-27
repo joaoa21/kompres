@@ -227,13 +227,13 @@ kompres.register('watermark', (signal, document) => {
         ? `${formatBytes(item.file.size)} → <span class="size-new">${formatBytes(item.processed.blob.size)}</span>`
         : item.failed ? '<span class="card-error">Não foi possível processar</span>' : `${formatBytes(item.file.size)} → aguardando`;
       const action = item.processed
-        ? `<a class="card-download" href="${item.downloadUrl}" download="${escapeHtml(item.processed.fileName)}">↓ baixar</a>`
-        : '<button class="card-download" type="button" disabled>↓ baixar</button>';
+        ? `<a class="card-download" data-ah-label="Baixar resultado" href="${item.downloadUrl}" download="${escapeHtml(item.processed.fileName)}">↓ baixar</a>`
+        : '<button class="card-download" type="button" data-ah-label="Baixar resultado" disabled>↓ baixar</button>';
 
       card.innerHTML = `
         <div class="card-thumb-wrap">
           <img class="card-thumb" src="${item.processed ? item.downloadUrl : item.previewUrl}" alt="${escapeHtml(item.file.name)}">
-          <button class="card-remove" type="button" aria-label="Remover imagem">✕</button>
+          <button class="card-remove" type="button" data-ah-label="Remover imagem" aria-label="Remover imagem">✕</button>
         </div>
         <div class="card-body">
           <div class="card-name">${escapeHtml(item.file.name)}</div>

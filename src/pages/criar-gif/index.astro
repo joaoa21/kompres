@@ -26,7 +26,7 @@ const colors = [
     text="Solte as imagens, arraste para mudar a ordem, escolha o tempo de cada quadro e veja a animação antes de baixar. Tudo no navegador: as fotos não saem do seu computador e o GIF sai sem marca d’água."
   />
 
-  <section class="tool-section page2 gif-tool">
+  <section data-ah-label="Área da ferramenta" class="tool-section page2 gif-tool">
     <div class="tool-header page-inner">
       <div>
         <h2>Criador de GIF animado</h2>
@@ -35,11 +35,11 @@ const colors = [
     </div>
 
     <div class="tool-workspace page-inner">
-      <div class="tool-side">
+      <div class="tool-side" data-ah-label="Coluna de ajustes">
         <div class="controls page-inner controls-gif">
           <div class="control-group">
             <label for="gifDelay" class="gif-range-head">Tempo por quadro <span class="gif-range-val" id="gifDelayVal">500 ms</span></label>
-            <input type="range" id="gifDelay" min="100" max="3000" step="50" value="500">
+            <input type="range" id="gifDelay" data-ah-label="Tempo por quadro" min="100" max="3000" step="50" value="500">
             <small class="field-hint" id="gifDelayHint">Menos tempo deixa a animação mais rápida.</small>
           </div>
 
@@ -96,7 +96,7 @@ const colors = [
         </div>
       </div>
 
-      <div class="tool-main">
+      <div class="tool-main" data-ah-label="Área de pré-visualização">
         <p class="tool-status page-inner" id="gifStatus" role="status" aria-live="polite" hidden></p>
 
         <div class="drop-zone page-inner" id="gifDrop">
