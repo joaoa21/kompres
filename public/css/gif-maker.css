@@ -1,0 +1,146 @@
+/* Criar GIF (/criar-gif/): prévia animada e fila de quadros reordenável.
+   Complementa style.css; usa só as variáveis de tema. */
+.gif-tool { --gif-accent: var(--accent); }
+html.light .gif-tool { --gif-accent: #3d7000; }
+
+/* ── Ajustes ─────────────────────────────────────────────────────── */
+.controls-gif { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.controls-gif .format-toggle { flex-wrap: wrap; }
+.controls-gif .fmt-btn {
+  flex: 1 1 auto; min-width: 4.5rem; box-sizing: border-box; min-height: 2.6rem;
+  display: inline-flex; align-items: center; justify-content: center;
+}
+.controls-gif input[type="range"] { margin-block: .9rem .4rem; }
+.controls-gif select { box-sizing: border-box; height: 2.9rem; padding-block: 0; }
+
+/* Rótulo com o valor atual à direita ("Tempo por quadro ...... 500 ms"). */
+.control-group .gif-range-head { display: flex; justify-content: space-between; align-items: baseline; gap: .5rem; }
+.control-group .gif-range-head .gif-range-val {
+  font-family: var(--font-mono); font-size: .8rem; color: var(--gif-accent);
+  text-transform: none; letter-spacing: 0;
+}
+
+.gif-color-row { display: flex; align-items: center; gap: .75rem; }
+.gif-color-row input[type="color"] {
+  width: 3.2rem; height: 2.6rem; padding: 3px; flex-shrink: 0;
+  border: 1px solid var(--border); border-radius: 8px; background: var(--surface2); cursor: pointer;
+}
+.gif-color-row input[type="color"]:hover { border-color: var(--border-hover); }
+.gif-color-row input[type="color"]::-webkit-color-swatch-wrapper { padding: 0; }
+.gif-color-row input[type="color"]::-webkit-color-swatch { border: 0; border-radius: 5px; }
+.gif-color-row input[type="color"]::-moz-color-swatch { border: 0; border-radius: 5px; }
+.gif-color-hex { font: .85rem var(--font-mono); color: var(--text); }
+
+/* ── Palco ───────────────────────────────────────────────────────── */
+/* No celular os itens da ferramenta seguem `order` (style.css): o palco vai depois dos botões. */
+.tool-workspace .gif-stage { order: 8; }
+.gif-stage { display: flex; flex-direction: column; gap: 1rem; margin-bottom: 1.5rem; min-width: 0; }
+.gif-stage[hidden] { display: none; }
+
+.gif-player {
+  display: flex; align-items: center; flex-wrap: wrap; gap: .5rem 1rem; min-height: 52px;
+  font: .78rem/1.5 var(--font-mono); color: var(--muted);
+}
+.gif-counter { color: var(--text); }
+.gif-play {
+  display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0;
+  width: 2.75rem; height: 2.75rem; border-radius: 50%;
+  border: 1px solid var(--border-hover); background: var(--surface2); color: var(--text); cursor: pointer;
+  transition: border-color .15s, color .15s;
+}
+.gif-play svg { width: 1.1rem; height: 1.1rem; fill: currentColor; }
+.gif-play .icon-pause { display: none; }
+.gif-play.is-playing .icon-pause { display: block; }
+.gif-play.is-playing .icon-play { display: none; }
+.gif-play:hover:not(:disabled) { border-color: var(--gif-accent); color: var(--gif-accent); }
+.gif-play:disabled { opacity: .4; cursor: not-allowed; }
+
+/* A prévia fica no tamanho real do GIF, reduzida só quando não cabe. */
+.gif-preview {
+  display: flex; justify-content: center; align-items: center;
+  padding: 12px; border-radius: 12px; background: var(--surface2);
+}
+.gif-preview canvas {
+  display: block; width: auto; height: auto; max-width: 100%; max-height: min(60vh, 620px);
+  border-radius: 4px; box-shadow: 0 2px 12px rgba(0, 0, 0, .25);
+}
+
+.gif-queue-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: .25rem 1rem; }
+.gif-queue-head h3 { font: 600 .95rem var(--font-head); color: var(--text); margin: 0; }
+.gif-queue-head small { font-size: .78rem; color: var(--muted); line-height: 1.5; }
+
+/* ── Fila de quadros ─────────────────────────────────────────────── */
+.gif-queue-wrap { position: relative; }
+.gif-queue {
+  list-style: none; margin: 0; padding: 0;
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(112px, 1fr)); gap: .75rem;
+}
+.gif-frame {
+  position: relative; display: flex; flex-direction: column; min-width: 0;
+  border: 1px solid var(--border); border-radius: 10px; background: var(--surface);
+  user-select: none; -webkit-user-select: none; -webkit-touch-callout: none;
+  transition: border-color .15s, opacity .15s;
+}
+.gif-frame.current { border-color: var(--gif-accent); }
+.gif-frame.dragging { opacity: .35; }
+.gif-frame-thumb {
+  position: relative; aspect-ratio: 1; padding: 6px; cursor: grab;
+  border-radius: 9px 9px 0 0; background: var(--surface2);
+}
+.gif-queue.is-dragging, .gif-queue.is-dragging .gif-frame-thumb { cursor: grabbing; }
+.gif-frame-thumb img { display: block; width: 100%; height: 100%; object-fit: contain; pointer-events: none; }
+.gif-frame-num {
+  position: absolute; left: 6px; top: 6px; min-width: 1.5rem; padding: .1rem .35rem;
+  border-radius: 6px; background: rgba(0, 0, 0, .65); color: #fff;
+  font: .7rem/1.4 var(--font-mono); text-align: center;
+}
+.gif-frame.current .gif-frame-num { background: var(--gif-accent); color: #0c0c0d; }
+html.light .gif-frame.current .gif-frame-num { color: #fff; }
+
+.gif-frame-remove {
+  position: absolute; right: 4px; top: 4px; z-index: 1;
+  width: 1.9rem; height: 1.9rem; border-radius: 50%; border: 0;
+  background: rgba(0, 0, 0, .65); color: #fff; font-size: 1.1rem; line-height: 1; cursor: pointer;
+}
+.gif-frame-remove:hover:not(:disabled) { background: var(--danger); }
+
+.gif-frame-tools { display: flex; align-items: center; justify-content: space-between; padding: 4px; gap: 2px; }
+.gif-frame-btn {
+  width: 2.1rem; height: 2rem; border-radius: 6px; border: 1px solid transparent;
+  background: transparent; color: var(--text); font-size: 1.2rem; line-height: 1; cursor: pointer;
+}
+.gif-frame-btn:hover:not(:disabled) { border-color: var(--gif-accent); color: var(--gif-accent); }
+.gif-frame-btn:disabled, .gif-frame-remove:disabled { opacity: .3; cursor: not-allowed; }
+.gif-grip {
+  flex: 1; align-self: stretch; display: flex; align-items: center; justify-content: center;
+  color: var(--muted); font-size: 1rem; cursor: grab; touch-action: none; border-radius: 6px;
+}
+.gif-grip:hover { color: var(--text); background: var(--surface2); }
+
+/* Cópia que segue o ponteiro e barra que indica onde o quadro vai entrar. */
+.gif-ghost {
+  position: fixed; z-index: 50; margin: 0; pointer-events: none; opacity: .92;
+  border-color: var(--gif-accent); box-shadow: 0 10px 28px rgba(0, 0, 0, .35);
+}
+.gif-drop-indicator {
+  position: absolute; width: 3px; border-radius: 3px; background: var(--gif-accent); pointer-events: none;
+}
+.gif-drop-indicator[hidden] { display: none; }
+
+/* Criando o GIF: a fila fica travada até terminar. */
+.gif-stage.is-busy .gif-frame-thumb, .gif-stage.is-busy .gif-grip { cursor: default; }
+
+/* ── Desktop: o "+" verde fica à direita, na linha dos controles da prévia ── */
+@media (min-width: 901px) {
+  .gif-tool .tool-workspace:has(.tool-stage:not([hidden])) .tool-main > .drop-zone { align-self: flex-end; }
+  .gif-player { padding-right: 64px; }
+  .tool-side .controls-gif .fmt-btn { flex: 1 1 calc(50% - .25rem); }
+  .tool-side .controls-gif .gif-colors .fmt-btn { flex: 1 1 0; }
+}
+
+@media (max-width: 600px) {
+  .controls-gif { grid-template-columns: minmax(0, 1fr); }
+  .gif-queue { grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); gap: .5rem; }
+  .gif-preview { padding: 8px; }
+  .gif-preview canvas { max-height: 50vh; }
+}

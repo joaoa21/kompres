@@ -1,0 +1,155 @@
+---
+import Base from '../../../layouts/Base.astro';
+import Hero from '../../../components/Hero.astro';
+import Guide from '../../../components/Guide.astro';
+import { pages } from '../../../data/pages';
+
+const sizes = [16, 32, 48, 64, 128, 256];
+const defaults = [16, 32, 48];
+// Mesmo trecho que vai no instalar.html do pacote (public/js/favicon.js usa o texto deste <pre>).
+const snippet = `<link rel="icon" href="/favicon.ico" sizes="any">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+<link rel="manifest" href="/site.webmanifest">`;
+---
+<Base
+  page={pages.pngToIco}
+  section="image"
+  activeTool="pngToIco"
+  tool="favicon"
+  styles={['/css/favicon.css?v=1']}
+>
+  <Hero
+    title="Converter PNG para ICO"
+    highlight="e criar o favicon do seu site."
+    text="Gere um favicon.ico com vários tamanhos a partir de PNG, JPG, WebP ou SVG, mais os ícones para Apple e Android. Tudo no navegador: a imagem não sai do seu computador."
+  />
+
+  <section class="tool-section page2 favicon-tool">
+    <div class="tool-header page-inner">
+      <div>
+        <h2>Gerador de favicon</h2>
+        <p>Solte o logotipo, escolha os tamanhos e o acabamento e veja como o ícone fica na aba do navegador antes de baixar.</p>
+      </div>
+    </div>
+
+    <div class="tool-workspace page-inner">
+      <div class="tool-side">
+        <div class="controls page-inner controls-favicon">
+          <div class="control-group">
+            <label id="favSizesLabel">Tamanhos do .ico</label>
+            <div class="format-toggle fav-sizes" role="group" aria-labelledby="favSizesLabel">
+              {sizes.map((s) => (
+                <label class="fmt-btn"><input type="checkbox" name="favSize" value={s} checked={defaults.includes(s)}>{s}</label>
+              ))}
+            </div>
+            <small class="field-hint">16, 32 e 48 cobrem abas, favoritos e atalhos do Windows. Tamanhos maiores deixam o arquivo mais pesado.</small>
+          </div>
+
+          <div class="control-group">
+            <label id="favBgLabel">Fundo</label>
+            <div class="format-toggle" role="group" aria-labelledby="favBgLabel">
+              <label class="fmt-btn"><input type="radio" name="favBg" value="transparent" checked>Transparente</label>
+              <label class="fmt-btn"><input type="radio" name="favBg" value="color">Cor</label>
+            </div>
+            <div class="fav-color" id="favColorRow" hidden>
+              <input type="color" id="favColor" value="#ffffff" aria-label="Cor do fundo">
+              <span id="favColorValue">#ffffff</span>
+            </div>
+          </div>
+
+          <div class="control-group">
+            <label for="favPadding">Margem interna</label>
+            <div class="value" id="favPaddingVal">0%</div>
+            <input type="range" min="0" max="30" value="0" step="1" id="favPadding">
+          </div>
+
+          <div class="control-group">
+            <label for="favRadius">Cantos arredondados</label>
+            <div class="value" id="favRadiusVal">0%</div>
+            <input type="range" min="0" max="50" value="0" step="1" id="favRadius">
+            <small class="field-hint">50% deixa o ícone redondo.</small>
+          </div>
+
+          <div class="control-group">
+            <label id="favFitLabel">Recorte</label>
+            <div class="format-toggle" role="group" aria-labelledby="favFitLabel">
+              <label class="fmt-btn"><input type="radio" name="favFit" value="contain" checked>Caber inteira</label>
+              <label class="fmt-btn"><input type="radio" name="favFit" value="cover">Preencher</label>
+            </div>
+            <small class="field-hint">Preencher corta o centro da imagem num quadrado.</small>
+          </div>
+        </div>
+
+        <div class="action-bar page-inner">
+          <button class="btn btn-primary" id="favDownload" disabled>Baixar favicon.ico</button>
+          <button class="btn btn-outline" id="favZip" disabled>Baixar pacote (ZIP)</button>
+          <button class="btn btn-outline" id="favClear" disabled>Limpar</button>
+        </div>
+
+        <div class="control-group fav-snippet page-inner" id="favSnippet" hidden>
+          <label id="favCodeLabel">Código para o &lt;head&gt;</label>
+          <pre class="fav-code" id="favCode" tabindex="0" aria-labelledby="favCodeLabel"><code>{snippet}</code></pre>
+          <button type="button" class="btn btn-outline fav-copy" id="favCopy">Copiar</button>
+          <small class="field-hint">Envie os arquivos do pacote para a raiz do site e cole este trecho dentro do &lt;head&gt; de todas as páginas.</small>
+        </div>
+      </div>
+
+      <div class="tool-main">
+        <p class="tool-status page-inner" id="favStatus" role="status" aria-live="polite" hidden></p>
+
+        <div class="drop-zone page-inner" id="favDrop">
+          <input type="file" id="favFile" accept="image/png,image/jpeg,image/webp,image/svg+xml,.svg" aria-label="Selecionar imagem para o favicon">
+          <span class="drop-icon">⬇</span>
+          <p><strong>Arraste o logotipo aqui</strong><br>ou clique para selecionar · PNG, JPG, WebP, SVG<br><span class="drop-hint">Também dá para colar com Ctrl+V</span></p>
+        </div>
+
+        <div class="tool-stage page-inner" id="favStage" hidden>
+          <div class="fav-meta">
+            <strong id="favName" data-ah-mask></strong>
+            <span id="favDims"></span>
+          </div>
+
+          <h3 class="fav-heading">Tamanhos do arquivo .ico</h3>
+          <div class="fav-previews" id="favPreviews"></div>
+
+          <h3 class="fav-heading">Na aba do navegador</h3>
+          <div class="fav-tabs">
+            <figure class="fav-browser fav-browser-light">
+              <div class="fav-strip">
+                <div class="fav-tab"><img class="fav-tab-icon" alt="" width="16" height="16"><span class="fav-tab-title">Seu site</span><span class="fav-tab-x" aria-hidden="true">×</span></div>
+                <span class="fav-tab-new" aria-hidden="true">+</span>
+              </div>
+              <div class="fav-bar" aria-hidden="true"></div>
+              <figcaption>Tema claro</figcaption>
+            </figure>
+            <figure class="fav-browser fav-browser-dark">
+              <div class="fav-strip">
+                <div class="fav-tab"><img class="fav-tab-icon" alt="" width="16" height="16"><span class="fav-tab-title">Seu site</span><span class="fav-tab-x" aria-hidden="true">×</span></div>
+                <span class="fav-tab-new" aria-hidden="true">+</span>
+              </div>
+              <div class="fav-bar" aria-hidden="true"></div>
+              <figcaption>Tema escuro</figcaption>
+            </figure>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <Guide
+    title="Como criar um favicon para o seu site"
+    current={pages.pngToIco.path}
+    faqs={[
+      { q: 'O que é um favicon?', a: 'É o pequeno ícone que aparece na aba do navegador, nos favoritos, no histórico e nos resultados de busca do Google ao lado do nome do site. O formato clássico é o <strong>.ico</strong>, que guarda várias resoluções do mesmo desenho num só arquivo, para o navegador escolher a mais nítida. Celulares usam PNGs separados: o <em>apple-touch-icon</em> no iPhone e os ícones do manifesto no Android.' },
+      { q: 'Quais tamanhos de favicon usar?', a: 'Para o <strong>favicon.ico</strong>, 16, 32 e 48 px bastam: 16 para a aba, 32 para telas de alta densidade e a barra de tarefas, 48 para atalhos do Windows. Incluir 64, 128 ou 256 só aumenta o arquivo. O pacote ZIP traz ainda o PNG de 32 px, o <strong>apple-touch-icon</strong> de 180 px (com fundo, porque o iOS não aceita transparência) e os ícones de 192 e 512 px usados pelo Android e ao instalar o site como aplicativo.' },
+      { q: 'Como instalar o favicon no site?', a: 'Descompacte o pacote e envie os arquivos para a raiz do site (a mesma pasta do <code>index.html</code>). Depois cole dentro do <code>&lt;head&gt;</code> de todas as páginas:<br><code>&lt;link rel="icon" href="/favicon.ico" sizes="any"&gt;</code><br><code>&lt;link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png"&gt;</code><br><code>&lt;link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png"&gt;</code><br><code>&lt;link rel="manifest" href="/site.webmanifest"&gt;</code><br>O arquivo <em>instalar.html</em> do pacote repete essas instruções. Se o ícone antigo continuar aparecendo, é cache: abra o site numa janela anônima. No WordPress, use Aparência → Personalizar → Identidade do site.' },
+      { q: 'Qual imagem de origem funciona melhor?', a: 'Uma imagem <strong>quadrada</strong> com pelo menos <strong>512 × 512 px</strong>, de preferência PNG com fundo transparente ou SVG, que fica nítido em qualquer tamanho. Detalhes finos e textos longos somem em 16 px: use só o símbolo ou a inicial da marca. Se a imagem não for quadrada, escolha entre Caber inteira (sobra espaço nas laterais) e Preencher (corta o centro). Para deixar o arquivo quadrado antes, use o <a href="/recortar/">recortador</a> ou o <a href="/resizer/">redimensionador de imagens</a>.' },
+      { q: 'O .ico gerado funciona em todos os navegadores?', a: 'Sim. O arquivo segue o formato ICO com imagens PNG dentro, aceito por Chrome, Edge, Firefox e Safari e pelo Windows desde o Vista. Cada tamanho é desenhado separadamente a partir da imagem original, reduzindo em etapas para que os ícones pequenos não fiquem serrilhados. Os PNGs do pacote já saem otimizados sem perdas; para outras imagens do site, use o <a href="/">compressor de imagens</a>.' },
+      { q: 'Minha imagem é enviada para algum servidor?', a: 'Não. A imagem é aberta, redimensionada e convertida em .ico pelo seu próprio navegador, e o ZIP também é montado no seu dispositivo. Nenhum arquivo é enviado ao Kompres ou a terceiros.' },
+    ]}
+  />
+
+  <script is:inline slot="libs" src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+  <script slot="scripts" is:inline src="/js/favicon.js?v=1"></script>
+</Base>

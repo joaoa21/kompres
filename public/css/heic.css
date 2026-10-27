@@ -1,0 +1,64 @@
+/* HEIC para JPG: detalhes dos cartões e acessibilidade do seletor de formato.
+ * O layout (duas colunas, grade de cartões, palco) vem de style.css. */
+
+/* ── Seletor de formato: rádios focáveis pelo teclado ───────────── */
+/* style.css esconde o rádio com display:none, o que o tira da ordem do Tab.
+   Aqui ele fica invisível, mas focável, e o foco aparece no botão. */
+.controls-heic .fmt-btn { position: relative; }
+.controls-heic .fmt-btn input {
+  display: block;
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+.controls-heic .fmt-btn:has(input:focus-visible) {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+html.light .controls-heic .fmt-btn:has(input:focus-visible) { outline-color: #3d7000; }
+
+/* ── Cartões ────────────────────────────────────────────────────── */
+.heic-card .card-meta {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: .72rem;
+  color: var(--muted);
+  overflow-wrap: anywhere;
+}
+.heic-card .heic-note { color: var(--text); }
+
+/* style.css dá display:block à miniatura; o atributo hidden precisa vencer. */
+.heic-card .card-thumb[hidden],
+.heic-card .heic-placeholder[hidden] { display: none; }
+
+/* Enquanto converte não há o que mostrar (o HEIC não abre no <img> fora do Safari). */
+.heic-placeholder {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-mono);
+  font-size: .78rem;
+  color: var(--muted);
+  background: var(--surface2);
+  animation: heic-pulse 1.4s ease-in-out infinite;
+}
+.heic-card.failed .heic-placeholder { animation: none; color: var(--danger, #e5484d); }
+
+@keyframes heic-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: .55; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .heic-placeholder { animation: none; }
+}
+
+/* Celular: o botão de remover fica sempre visível (não há hover). */
+@media (hover: none) {
+  .heic-card .card-remove { opacity: 1; transform: none; }
+}

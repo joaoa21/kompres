@@ -1,0 +1,150 @@
+/* Melhorar imagem com IA (public/js/upscale.js): comparação antes/depois e zoom 100%. */
+.upscale-tool { --up-accent: var(--accent); }
+html.light .upscale-tool { --up-accent: #3d7000; }
+/* .field-hint e outros têm display próprio, que venceria o [hidden] do navegador. */
+.upscale-tool [hidden] { display: none !important; }
+
+/* ---------- coluna de ajustes ---------- */
+
+/* Os botões de formato escondem o rádio, mas ele continua focável pelo teclado. */
+.controls-upscale .fmt-btn { position: relative; display: inline-flex; align-items: center; justify-content: center; }
+.controls-upscale .fmt-btn input {
+  display: block; position: absolute; width: 1px; height: 1px; opacity: 0; pointer-events: none;
+}
+.controls-upscale .fmt-btn:has(input:focus-visible) { outline: 2px solid var(--up-accent); outline-offset: 2px; }
+
+.up-info { display: flex; flex-direction: column; gap: .45rem; margin: 0; }
+.up-info div { display: flex; justify-content: space-between; align-items: baseline; gap: .75rem; min-width: 0; }
+.up-info dt { color: var(--muted); font-size: .8rem; flex-shrink: 0; }
+.up-info dd { margin: 0; color: var(--text); font: .78rem/1.4 var(--font-mono); text-align: right; overflow-wrap: anywhere; min-width: 0; }
+
+.upscale-tool .action-bar { flex-wrap: wrap; }
+.up-note { flex-basis: 100%; margin-top: .1rem; }
+
+/* ---------- palco ---------- */
+
+/* Celular: o palco vem logo depois do "+" e antes dos botões. */
+.tool-workspace .up-stage { order: 5; }
+.up-stage { display: flex; flex-direction: column; gap: .8rem; min-width: 0; margin-bottom: 1.5rem; }
+
+.up-meta {
+  display: flex; align-items: center; gap: .4rem 1rem; flex-wrap: wrap; min-width: 0;
+  font: .78rem/1.5 var(--font-mono); color: var(--muted);
+}
+.up-meta strong { color: var(--text); font-weight: 500; overflow-wrap: anywhere; min-width: 0; }
+.up-meta-actions { display: flex; gap: .4rem 1rem; flex-wrap: wrap; margin-left: auto; }
+.up-link {
+  padding: .2rem 0; border: 0; background: none; color: var(--up-accent);
+  font: inherit; text-decoration: underline; text-underline-offset: 3px; cursor: pointer;
+}
+.up-link:disabled { color: var(--muted); text-decoration: none; cursor: default; opacity: .6; }
+.up-link:focus-visible { outline: 2px solid var(--up-accent); outline-offset: 2px; border-radius: 3px; }
+
+.up-notice {
+  display: flex; align-items: center; gap: .75rem 1rem; flex-wrap: wrap;
+  padding: .85rem 1rem; border: 1px solid var(--up-accent); border-radius: 10px; background: var(--accent-dim);
+}
+.up-notice p { flex: 1 1 260px; margin: 0; color: var(--text); font-size: .85rem; line-height: 1.55; }
+.up-notice .btn { flex-shrink: 0; }
+
+.up-progress { height: 4px; border-radius: 999px; background: var(--surface2); overflow: hidden; }
+.up-progress span { display: block; width: 0; height: 100%; background: var(--up-accent); transition: width .25s ease; }
+
+.up-frame { min-width: 0; }
+/* Visor do tamanho da imagem (ou da área visível, em 100%): os rótulos ficam nos cantos dele. */
+.up-viewer { position: relative; width: fit-content; max-width: 100%; margin-inline: auto; }
+.up-scroll {
+  max-width: 100%; overflow: hidden; border-radius: 8px;
+  /* Quadriculado para a transparência aparecer. */
+  background: repeating-conic-gradient(var(--surface2) 0 25%, transparent 0 50%) 0 0 / 16px 16px;
+}
+.up-viewer.is-zoom .up-scroll { overflow: auto; max-height: 70vh; overscroll-behavior: contain; }
+
+.up-compare { position: relative; touch-action: pan-y; user-select: none; -webkit-user-select: none; }
+.up-compare canvas { position: absolute; inset: 0; display: block; width: 100%; height: 100%; }
+/* Antes de processar, só a ampliação comum aparece. */
+.up-viewer:not(.is-compare) #upAfter,
+.up-viewer:not(.is-compare) .up-handle,
+.up-viewer:not(.is-compare) .up-label { display: none; }
+/* O "antes" fica por cima, cortado à esquerda da linha. */
+.up-viewer.is-compare #upBefore { clip-path: inset(0 calc(100% - var(--pos, 50%)) 0 0); }
+.up-viewer.is-compare .up-compare { cursor: ew-resize; }
+.up-viewer.is-zoom .up-compare { touch-action: auto; cursor: grab; }
+.up-viewer.is-zoom .up-compare.is-panning { cursor: grabbing; }
+
+.up-handle {
+  position: absolute; top: 0; bottom: 0; left: var(--pos, 50%); z-index: 2;
+  width: 32px; margin-left: -16px; cursor: ew-resize; touch-action: none; outline: none;
+}
+.up-handle::before {
+  content: ''; position: absolute; top: 0; bottom: 0; left: 50%; width: 2px; margin-left: -1px;
+  background: #fff; box-shadow: 0 0 0 1px rgba(0, 0, 0, .35), 0 0 8px rgba(0, 0, 0, .3);
+}
+.up-knob {
+  position: absolute; top: 50%; left: 50%; width: 34px; height: 34px; margin: -17px 0 0 -17px;
+  border-radius: 50%; background: #fff; box-shadow: 0 2px 10px rgba(0, 0, 0, .35);
+}
+.up-knob::before, .up-knob::after {
+  content: ''; position: absolute; top: 50%; width: 0; height: 0; margin-top: -5px;
+  border: 5px solid transparent;
+}
+.up-knob::before { left: 4px; border-right: 6px solid #222; }
+.up-knob::after { right: 4px; border-left: 6px solid #222; }
+.up-handle:focus-visible .up-knob { outline: 3px solid var(--up-accent); outline-offset: 2px; }
+
+.up-label {
+  position: absolute; top: .6rem; z-index: 3; padding: .2rem .55rem; border-radius: 999px;
+  background: rgba(0, 0, 0, .62); color: #fff; font: 600 .72rem/1.4 var(--font-text);
+  letter-spacing: .03em; pointer-events: none;
+}
+.up-label-before { left: .6rem; }
+.up-label-after { right: .6rem; }
+
+.up-help { margin-top: 0; text-align: center; }
+
+@media (min-width: 901px) {
+  /* O "+" (área de arrastar compacta, order 7) fica no canto da linha do nome do arquivo. */
+  .tool-workspace .up-stage { order: 8; margin-bottom: 0; }
+  .up-meta { min-height: 52px; padding-left: 64px; }
+}
+
+@media (max-width: 768px) {
+  .up-meta-actions { margin-left: 0; }
+  .up-notice .btn { width: 100%; justify-content: center; }
+  .up-knob { width: 30px; height: 30px; margin: -15px 0 0 -15px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .up-progress span { transition: none; }
+}
+
+/* ── Carregamento: imagem desfocada + círculo girando; comparação só no fim ── */
+.up-loading {
+  position: absolute; inset: 0; z-index: 4;
+  display: none; flex-direction: column; align-items: center; justify-content: center; gap: .75rem;
+  pointer-events: none;
+}
+.up-viewer.is-working .up-loading { display: flex; }
+.up-viewer canvas { transition: filter .35s ease; }
+.up-viewer.is-working canvas { filter: blur(4px) saturate(.85) brightness(.85); }
+/* Anel sobre um disco escuro translúcido: visível em fotos claras e escuras. */
+.up-spinner {
+  width: 54px; height: 54px; border-radius: 50%;
+  border: 4px solid rgba(255, 255, 255, .28);
+  border-top-color: var(--accent);
+  background: rgba(12, 12, 13, .55);
+  background-clip: padding-box;
+  box-shadow: 0 0 0 8px rgba(12, 12, 13, .55), 0 6px 24px rgba(0, 0, 0, .3);
+  animation: up-spin .8s linear infinite;
+}
+html.light .up-spinner { border-top-color: #3d7000; }
+.up-loading-text {
+  padding: .3rem .75rem; border-radius: 999px;
+  background: rgba(12, 12, 13, .72); color: #fff;
+  font: 600 .8rem var(--font-head); letter-spacing: .01em;
+}
+@keyframes up-spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) {
+  .up-spinner { animation-duration: 2.4s; }
+  .up-viewer canvas { transition: none; }
+}

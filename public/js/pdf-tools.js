@@ -156,65 +156,133 @@
   const CAP_HEIGHT = .72; // altura das maiúsculas da Helvetica em relação ao tamanho da fonte
 
   const WATERMARK_COLORS = { gray: [.5, .5, .5], black: [0, 0, 0], red: [.8, .1, .1], blue: [.1, .3, .75] };
+  const WATERMARK_ANGLES = [0, 45, -45, 90]; // ângulos da posição Livre (graus, anti-horário como no PDF)
+  const clamp = (value, min, max) => Math.min(max, Math.max(min, value));
   // WinAnsi cobre os acentos do português; o que a fonte não codifica vira "?".
+  // Aceita a fonte embutida (PDFFont) ou o StandardFontEmbedder usado pela prévia.
   function encodable(font, text) {
     return Array.from(String(text).replace(/[\x00-\x1f\x7f]/g, '')).map(ch => { try { font.encodeText(ch); return ch; } catch { return '?'; } }).join('');
   }
+
+  /* ── Marca d'água: geometria comum ao PDF e à prévia ──
+     watermarkLayout trabalha no sistema visual (origem no canto inferior esquerdo da página
+     como o leitor mostra, y para cima) e devolve o tamanho da marca, o ângulo e o CENTRO de
+     cada carimbo. aspect = altura ÷ largura da marca (imagem: proporção; texto: altura das
+     maiúsculas ÷ largura do texto). É pura: a prévia usa a mesma conta e bate com o PDF.
+     Posição Livre: options.free = { x, y } é o centro em frações da página visível (x a partir
+     da esquerda, y a partir do topo, como na tela) e options.size é a largura em % da página. */
+  function watermarkLayout(W, H, options, aspect) {
+    const position = String(options.position || 'diagonal');
+    const free = position === 'free', diagonal = position === 'diagonal', tile = position === 'tile';
+    const sizePct = clamp(Number(options.size) || 0, 1, 100) / 100;
+    const angle = free ? (WATERMARK_ANGLES.includes(Number(options.angle)) ? Number(options.angle) : 0) : diagonal ? 45 : 0;
+    const margin = Math.min(12 * MM, W * .06, H * .06);
+    // Largura em % da página visível; a altura segue a proporção da imagem ou da fonte.
+    let w = W * sizePct, h = w * aspect;
+    if (!free) {
+      // Reduz para caber: na diagonal, a caixa girada; nos cantos, dentro das margens.
+      // Na posição Livre quem decide é a pessoa (o que passar da página é cortado, como na prévia).
+      const fit = diagonal ? Math.min(W, H) * .95 * Math.SQRT2 / (w + h) : tile ? Math.min(W / w, H / h) : Math.min((W - 2 * margin) / w, (H - 2 * margin) / h);
+      if (fit < 1) { w *= fit; h *= fit; }
+    }
+    const spots = [];
+    if (free) {
+      const frac = value => value !== null && value !== '' && Number.isFinite(Number(value)) ? clamp(Number(value), 0, 1) : .5;
+      spots.push({ x: frac(options.free?.x) * W, y: (1 - frac(options.free?.y)) * H });
+    } else if (tile) {
+      let cellW = w * 1.6, cellH = Math.max(h * 3, cellW * .5);
+      let cols = Math.ceil(W / cellW), rows = Math.ceil(H / cellH);
+      if (cols * rows > 400) { const grow = Math.sqrt(cols * rows / 400); cellW *= grow; cellH *= grow; cols = Math.ceil(W / cellW); rows = Math.ceil(H / cellH); } // limite de carimbos por página
+      const x0 = (W - cols * cellW + cellW - w) / 2, y0 = (H - rows * cellH + cellH - h) / 2;
+      for (let row = 0; row < rows; row++) {
+        const shift = row % 2 ? cellW / 2 : 0; // linhas alternadas deslocadas: mosaico menos regular
+        for (let col = -1; col < cols; col++) spots.push({ x: x0 + col * cellW + shift + w / 2, y: y0 + row * cellH + h / 2 });
+      }
+    } else if (diagonal || position === 'center') {
+      spots.push({ x: W / 2, y: H / 2 });
+    } else {
+      const right = position.endsWith('right'), top = position.startsWith('top');
+      spots.push({ x: (right ? W - margin - w : margin) + w / 2, y: (top ? H - margin - h : margin) + h / 2 });
+    }
+    return { w, h, angle, spots };
+  }
+  /** Leva a geometria visual para pontos da página: para cada carimbo, o canto de ancoragem
+   *  (inferior esquerdo do texto/imagem, já girado) e o ângulo final do desenho, respeitando
+   *  /Rotate e CropBox. frame vem de pageFrame. */
+  function watermarkPlacements(frame, options, aspect) {
+    const layout = watermarkLayout(frame.width, frame.height, options, aspect);
+    // A âncora do desenho é o canto inferior esquerdo: desloca do centro pelo meio do bloco (girado).
+    const rad = layout.angle * Math.PI / 180, cos = Math.cos(rad), sin = Math.sin(rad);
+    const hx = layout.w / 2, hy = layout.h / 2;
+    const points = layout.spots.map(c => toPagePoint(frame, c.x - (hx * cos - hy * sin), c.y - (hx * sin + hy * cos)));
+    return { w: layout.w, h: layout.h, angle: layout.angle, points, rotate: layout.angle + frame.rotation };
+  }
+  // Texto da marca como vai para o PDF (Helvetica Bold, WinAnsi) e sua largura com fonte de 1 pt.
+  // Sem criar documento: a prévia chama a cada tecla.
+  let helveticaBold = null, lastText = null;
+  function watermarkText(value) {
+    if (lastText && lastText.value === value) return lastText.result;
+    helveticaBold ||= PDFLib.StandardFontEmbedder.for(PDFLib.StandardFonts.HelveticaBold);
+    const text = encodable(helveticaBold, value).trim();
+    const unitWidth = text ? helveticaBold.widthOfTextAtSize(text, 1) : 0;
+    const result = { text, unitWidth, aspect: unitWidth ? CAP_HEIGHT / unitWidth : 0 };
+    lastText = { value, result };
+    return result;
+  }
+  // Largura e altura de um PNG ou JPG pelos bytes (as mesmas que o pdf-lib usa ao embutir).
+  function imageDims(input) {
+    const b = new Uint8Array(input || []);
+    if (b.length >= 24 && b[0] === 0x89 && b[1] === 0x50 && b[2] === 0x4e && b[3] === 0x47) {
+      const view = new DataView(b.buffer, b.byteOffset, b.byteLength);
+      const width = view.getUint32(16), height = view.getUint32(20);
+      return width && height ? { width, height } : null;
+    }
+    if (b[0] === 0xff && b[1] === 0xd8) {
+      let i = 2;
+      while (i + 8 < b.length) {
+        if (b[i] !== 0xff) { i++; continue; }
+        const marker = b[i + 1];
+        if (marker === 0xff) { i++; continue; } // bytes de preenchimento
+        if (marker === 0x01 || (marker >= 0xd0 && marker <= 0xd8)) { i += 2; continue; } // marcadores sem tamanho
+        // SOF0…SOF15 (menos DHT, JPG e DAC): altura e largura logo depois da precisão.
+        if (marker >= 0xc0 && marker <= 0xcf && marker !== 0xc4 && marker !== 0xc8 && marker !== 0xcc) {
+          const height = (b[i + 5] << 8) | b[i + 6], width = (b[i + 7] << 8) | b[i + 8];
+          return width && height ? { width, height } : null;
+        }
+        i += 2 + ((b[i + 2] << 8) | b[i + 3]);
+      }
+    }
+    return null;
+  }
+
   async function watermark(item, indices, options) {
     const doc = await PDFLib.PDFDocument.load(item.data, { ignoreEncryption: false });
     const opacity = Math.min(1, Math.max(.02, Number(options.opacity) / 100));
-    const sizePct = Math.min(100, Math.max(1, Number(options.size))) / 100;
     const color = PDFLib.rgb(...(WATERMARK_COLORS[options.color] || WATERMARK_COLORS.gray));
-    let font, text, unitWidth, image, ratio;
+    let font, text, unitWidth, image, aspect;
     if (options.type === 'image') {
       const bytes = new Uint8Array(options.image || []);
       const png = bytes[0] === 0x89 && bytes[1] === 0x50 && bytes[2] === 0x4e && bytes[3] === 0x47;
       const jpg = bytes[0] === 0xff && bytes[1] === 0xd8 && bytes[2] === 0xff;
       if (!png && !jpg) throw new Error("A marca d'água precisa ser uma imagem PNG ou JPG.");
       image = png ? await doc.embedPng(bytes) : await doc.embedJpg(bytes);
-      ratio = image.height / image.width;
+      aspect = image.height / image.width;
     } else {
       font = await doc.embedFont(PDFLib.StandardFonts.HelveticaBold);
       text = encodable(font, options.text).trim();
       if (!text) throw new Error("Digite o texto da marca d'água.");
       unitWidth = font.widthOfTextAtSize(text, 1);
+      aspect = CAP_HEIGHT / unitWidth;
     }
-    const diagonal = options.position === 'diagonal', tile = options.position === 'tile';
-    const angle = diagonal ? 45 : 0;
     const pages = doc.getPages();
     for (const index of indices) {
       const page = pages[index];
-      const frame = pageFrame(page);
-      const { width: W, height: H } = frame;
-      const margin = Math.min(12 * MM, W * .06, H * .06);
-      // Largura em % da página visível; a altura segue a proporção da imagem ou da fonte.
-      let w = W * sizePct, h = image ? w * ratio : (w / unitWidth) * CAP_HEIGHT;
-      // Reduz para caber: na diagonal, a caixa girada; nos cantos, dentro das margens.
-      const fit = diagonal ? Math.min(W, H) * .95 * Math.SQRT2 / (w + h) : tile ? Math.min(W / w, H / h) : Math.min((W - 2 * margin) / w, (H - 2 * margin) / h);
-      if (fit < 1) { w *= fit; h *= fit; }
-      const size = image ? null : w / unitWidth;
-      const spots = [];
-      if (tile) {
-        let cellW = w * 1.6, cellH = Math.max(h * 3, cellW * .5);
-        let cols = Math.ceil(W / cellW), rows = Math.ceil(H / cellH);
-        if (cols * rows > 400) { const grow = Math.sqrt(cols * rows / 400); cellW *= grow; cellH *= grow; cols = Math.ceil(W / cellW); rows = Math.ceil(H / cellH); } // limite de carimbos por página
-        const x0 = (W - cols * cellW + cellW - w) / 2, y0 = (H - rows * cellH + cellH - h) / 2;
-        for (let row = 0; row < rows; row++) {
-          const shift = row % 2 ? cellW / 2 : 0; // linhas alternadas deslocadas: mosaico menos regular
-          for (let col = -1; col < cols; col++) spots.push({ x: x0 + col * cellW + shift, y: y0 + row * cellH });
-        }
-      } else if (diagonal || options.position === 'center') {
-        // A âncora é o canto inferior esquerdo: desloca do centro pelo meio do bloco (girado).
-        const rad = angle * Math.PI / 180, cx = w / 2, cy = h / 2;
-        spots.push({ x: W / 2 - (cx * Math.cos(rad) - cy * Math.sin(rad)), y: H / 2 - (cx * Math.sin(rad) + cy * Math.cos(rad)) });
-      } else {
-        const right = String(options.position).endsWith('right'), top = String(options.position).startsWith('top');
-        spots.push({ x: right ? W - margin - w : margin, y: top ? H - margin - h : margin });
-      }
-      const rotate = PDFLib.degrees(angle + frame.rotation);
-      for (const spot of spots) {
-        const point = toPagePoint(frame, spot.x, spot.y);
-        if (image) page.drawImage(image, { x: point.x, y: point.y, width: w, height: h, rotate, opacity });
+      // Mesma posição relativa em todas as páginas escolhidas, cada uma com o seu tamanho e /Rotate.
+      const place = watermarkPlacements(pageFrame(page), options, aspect);
+      const rotate = PDFLib.degrees(place.rotate);
+      const size = image ? null : place.w / unitWidth;
+      for (const point of place.points) {
+        if (image) page.drawImage(image, { x: point.x, y: point.y, width: place.w, height: place.h, rotate, opacity });
         else page.drawText(text, { x: point.x, y: point.y, size, font, color, rotate, opacity });
       }
     }
@@ -286,5 +354,89 @@
     return [{ name: `${safeBase(item.name)}-recortado-kompres.pdf`, blob: new Blob([bytes], { type: 'application/pdf' }) }];
   }
 
-  scope.KompresPDF = { parsePages, safeBase, loadPdf, imageInfo, imagesToPdf, extract, exportImages, rotate, removePages, watermark, numberPages, crop };
+  /* ── PDF para texto ──
+     layoutText recebe os trechos já na página como o leitor mostra (y cresce para baixo):
+     { str, x, y (linha de base), w (largura), h (altura da fonte), eol (hasEOL do pdf.js) }.
+     Agrupa por linha (y com tolerância), ordena cada linha por x e separa parágrafos pelos
+     saltos verticais grandes. É pura, para poder ser testada fora do navegador. */
+  function layoutText(items) {
+    const parts = [];
+    for (const item of items || []) {
+      if (!item || typeof item.str !== 'string' || !Number.isFinite(item.x) || !Number.isFinite(item.y)) continue;
+      const str = item.str.replace(/\s+/g, ' ');
+      // Trecho vazio só com quebra de linha: a quebra vale para o trecho anterior.
+      if (!str.trim()) { if (item.eol && parts.length) parts[parts.length - 1].eol = true; continue; }
+      parts.push({ str, x: item.x, y: item.y, w: Math.max(0, Number(item.w) || 0), h: Math.abs(Number(item.h)) || 10, eol: !!item.eol });
+    }
+    if (!parts.length) return '';
+
+    // Linhas: mesma linha de base, com folga de meia altura (pega índices e expoentes).
+    const lines = [];
+    for (const part of parts.slice().sort((a, b) => a.y - b.y || a.x - b.x)) {
+      const line = lines[lines.length - 1];
+      if (line && Math.abs(part.y - line.y) <= Math.max(2, .5 * Math.max(line.h, part.h))) {
+        line.items.push(part);
+        if (part.h > line.h) { line.h = part.h; line.y = part.y; } // a base da linha é a do texto maior
+      } else lines.push({ y: part.y, h: part.h, items: [part] });
+    }
+    for (const line of lines) {
+      let text = '', prev = null;
+      for (const part of line.items.sort((a, b) => a.x - b.x)) {
+        if (prev && part.str === prev.str && Math.abs(part.x - prev.x) < 1) continue; // negrito falso: o mesmo texto desenhado duas vezes
+        if (prev) {
+          const gap = part.x - (prev.x + prev.w);
+          // Espaço quando há distância entre os trechos ou o pdf.js marcou fim de linha (ex.: duas colunas).
+          if ((prev.eol || gap > .15 * Math.min(prev.h, part.h)) && !/ $/.test(text) && !/^ /.test(part.str)) text += ' ';
+        }
+        text += part.str; prev = part;
+      }
+      line.text = text.trim();
+    }
+
+    // Parágrafo: salto bem maior que o espaçamento típico entre linhas da página.
+    const gaps = lines.slice(1).map((line, i) => line.y - lines[i].y).filter(gap => gap > 0).sort((a, b) => a - b);
+    const typical = gaps.length ? gaps[Math.floor(gaps.length / 2)] : 0;
+    let out = '';
+    lines.forEach((line, i) => {
+      if (i) {
+        const gap = line.y - lines[i - 1].y, h = Math.max(line.h, lines[i - 1].h);
+        out += gap > 1.9 * h || (typical && gap > 1.45 * typical && gap > 1.3 * h) ? '\n\n' : '\n';
+      }
+      out += line.text;
+    });
+    return out.replace(/\n{3,}/g, '\n\n').trim();
+  }
+  // Junta as páginas; com "Separar páginas", cada uma ganha um cabeçalho.
+  function joinPages(pages, separate) {
+    if (separate) return pages.map(page => `--- Página ${page.number} ---\n${page.text || '(página sem texto)'}`).join('\n\n');
+    return pages.map(page => page.text).filter(Boolean).join('\n\n');
+  }
+  async function extractText(item, indices, options = {}, progress = () => {}) {
+    const doc = await loadPdf(item.data);
+    const pages = [];
+    try {
+      for (let i = 0; i < indices.length; i++) {
+        const page = await doc.getPage(indices[i] + 1);
+        try {
+          // A matriz da página (com /Rotate) leva cada trecho para a posição em que o leitor mostra.
+          const viewport = page.getViewport({ scale: 1 });
+          const content = await page.getTextContent();
+          const parts = content.items.filter(entry => typeof entry.str === 'string').map(entry => {
+            const m = scope.pdfjsLib.Util.transform(viewport.transform, entry.transform);
+            return { str: entry.str, x: m[4], y: m[5], w: entry.width, h: Math.hypot(m[2], m[3]) || entry.height, eol: entry.hasEOL };
+          });
+          pages.push({ number: indices[i] + 1, text: layoutText(parts) });
+        } finally { page.cleanup(); }
+        progress(i + 1, indices.length);
+      }
+    } finally { await doc.destroy(); }
+    if (!pages.some(page => page.text)) {
+      throw new Error(indices.length < item.pages
+        ? 'As páginas escolhidas não têm texto; podem ser imagens escaneadas. Tente outras páginas.'
+        : 'Este PDF parece ser uma imagem escaneada; não há texto para extrair.');
+    }
+    return joinPages(pages, !!options.separatePages);
+  }
+
+  scope.KompresPDF = { parsePages, safeBase, loadPdf, imageInfo, imagesToPdf, extract, exportImages, rotate, removePages, watermark, watermarkLayout, watermarkPlacements, watermarkText, imageDims, WATERMARK_COLORS, pageFrame, toPagePoint, numberPages, crop, layoutText, joinPages, extractText };
 })(window);

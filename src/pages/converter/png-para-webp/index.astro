@@ -1,0 +1,24 @@
+---
+import CompressorPage from '../../../layouts/CompressorPage.astro';
+import { pages } from '../../../data/pages';
+---
+<CompressorPage
+  page={pages.pngToWebp}
+  format="webp"
+  hero={{
+    title: 'Converter PNG para WebP',
+    highlight: 'imagens leves para sites.',
+    text: 'Converta PNG para WebP direto no navegador e deixe páginas mais rápidas, mantendo a transparência. Em lote e com download em ZIP.',
+  }}
+  heading="Conversor de PNG para WebP"
+  intro="Arraste seus arquivos PNG. O formato WebP já vem selecionado."
+  guideTitle="Como converter PNG para WebP"
+  faqs={[
+    { q: 'Como converter PNG para WebP?', a: 'Arraste os arquivos PNG para a área acima ou cole com Ctrl+V. O formato WebP já vem selecionado e a conversão começa sozinha. Baixe cada imagem ou todas em ZIP.' },
+    { q: 'A transparência é mantida?', a: 'Sim. O WebP suporta transparência, então logotipos e ícones com fundo transparente continuam assim.' },
+    { q: 'Quanto o arquivo diminui?', a: 'Depende da imagem, mas o WebP costuma ficar de 25% a 80% menor que o PNG equivalente. Cada cartão mostra o tamanho antes e depois.' },
+    { q: 'O WebP funciona em qualquer lugar?', a: 'Funciona em todos os navegadores atuais e na maioria dos sites e apps. Alguns programas antigos de edição e de e-mail ainda não abrem WebP: nesses casos, use <a href="/converter/webp-para-png/">WebP para PNG</a> para voltar.' },
+    { q: 'Qual qualidade escolher?', a: 'Entre 75% e 85% é um bom equilíbrio para a maioria das imagens. Se precisa caber em um limite, como 200 KB, use o modo Tamanho máx.' },
+    { q: 'As imagens são enviadas para algum servidor?', a: 'Não. A conversão acontece no seu navegador e os arquivos não saem do dispositivo.' },
+  ]}
+/>

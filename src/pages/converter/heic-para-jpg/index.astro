@@ -1,0 +1,82 @@
+---
+import Base from '../../../layouts/Base.astro';
+import Hero from '../../../components/Hero.astro';
+import Guide from '../../../components/Guide.astro';
+import { pages } from '../../../data/pages';
+
+const formats = [
+  { value: 'jpg', label: 'JPG' },
+  { value: 'png', label: 'PNG' },
+];
+---
+<Base page={pages.heicToJpg} section="image" activeTool="heicToJpg" tool="heic" styles={['/css/heic.css?v=1']}>
+  <Hero
+    title="Converter HEIC para JPG/PNG"
+    highlight="fotos do iPhone que abrem em qualquer lugar."
+    text="Solte as fotos .heic do iPhone e receba JPG ou PNG prontos para enviar, imprimir ou abrir no Windows. Em lote e direto no navegador: as fotos não saem do seu aparelho."
+  />
+
+  <section class="tool-section page2">
+    <div class="tool-header page-inner">
+      <div>
+        <h2>Conversor de HEIC para JPG/PNG</h2>
+        <p>Solte as fotos e a conversão começa na hora. Com uma foto, o botão Baixar entrega o arquivo direto; com várias, um ZIP.</p>
+      </div>
+    </div>
+
+    <div class="tool-workspace page-inner">
+      <div class="tool-side">
+        <div class="controls page-inner controls-heic">
+          <div class="control-group">
+            <label id="heicFormatLabel">Formato de saída</label>
+            <div class="format-toggle" role="radiogroup" aria-labelledby="heicFormatLabel">
+              {formats.map((f, i) => (
+                <label class:list={['fmt-btn', { active: i === 0 }]}><input type="radio" name="heicFormat" value={f.value} checked={i === 0}>{f.label}</label>
+              ))}
+            </div>
+            <small class="field-hint">JPG é o mais compatível e leve. PNG não perde nada, mas fica bem maior.</small>
+          </div>
+
+          <div class="control-group" id="heicQualityGroup">
+            <label for="heicQuality">Qualidade</label>
+            <div class="value" id="heicQualityVal">90%</div>
+            <input type="range" min="50" max="100" value="90" step="1" id="heicQuality" aria-describedby="heicQualityHint">
+            <small class="field-hint" id="heicQualityHint">90% fica igual ao original a olho nu. Abaixe para arquivos menores.</small>
+          </div>
+        </div>
+
+        <div class="action-bar page-inner">
+          <button class="btn btn-primary" id="heicDownload" disabled>↓ Baixar</button>
+          <button class="btn btn-outline" id="heicClear" disabled>Limpar</button>
+        </div>
+      </div>
+      <div class="tool-main">
+        <p class="tool-status page-inner" id="heicStatus" role="status" aria-live="polite" hidden></p>
+
+        <div class="drop-zone page-inner" id="heicDropZone">
+          <input type="file" id="heicInput" accept=".heic,.heif,image/heic,image/heif" multiple aria-label="Selecionar fotos HEIC para converter">
+          <span class="drop-icon">⬇</span>
+          <p><strong>Arraste as fotos HEIC aqui</strong><br>ou clique para selecionar · HEIC, HEIF<br><span class="drop-hint">Também dá para colar com Ctrl+V</span></p>
+        </div>
+
+        <div class="image-grid page-inner heic-grid" id="heicGrid" data-ah-mask></div>
+      </div>
+    </div>
+  </section>
+
+  <Guide
+    title="Como converter fotos HEIC do iPhone para JPG"
+    current={pages.heicToJpg.path}
+    faqs={[
+      { q: 'O que é HEIC e por que o iPhone usa esse formato?', a: 'HEIC (ou HEIF) é o formato que o iPhone usa por padrão desde o iOS 11. Ele guarda a foto com a mesma qualidade de um JPG ocupando cerca de metade do espaço, o que economiza armazenamento no celular e no iCloud. O problema é a compatibilidade: muitos programas do Windows, sites de cadastro e sistemas de empresas ainda não abrem HEIC. Converter para JPG resolve.' },
+      { q: 'Como converter várias fotos HEIC de uma vez?', a: 'Selecione ou arraste todas as fotos juntas na área acima: cada uma vira um cartão e a conversão começa sozinha, uma de cada vez. Quando terminar, o botão Baixar ZIP reúne todas num arquivo só, com os mesmos nomes das originais (IMG_1234.heic vira IMG_1234.jpg). Cada cartão também tem o próprio botão de baixar.' },
+      { q: 'Converter HEIC para JPG perde qualidade?', a: 'Com a qualidade em 90% (o padrão), a diferença não é visível: a resolução é a mesma da foto original e o arquivo fica em um tamanho razoável. Se quiser zero perda, escolha PNG, que guarda cada pixel exatamente, mas gera arquivos várias vezes maiores. Para deixar o JPG ainda mais leve depois, use o <a href="/">compressor de imagens</a>.' },
+      { q: 'Como fazer o iPhone salvar as fotos direto em JPG?', a: 'No iPhone, abra <strong>Ajustes &gt; Câmera &gt; Formatos</strong> e escolha <strong>Mais compatível</strong>. A partir daí as novas fotos saem em JPG (as antigas continuam em HEIC). Outra opção: em <strong>Ajustes &gt; Fotos</strong>, na seção "Transferir para Mac ou PC", marque <strong>Automático</strong> para o iPhone converter ao copiar as fotos pelo cabo.' },
+      { q: 'Minhas fotos são enviadas para algum servidor?', a: 'Não. A conversão acontece inteira no seu navegador: as fotos são lidas e gravadas no próprio aparelho e nada é enviado para a internet. No Safari o navegador abre o HEIC sozinho; nos outros, um conversor é baixado uma única vez (cerca de 1 MB) e também roda localmente. Dá para conferir desligando a internet depois que a página carregar.' },
+      { q: 'Preciso diminuir as fotos depois de converter. Como faço?', a: 'As fotos do iPhone costumam ter 12 megapixels ou mais, grandes demais para alguns formulários. Depois de baixar os JPG, use o <a href="/resizer/">redimensionador de imagens</a> para escolher a largura em pixels, ou o <a href="/">compressor</a> para limitar o tamanho em KB.' },
+    ]}
+  />
+
+  <script is:inline slot="libs" src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+  <script slot="scripts" is:inline src="/js/heic.js?v=1"></script>
+</Base>

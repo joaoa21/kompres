@@ -235,3 +235,164 @@ html.light .rotate-state.changed { color: #3d7000; }
   .rotate-actions .rot-btn { white-space: normal; padding-inline: .75rem; }
   .rotate-card-btns { opacity: 1; transform: none; }
 }
+
+/* ── Marca d'água: prévia grande com posição livre ──────────────── */
+.controls-watermark, .wm-stage, .wm-grid { --wm-accent: var(--accent); }
+html.light .controls-watermark, html.light .wm-stage, html.light .wm-grid { --wm-accent: #3d7000; }
+
+/* Indicador "Posição livre" com o atalho para voltar ao último ponto da grade. */
+.wm-free {
+  display: flex; align-items: center; flex-wrap: wrap; gap: .4rem .75rem;
+  margin: .75rem 0 0; padding: .5rem .75rem;
+  border: 1px solid var(--wm-accent); border-radius: 8px;
+  background: var(--accent-dim);
+  color: var(--wm-accent);
+  font: .78rem/1.4 var(--font-mono);
+}
+.wm-free[hidden] { display: none; }
+.wm-free-reset {
+  margin-left: auto; padding: 0;
+  background: none; border: 0;
+  color: var(--text);
+  font: .75rem var(--font-text);
+  text-decoration: underline; text-underline-offset: 3px;
+  cursor: pointer;
+}
+.wm-free-reset:hover { color: var(--wm-accent); }
+.wm-free-reset:focus-visible { outline: 2px solid var(--wm-accent); outline-offset: 2px; border-radius: 2px; }
+
+/* Palco: nome da imagem, ‹ › entre as imagens do lote e a prévia. */
+.wm-stage[hidden] { display: none !important; }
+.wm-stage { margin-bottom: 1.25rem; min-width: 0; }
+.wm-bar {
+  display: flex; align-items: center; gap: .5rem .75rem; flex-wrap: wrap;
+  margin-bottom: .6rem;
+  font: .78rem/1.5 var(--font-mono);
+  color: var(--muted);
+}
+.wm-bar-name {
+  flex: 1 1 8rem; min-width: 0;
+  color: var(--text); font-weight: 500;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.wm-nav { display: flex; align-items: center; gap: .4rem; margin-left: auto; }
+.wm-nav[hidden] { display: none; }
+.wm-nav-label { min-width: 4.5em; text-align: center; color: var(--text); }
+.wm-nav-btn {
+  width: 2.3rem; height: 2.3rem; padding: 0;
+  border: 1px solid var(--border); border-radius: 7px;
+  background: var(--surface2); color: var(--text);
+  font-size: 1.2rem; line-height: 1;
+  cursor: pointer;
+  transition: border-color .15s, color .15s;
+}
+.wm-nav-btn:hover { color: var(--wm-accent); border-color: var(--wm-accent); }
+.wm-nav-btn:focus-visible { outline: 2px solid var(--wm-accent); outline-offset: 2px; }
+
+/* Folga ao redor da imagem para a alça que sai da borda. */
+.wm-view {
+  display: flex; justify-content: center;
+  padding: 20px;
+  border: 1px solid var(--border); border-radius: 12px;
+  background: var(--surface);
+}
+/* Tamanho pela proporção da imagem (--ar, posto pelo script): cabe na largura e em ~68% da altura da tela. */
+.wm-preview {
+  position: relative;
+  width: min(100%, calc(68vh * var(--ar, 1.5)));
+  aspect-ratio: var(--ar, 1.5);
+  background-color: #fff;
+  background-image: conic-gradient(#e3e3e3 25%, #fff 0 50%, #e3e3e3 0 75%, #fff 0);
+  background-size: 20px 20px;
+}
+.wm-preview canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+
+/* A marca é desenhada no canvas (igual ao arquivo final); esta caixa é só a parte que se arrasta. */
+.wm-mark {
+  position: absolute;
+  box-sizing: border-box;
+  outline: 1.5px dashed var(--wm-accent);
+  outline-offset: 3px;
+  cursor: move;
+  touch-action: none; /* arrastar com o dedo move a marca, não a página */
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+}
+.wm-mark[hidden] { display: none; }
+.wm-mark:focus-visible { outline: 2px solid var(--wm-accent); }
+.wm-mark.dragging { cursor: grabbing; }
+
+/* Alça: área de toque de 32 px (40 px no celular), círculo visível menor, no canto do contorno. */
+.wm-resize {
+  --hit: 32px;
+  position: absolute;
+  width: var(--hit); height: var(--hit);
+  display: flex; align-items: center; justify-content: center;
+  touch-action: none;
+  z-index: 1;
+}
+.wm-resize::after {
+  content: '';
+  box-sizing: border-box;
+  width: 16px; height: 16px;
+  border: 2px solid #fff;
+  border-radius: 50%;
+  background: var(--wm-accent);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, .45);
+  transition: transform .12s;
+}
+.wm-resize:hover::after, .wm-mark.dragging .wm-resize::after { transform: scale(1.15); }
+.wm-mark[data-corner="se"] .wm-resize { right: calc(var(--hit) / -2 - 3px); bottom: calc(var(--hit) / -2 - 3px); cursor: nwse-resize; }
+.wm-mark[data-corner="nw"] .wm-resize { left: calc(var(--hit) / -2 - 3px); top: calc(var(--hit) / -2 - 3px); cursor: nwse-resize; }
+.wm-mark[data-corner="ne"] .wm-resize { right: calc(var(--hit) / -2 - 3px); top: calc(var(--hit) / -2 - 3px); cursor: nesw-resize; }
+.wm-mark[data-corner="sw"] .wm-resize { left: calc(var(--hit) / -2 - 3px); bottom: calc(var(--hit) / -2 - 3px); cursor: nesw-resize; }
+
+/* Cartões: clicar leva a imagem para a prévia; a escolhida fica destacada. */
+.wm-grid .image-card { cursor: pointer; }
+.wm-grid .image-card.selected { border-color: var(--wm-accent); box-shadow: 0 0 0 1px var(--wm-accent); }
+.wm-grid:has(> :nth-child(2)) .image-card.selected .card-thumb-wrap::before {
+  content: 'na prévia';
+  position: absolute; left: 8px; top: 8px; z-index: 4;
+  padding: 3px 8px; border-radius: 6px;
+  background: var(--wm-accent); color: #0c0c0d;
+  font: 500 .7rem/1.4 var(--font-mono); letter-spacing: .04em;
+}
+html.light .wm-grid:has(> :nth-child(2)) .image-card.selected .card-thumb-wrap::before { color: #fff; }
+
+@media (min-width: 901px) {
+  /* O "+" verde fica no canto superior esquerdo do palco: a barra começa depois dele. */
+  .wm-bar { min-height: 52px; padding-left: 64px; margin-bottom: .75rem; }
+}
+@media (max-width: 768px) {
+  .wm-view { padding: 16px 12px; }
+  .wm-preview { width: min(100%, calc(60vh * var(--ar, 1.5))); }
+  .wm-resize { --hit: 40px; }
+  .wm-resize::after { width: 20px; height: 20px; }
+  .wm-nav-btn { width: 2.6rem; height: 2.6rem; }
+}
+
+/* ── Marca d'água: a prévia grande já é o resultado ──
+   Com uma imagem, o cartão repetiria a mesma foto: some (o "Baixar" da coluna resolve).
+   Com várias, os cartões viram uma faixa de miniaturas para escolher a imagem da prévia. */
+.tool-main .wm-grid:has(> :only-child) { display: none; }
+.tool-main .wm-grid {
+  grid-template-columns: repeat(auto-fill, minmax(118px, 132px));
+  justify-content: start;
+  gap: .6rem;
+  margin-top: .9rem;
+}
+.wm-grid .image-card { border-radius: 10px; }
+.wm-grid .image-card:hover { transform: none; }
+.wm-grid .card-thumb-wrap { aspect-ratio: 1; }
+.wm-grid .card-body { padding: .45rem .5rem .55rem; gap: .3rem; }
+.wm-grid .card-name { font-size: .64rem; }
+.wm-grid .card-body > :not(.card-name):not(.card-download):not(a) { font-size: .62rem; }
+.wm-grid .card-download { padding: .35rem; font-size: .62rem; }
+.wm-grid .card-remove { width: 22px; height: 22px; font-size: .7rem; }
+.wm-grid:has(> :nth-child(2)) .image-card.selected .card-thumb-wrap::before { font-size: .55rem; padding: .1rem .35rem; }
+
+/* Botão grande de baixar logo abaixo da prévia. */
+.wm-below { order: 9; display: flex; justify-content: center; margin-top: 1rem; }
+.wm-below[hidden] { display: none; }
+.wm-below .btn { min-width: min(100%, 320px); min-height: 3.2rem; font-size: 1rem; }

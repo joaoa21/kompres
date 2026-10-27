@@ -1,12 +1,12 @@
 ---
 /** Ferramentas de PDF (lógica em /js/pdf.js). O modo vem da página; a troca de
  *  modo é pelos cartões de navegação abaixo do cabeçalho (ToolsNav). */
-export type PdfMode = 'merge' | 'compress' | 'images' | 'extract' | 'remove' | 'rotate' | 'export' | 'watermark' | 'number' | 'crop';
+export type PdfMode = 'merge' | 'compress' | 'images' | 'extract' | 'remove' | 'rotate' | 'export' | 'watermark' | 'number' | 'crop' | 'text';
 interface Props { mode?: PdfMode }
 const { mode = 'merge' } = Astro.props;
 // Mesmos textos que o pdf.js aplica ao trocar de modo.
-const titles: Record<PdfMode, string> = { merge: 'Juntar PDFs', compress: 'Comprimir PDFs', images: 'Imagens para PDF', extract: 'Extrair ou dividir PDF', remove: 'Remover páginas do PDF', rotate: 'Girar páginas do PDF', export: 'PDF para imagens', watermark: "Marca d'água no PDF", number: 'Numerar páginas do PDF', crop: 'Recortar margens do PDF' };
-const descriptions: Record<PdfMode, string> = { merge: 'Adicione os PDFs e organize a ordem.', compress: 'Adicione seus PDFs e escolha a compressão.', images: 'Adicione as imagens e organize a ordem das páginas.', extract: 'Escolha as páginas que deseja salvar.', remove: 'Informe as páginas que devem sair do arquivo.', rotate: 'Escolha o ângulo e, se quiser, só algumas páginas.', export: 'Transforme as páginas do PDF em JPG ou PNG.', watermark: 'Escolha texto ou imagem, posição e opacidade.', number: 'Escolha posição, formato e número inicial.', crop: 'Informe quanto cortar de cada margem.' };
+const titles: Record<PdfMode, string> = { merge: 'Juntar PDFs', compress: 'Comprimir PDFs', images: 'Imagens para PDF', extract: 'Extrair ou dividir PDF', remove: 'Remover páginas do PDF', rotate: 'Girar páginas do PDF', export: 'PDF para imagens', watermark: "Marca d'água no PDF", number: 'Numerar páginas do PDF', crop: 'Recortar margens do PDF', text: 'PDF para texto' };
+const descriptions: Record<PdfMode, string> = { merge: 'Adicione os PDFs e organize a ordem.', compress: 'Adicione seus PDFs e escolha a compressão.', images: 'Adicione as imagens e organize a ordem das páginas.', extract: 'Escolha as páginas que deseja salvar.', remove: 'Informe as páginas que devem sair do arquivo.', rotate: 'Escolha o ângulo e, se quiser, só algumas páginas.', export: 'Transforme as páginas do PDF em JPG ou PNG.', watermark: 'Escolha texto ou imagem e a posição, ou arraste a marca na prévia.', number: 'Escolha posição, formato e número inicial.', crop: 'Informe quanto cortar de cada margem.', text: 'Copie ou baixe o texto do PDF em .txt.' };
 ---
 
 <section class="tool-section page2">
@@ -42,10 +42,14 @@ const descriptions: Record<PdfMode, string> = { merge: 'Adicione os PDFs e organ
       <label for="imageMargin">Margem</label>
       <select id="imageMargin"><option value="0">Sem margem</option><option value="10" selected>10 mm</option><option value="20">20 mm</option></select>
     </div>
-    <div class="control-group hidden" id="pageRangeGroup" data-for="extract export remove rotate watermark number crop">
+    <div class="control-group hidden" id="pageRangeGroup" data-for="extract export remove rotate watermark number crop text">
       <label for="pageRange">Páginas</label>
       <input type="text" id="pageRange" placeholder="Todas ou 1-3, 7" autocomplete="off" spellcheck="false" aria-describedby="rangeHint">
       <small id="rangeHint" class="pdf-field-hint">Deixe vazio para todas as páginas.</small>
+    </div>
+    <div class="control-group hidden" data-for="text">
+      <label class="pdf-check" for="textSeparate"><input type="checkbox" id="textSeparate" aria-describedby="textSeparateHint"><span>Separar páginas</span></label>
+      <small id="textSeparateHint" class="pdf-field-hint">Coloca "--- Página N ---" antes do texto de cada página.</small>
     </div>
     <div class="control-group hidden" data-for="rotate">
       <label for="rotateAngle">Ângulo</label>
@@ -79,7 +83,18 @@ const descriptions: Record<PdfMode, string> = { merge: 'Adicione os PDFs e organ
         <option value="top-right">Canto superior direito</option>
         <option value="bottom-left">Canto inferior esquerdo</option>
         <option value="bottom-right">Canto inferior direito</option>
+        <option value="free">Livre (arraste na prévia)</option>
         <option value="tile">Mosaico (repetida em grade)</option>
+      </select>
+    </div>
+    <!-- Só na posição Livre (o pdf.js mostra e esconde). -->
+    <div class="control-group hidden" id="wmAngleGroup" data-for="watermark">
+      <label for="wmAngle">Ângulo</label>
+      <select id="wmAngle">
+        <option value="0" selected>0° (horizontal)</option>
+        <option value="45">45° (subindo)</option>
+        <option value="-45">−45° (descendo)</option>
+        <option value="90">90° (vertical)</option>
       </select>
     </div>
     <div class="control-group hidden" data-for="watermark">
@@ -176,6 +191,12 @@ const descriptions: Record<PdfMode, string> = { merge: 'Adicione os PDFs e organ
     <p id="dropText"><strong>Arraste os PDFs aqui</strong><br>ou clique para selecionar · somente .pdf</p>
   </div>
 
+  <!-- Imagens → PDF no celular: abre a câmera; cada foto vira mais uma página. -->
+  <div class="pdf-camera page-inner hidden" data-for="images">
+    <button class="btn btn-outline" type="button" id="cameraBtn">📷 Tirar foto</button>
+    <input type="file" id="cameraInput" accept="image/*" capture="environment" tabindex="-1" aria-hidden="true">
+  </div>
+
   
 
   <p class="page-inner pdf-status" id="pdfStatus" role="status" aria-live="polite" hidden></p>
@@ -200,7 +221,47 @@ const descriptions: Record<PdfMode, string> = { merge: 'Adicione os PDFs e organ
   </div>
 
   <div class="pdf-list page-inner" id="pdfList" data-ah-mask></div>
+  <!-- PDF para texto: o texto extraído fica aqui, pronto para copiar ou baixar. -->
+  <div class="page-inner pdf-text-result" id="pdfTextResult" hidden>
+    <label for="pdfText">Texto extraído</label>
+    <textarea id="pdfText" readonly spellcheck="false" data-ah-mask></textarea>
+    <div class="pdf-text-actions">
+      <button class="btn btn-primary" type="button" id="textCopy" disabled>Copiar texto</button>
+      <button class="btn btn-outline" type="button" id="textDownload" disabled>↓ Baixar .txt</button>
+    </div>
+  </div>
   <div class="page-inner pdf-outputs" id="pdfOutputs" data-ah-mask hidden></div>
+
+  <!-- Marca d'água: prévia de uma página com a marca arrastável. O pdf.js só a mostra no modo
+       watermark com um PDF carregado; nos outros modos fica sempre oculta. -->
+    <div class="tool-stage page-inner wm-stage" id="wmStage" hidden>
+      <div class="wm-bar">
+        <p class="wm-hint">Arraste a marca para posicioná-la e puxe o canto para mudar o tamanho.</p>
+        <div class="wm-nav">
+          <button type="button" class="wm-nav-btn" id="wmPrev" aria-label="Página anterior">‹</button>
+          <span class="wm-page-label" id="wmPageLabel" aria-live="polite">Página 1 de 1</span>
+          <button type="button" class="wm-nav-btn" id="wmNext" aria-label="Próxima página">›</button>
+        </div>
+      </div>
+      <div class="wm-view" id="wmView">
+        <div class="wm-page" id="wmPage">
+          <canvas id="wmCanvas" aria-hidden="true"></canvas>
+          <!-- A marca é cortada na borda da página, como no PDF; a moldura de arrastar fica por cima, sem corte. -->
+          <div class="wm-clip" aria-hidden="true">
+            <div class="wm-ink" id="wmInk" hidden>
+              <span class="wm-ink-text" id="wmInkText" data-ah-mask><span id="wmInkStr"></span><i class="wm-baseline" id="wmBaseline"></i></span>
+              <img class="wm-ink-img" id="wmInkImg" alt="" draggable="false" hidden>
+            </div>
+          </div>
+          <div class="wm-layer">
+            <div class="wm-mark" id="wmMark" tabindex="0" role="group" aria-label="Marca d'água. Arraste para mover e puxe o canto para mudar o tamanho; com o foco, as setas movem e + e − mudam o tamanho." hidden>
+              <span class="wm-resize" aria-hidden="true"></span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <p class="wm-notice" id="wmNotice" role="status" hidden></p>
+    </div>
     </div>
   </div>
 </section>

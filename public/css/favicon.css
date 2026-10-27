@@ -1,0 +1,146 @@
+/* PNG para ICO / gerador de favicon (public/js/favicon.js). */
+
+/* Celular: a prévia vem depois dos botões e o trecho de HTML por último. */
+.tool-workspace .tool-stage { order: 8; }
+.tool-workspace .fav-snippet { order: 9; }
+
+/* ── Ajustes ── */
+
+/* Os botões de tamanho e de modo escondem o input, mas ele continua focável pelo teclado. */
+.controls-favicon .fmt-btn { position: relative; display: inline-flex; align-items: center; justify-content: center; }
+.controls-favicon .fmt-btn input {
+  display: block;
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+.controls-favicon .fmt-btn:has(input:focus-visible) { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+.controls-favicon .fav-sizes { flex-wrap: wrap; }
+.controls-favicon .fav-sizes .fmt-btn { flex: 1 1 calc(33.333% - 0.34rem); min-width: 0; font-family: var(--font-mono); }
+
+.fav-color { display: flex; align-items: center; gap: 0.6rem; margin-top: 0.7rem; }
+.fav-color[hidden] { display: none; }
+.fav-color input[type="color"] {
+  width: 44px;
+  height: 34px;
+  padding: 2px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  cursor: pointer;
+}
+.fav-color input[type="color"]:hover { border-color: var(--border-hover); }
+.fav-color span { font-family: var(--font-mono); font-size: 0.8rem; color: var(--muted); text-transform: uppercase; }
+
+/* ── Trecho de HTML ── */
+
+.fav-snippet[hidden] { display: none; }
+.fav-code {
+  margin: 0 0 0.6rem;
+  padding: 0.75rem;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text);
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  line-height: 1.6;
+  /* Quebra as linhas longas: a coluna é estreita e não pode abrir rolagem horizontal. */
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.fav-copy { width: 100%; justify-content: center; }
+
+/* ── Palco da prévia ── */
+
+.favicon-tool .tool-stage[hidden] { display: none; }
+.favicon-tool .tool-stage {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  min-width: 0;
+  margin-bottom: 1.5rem;
+  padding: 1rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+}
+
+.fav-meta { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.25rem 0.75rem; min-width: 0; }
+.fav-meta strong { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--text); }
+.fav-meta span { color: var(--muted); font-size: 0.8rem; }
+
+.fav-heading {
+  margin: 0.25rem 0 0;
+  color: var(--muted);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.fav-previews { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 0.75rem; }
+.fav-size {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  max-width: 100%;
+  margin: 0;
+  padding: 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  /* Quadriculado pequeno: mostra a transparência sem competir com um ícone de 16 px. */
+  background: repeating-conic-gradient(var(--surface2) 0 25%, var(--bg) 0 50%) 0 0 / 12px 12px;
+}
+.fav-size-row { display: flex; align-items: flex-end; gap: 0.75rem; max-width: 100%; }
+.fav-real { display: block; flex: none; max-width: 100%; height: auto; }
+.fav-zoom { display: block; flex: none; image-rendering: pixelated; }
+.fav-size figcaption {
+  padding: 0.15rem 0.45rem;
+  background: var(--surface);
+  border-radius: 4px;
+  color: var(--muted);
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+}
+.fav-empty { margin: 0; color: var(--muted); font-size: 0.85rem; }
+
+/* Simulação de aba: cores fixas dos temas claro e escuro dos navegadores, não do site. */
+.fav-tabs { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.75rem; }
+.fav-browser { --strip: #dee1e6; --tab: #ffffff; --ink: #1f1f1f; --field: #f1f3f4; margin: 0; overflow: hidden; border: 1px solid var(--border); border-radius: 10px; }
+.fav-browser-dark { --strip: #202124; --tab: #35363a; --ink: #e8eaed; --field: #202124; }
+.fav-strip { display: flex; align-items: flex-end; gap: 0.5rem; padding: 0.5rem 0.5rem 0; background: var(--strip); }
+.fav-tab {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: min(220px, 82%);
+  min-width: 0;
+  padding: 0.5rem 0.65rem;
+  background: var(--tab);
+  border-radius: 8px 8px 0 0;
+  color: var(--ink);
+  font: 12px/1.2 system-ui, -apple-system, 'Segoe UI', sans-serif;
+}
+.fav-tab-icon { display: block; flex: none; width: 16px; height: 16px; }
+.fav-tab-title { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.fav-tab-x { flex: none; opacity: 0.6; font-size: 14px; }
+.fav-tab-new { padding: 0 0.25rem 0.4rem; color: var(--ink); opacity: 0.7; font: 16px/1 system-ui, sans-serif; }
+.fav-bar { height: 34px; padding: 6px 10px; background: var(--tab); }
+.fav-bar::before { content: ''; display: block; height: 100%; background: var(--field); border-radius: 999px; }
+.fav-browser figcaption { padding: 0.4rem 0.75rem; background: var(--surface2); color: var(--muted); font-size: 0.72rem; }
+
+@media (max-width: 600px) {
+  .fav-tabs { grid-template-columns: minmax(0, 1fr); }
+}
+
+/* Desktop: a coluna da direita já é o palco (fundo e borda vêm de style.css). O nome fica
+   à direita do botão "+" que o CSS compartilhado põe no canto superior esquerdo. */
+@media (min-width: 901px) {
+  .favicon-tool .tool-stage { margin: 0; padding: 0; background: none; border: 0; border-radius: 0; }
+  .fav-meta { min-height: 52px; align-items: center; padding-left: 64px; }
+}

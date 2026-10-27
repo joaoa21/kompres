@@ -52,11 +52,43 @@ function prefetchPdfLibs(event: Event) {
   }
 }
 
+/**
+ * Filtro por categoria acima dos cartões. A escolha fica guardada na sessão, por grupo
+ * (imagem ou PDF), para não se perder ao trocar de ferramenta sem recarregar.
+ */
+function setupToolFilter(signal: AbortSignal) {
+  const bar = document.querySelector<HTMLElement>('.tools-filter');
+  const nav = document.querySelector<HTMLElement>('.tools-nav');
+  if (!bar || !nav) return;
+  const storageKey = `kompres-filtro-${bar.dataset.group}`;
+  const apply = (filter: string, save: boolean) => {
+    if (!bar.querySelector(`[data-filter="${CSS.escape(filter)}"]`)) filter = 'todas';
+    nav.dataset.filter = filter;
+    bar.querySelectorAll<HTMLButtonElement>('button[data-filter]').forEach((button) => {
+      const on = button.dataset.filter === filter;
+      button.classList.toggle('active', on);
+      button.setAttribute('aria-pressed', String(on));
+    });
+    nav.querySelectorAll<HTMLElement>('a[data-category]').forEach((card) => card.classList.toggle('match', card.dataset.category === filter));
+    if (save) { try { sessionStorage.setItem(storageKey, filter); } catch {} }
+  };
+  let saved: string | null = null;
+  try { saved = sessionStorage.getItem(storageKey); } catch {}
+  // A ferramenta aberta precisa continuar visível: fora do filtro guardado, mostra todas.
+  const activeCategory = nav.querySelector<HTMLElement>('a.active')?.dataset.category;
+  apply(saved && saved !== 'todas' && saved !== activeCategory ? 'todas' : saved || 'todas', false);
+  bar.addEventListener('click', (event) => {
+    const button = (event.target as Element).closest<HTMLButtonElement>('button[data-filter]');
+    if (button) apply(button.dataset.filter!, true);
+  }, { signal });
+}
+
 export function mountTools() {
   controller = new AbortController();
   for (const type of ['mouseover', 'focusin', 'touchstart']) {
     document.addEventListener(type, prefetchPdfLibs, { signal: controller.signal, passive: true });
   }
+  setupToolFilter(controller.signal);
   // Celular: a navegação entre ferramentas rola na horizontal; centraliza o cartão ativo.
   const activeCard = document.querySelector<HTMLElement>('.tools-nav a.active');
   const nav = activeCard?.parentElement;
