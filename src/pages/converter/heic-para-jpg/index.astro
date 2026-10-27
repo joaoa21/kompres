@@ -66,7 +66,6 @@ const formats = [
 
   <Guide
     title="Como converter fotos HEIC do iPhone para JPG"
-    current={pages.heicToJpg.path}
     faqs={[
       { q: 'O que é HEIC e por que o iPhone usa esse formato?', a: 'HEIC (ou HEIF) é o formato que o iPhone usa por padrão desde o iOS 11. Ele guarda a foto com a mesma qualidade de um JPG ocupando cerca de metade do espaço, o que economiza armazenamento no celular e no iCloud. O problema é a compatibilidade: muitos programas do Windows, sites de cadastro e sistemas de empresas ainda não abrem HEIC. Converter para JPG resolve.' },
       { q: 'Como converter várias fotos HEIC de uma vez?', a: 'Selecione ou arraste todas as fotos juntas na área acima: cada uma vira um cartão e a conversão começa sozinha, uma de cada vez. Quando terminar, o botão Baixar ZIP reúne todas num arquivo só, com os mesmos nomes das originais (IMG_1234.heic vira IMG_1234.jpg). Cada cartão também tem o próprio botão de baixar.' },
@@ -78,5 +77,5 @@ const formats = [
   />
 
   <script is:inline slot="libs" src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-  <script slot="scripts" is:inline src="/js/heic.js?v=1"></script>
+  <script slot="scripts" is:inline src="/js/heic.js?v=dl-1"></script>
 </Base>

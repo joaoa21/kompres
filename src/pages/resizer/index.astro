@@ -117,7 +117,6 @@ import { pages } from '../../data/pages';
 
   <Guide
     title="Como redimensionar imagens sem distorcer"
-    current={pages.resize.path}
     faqs={[
       { q: 'Como mudar a largura de uma imagem?', a: 'Adicione imagens PNG, JPG ou WebP e informe a largura máxima em pixels. A altura é calculada automaticamente para manter a proporção. Imagens menores que essa largura não são ampliadas.' },
       { q: 'Como redimensionar para uma medida exata, como 1080 × 1080?', a: 'Escolha o modo Exato e informe largura e altura. Em Preencher e cortar o centro, a imagem ocupa toda a medida e o excesso das bordas é recortado, sem distorcer. Em Caber sem cortar, a imagem inteira é ajustada dentro da medida. Útil para redes sociais, capas e miniaturas.' },
@@ -129,5 +128,5 @@ import { pages } from '../../data/pages';
   />
 
   <script is:inline slot="libs" src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-  <script slot="scripts" is:inline src="/js/resizer.js?v=ux-1"></script>
+  <script slot="scripts" is:inline src="/js/resizer.js?v=dl-1"></script>
 </Base>

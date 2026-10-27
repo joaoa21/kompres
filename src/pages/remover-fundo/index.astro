@@ -34,7 +34,6 @@ import { pages } from '../../data/pages';
 </section>
   <Guide
     title="Como remover o fundo de uma imagem"
-    current={pages.background.path}
     faqs={[
       { q: 'Como remover o fundo de uma foto?', a: 'Selecione até 10 imagens PNG, JPG ou WebP e clique em Remover fundo. A inteligência artificial identifica o objeto principal e apaga o restante. Depois, baixe cada resultado em PNG ou todos em um arquivo ZIP.' },
       { q: 'Posso corrigir o recorte?', a: 'Sim. Clique em Ajustar recorte para abrir o editor: use Apagar para remover sobras do fundo e Restaurar para recuperar detalhes, como cabelo ou bordas. Dá para desfazer, dar zoom e conferir o resultado sobre fundo branco, preto ou verde.' },
@@ -62,5 +61,5 @@ import { pages } from '../../data/pages';
   </Fragment>
 
   <script is:inline slot="libs" src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-  <script slot="scripts" is:inline src="/js/background-remover.js?v=ux-1"></script>
+  <script slot="scripts" is:inline src="/js/background-remover.js?v=dl-1"></script>
 </Base>

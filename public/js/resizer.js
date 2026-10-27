@@ -54,6 +54,8 @@ kompres.register('resizer', (signal, document) => {
 
   processBtn.addEventListener('click', () => processImages(true));
   downloadZipBtn.addEventListener('click', downloadAllAsZip);
+  // Vários resultados: separados, numa pasta ou em ZIP (setinha ao lado do botão).
+  const dl = kompres.downloads.attach({ signal, button: downloadZipBtn, onPick: () => downloadAllAsZip() });
   clearBtn.addEventListener('click', clearAll);
 
   async function handleFiles(files) {
@@ -290,20 +292,15 @@ kompres.register('resizer', (signal, document) => {
   }
 
   async function downloadAllAsZip() {
-    const processedImages = imageData.filter((item) => item.processed);
-    if (!processedImages.length) return;
-    if (processedImages.length === 1) { downloadBlob(processedImages[0].processed.blob, processedImages[0].processed.fileName); return; }
-
+    const done = imageData.filter((item) => item.processed);
+    if (!done.length) return;
+    const files = done.map((item) => ({ name: item.processed.fileName, blob: item.processed.blob }));
     downloadZipBtn.disabled = true;
-    downloadZipBtn.textContent = 'Gerando ZIP...';
-
+    if (files.length > 1) downloadZipBtn.textContent = kompres.downloads.busyLabel();
     try {
-      const zip = new JSZip();
-      processedImages.forEach((item, index) => {
-        zip.file(`${index + 1}-${item.processed.fileName}`, item.processed.blob);
-      });
-      downloadBlob(await zip.generateAsync({ type: 'blob' }), 'imagens-redimensionadas.zip');
-    } catch { setStatus('Não foi possível gerar o ZIP. Tente novamente.', true); }
+      const result = await kompres.downloads.saveFiles(files, { zipName: 'imagens-redimensionadas.zip' });
+      if (result === 'folder') setStatus(`${files.length} imagens salvas na pasta escolhida.`);
+    } catch { setStatus('Não foi possível salvar os arquivos. Tente outra forma de baixar na setinha ao lado do botão.', true); }
     finally { updateUI(); }
   }
 
@@ -345,7 +342,7 @@ kompres.register('resizer', (signal, document) => {
     processBtn.textContent = busy ? 'Processando…' : hasImages && !pendingItems().length ? 'Redimensionar novamente' : 'Redimensionar tudo';
     clearBtn.disabled = !hasImages;
     downloadZipBtn.disabled = !done;
-    downloadZipBtn.textContent = done === 1 ? '↓ Baixar' : '↓ Baixar ZIP';
+    dl.update(done);
   }
 
   function updateStats() {

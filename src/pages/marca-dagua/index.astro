@@ -148,7 +148,6 @@ const positions = [
 
   <Guide
     title="Como colocar marca d'água em fotos"
-    current={pages.watermarkImage.path}
     faqs={[
       { q: "Como colocar meu nome como marca d'água em várias fotos?", a: "Deixe o tipo em Texto, digite o nome, site ou @ do perfil e solte as fotos na área acima. Todas recebem a mesma marca na posição escolhida: um dos nove pontos da grade, o mosaico ou uma posição livre, arrastando a marca na prévia grande (a alça do canto muda o tamanho). A posição livre vale para todas as fotos, no mesmo lugar relativo, mesmo com tamanhos diferentes. Cada ajuste de tamanho, opacidade ou posição refaz os resultados na hora, e o botão Baixar entrega um arquivo direto ou um ZIP quando há vários." },
       { q: "Como usar meu logo como marca d'água?", a: "Escolha o tipo Logo e selecione o arquivo. Um PNG com fundo transparente dá o melhor resultado, porque só o desenho aparece sobre a foto; JPG, WebP e SVG também funcionam. O logo é redimensionado em proporção à largura de cada imagem, então fica do mesmo tamanho relativo em fotos grandes e pequenas." },
@@ -160,5 +159,5 @@ const positions = [
   />
 
   <script is:inline slot="libs" src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-  <script slot="scripts" is:inline src="/js/watermark.js?v=3"></script>
+  <script slot="scripts" is:inline src="/js/watermark.js?v=dl-1"></script>
 </Base>

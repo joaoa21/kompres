@@ -24,8 +24,8 @@ const { page, hero, format, heading, intro, svg, activeTool = 'compress', guideT
 <Base page={page} section="image" activeTool={activeTool} tool="compressor">
   <Hero {...hero} />
   <CompressorTool format={format} heading={heading} intro={intro} svg={svg} />
-  <Guide title={guideTitle} faqs={faqs} current={page.path} />
+  <Guide title={guideTitle} faqs={faqs} />
 
   <script is:inline slot="libs" src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-  <script slot="scripts" is:inline src="/js/compressor.js?v=ux-3"></script>
+  <script slot="scripts" is:inline src="/js/compressor.js?v=dl-1"></script>
 </Base>

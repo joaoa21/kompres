@@ -10,10 +10,12 @@ kompres.register('background', (signal, document) => {
   function filename(item) { return item.file.name.replace(/\.[^.]+$/, '').replace(/[\\/\x00-\x1f<>:"|?*]/g, '_').slice(0,140) + '-sem-fundo.png'; }
   function saveBlob(blob, name) { const url = URL.createObjectURL(blob), a = document.createElement('a'); a.href = url; a.download = name; a.click(); setTimeout(() => URL.revokeObjectURL(url), 5000); }
   function canvasBlob(canvas) { return new Promise((resolve,reject) => canvas.toBlob(blob => blob ? resolve(blob) : reject(new Error('Não foi possível salvar a imagem.')), 'image/png')); }
+  // Vários resultados: separados, numa pasta ou em ZIP (setinha ao lado do botão).
+  let dl;
   function update() {
     run.disabled = busy || !items.some(i => !i.resultBlob); run.textContent = busy ? 'Processando…' : 'Remover fundo';
     const count = items.filter(i => i.resultBlob).length;
-    download.disabled = busy || !count; download.textContent = count > 1 ? '↓ Baixar ZIP' : '↓ Baixar PNG';
+    download.disabled = busy || !count; dl?.update(count); if (count <= 1) download.textContent = '↓ Baixar PNG';
     clear.disabled = busy || !items.length; fileInput.disabled = busy;
     $('bgCancel').hidden = !busy || !rejectJob;
     document.querySelectorAll('.bg-card button').forEach(button => button.disabled = busy);
@@ -37,8 +39,8 @@ kompres.register('background', (signal, document) => {
         const original = document.createElement('button'); original.textContent = 'Ver original';
         original.setAttribute('aria-pressed','false'); original.onclick = () => { const show = original.getAttribute('aria-pressed') !== 'true'; img.src = show ? item.originalUrl : item.resultUrl; original.textContent = show ? 'Ver resultado' : 'Ver original'; original.setAttribute('aria-pressed',String(show)); };
         const edit = document.createElement('button'); edit.textContent = 'Ajustar recorte'; edit.onclick = () => openEditor(item, edit);
-        const dl = document.createElement('button'); dl.textContent = '↓ PNG'; dl.onclick = () => saveBlob(item.resultBlob, filename(item));
-        actions.append(original,edit,dl); body.append(actions);
+        const save = document.createElement('button'); save.textContent = '↓ PNG'; save.setAttribute('data-ah-label', 'Baixar resultado'); save.onclick = () => saveBlob(item.resultBlob, filename(item));
+        actions.append(original,edit,save); body.append(actions);
       }
       card.append(thumb,body); $('bgCards').append(card);
     }
@@ -91,14 +93,17 @@ kompres.register('background', (signal, document) => {
   };
   $('bgCancel').onclick = () => { if (!rejectJob) return; cancelled = true; worker?.terminate(); worker = null; const reject = rejectJob; rejectJob = null; reject(new Error('Cancelado')); };
   clear.onclick = () => { if (busy) return; items.forEach(dispose); items = []; status(); render(); };
-  download.onclick = async () => {
+  const downloadAll = async () => {
     if (busy) return; const done = items.filter(i => i.resultBlob); if (!done.length) return;
-    if (done.length === 1) { saveBlob(done[0].resultBlob, filename(done[0])); return; }
-    busy = true; update(); status('Preparando ZIP…');
-    try { const zip = new JSZip(); done.forEach((item,i) => zip.file(`${i+1}-${filename(item)}`, item.resultBlob)); saveBlob(await zip.generateAsync({type:'blob'}),'kompres-sem-fundo.zip'); status(); }
-    catch { status('Não foi possível gerar o ZIP. Baixe os arquivos individualmente.',true); }
+    const files = done.map(item => ({ name: filename(item), blob: item.resultBlob }));
+    busy = true; update(); if (files.length > 1) download.textContent = kompres.downloads.busyLabel();
+    try { const result = await kompres.downloads.saveFiles(files, { zipName: 'kompres-sem-fundo.zip', store: true }); status(result === 'folder' ? `${files.length} imagens salvas na pasta escolhida.` : ''); }
+    catch { status('Não foi possível salvar os arquivos. Tente outra forma de baixar na setinha ao lado do botão.', true); }
     finally { busy = false; update(); }
   };
+  download.onclick = downloadAll;
+  dl = kompres.downloads.attach({ signal, button: download, onPick: () => downloadAll() });
+  update();
 
   /* Non-destructive editor: brush changes only the alpha mask. */
   const dialog = $('bgEditor'), canvas = $('editorCanvas'), ctx = canvas.getContext('2d'), stage = $('editorStage');

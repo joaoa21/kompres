@@ -110,7 +110,6 @@ const formats = [{ value: 'png', label: 'PNG' }, { value: 'jpg', label: 'JPG' },
 
   <Guide
     title="Como melhorar a qualidade de uma imagem com IA"
-    current={pages.upscaleImage.path}
     faqs={[
       { q: 'O que a inteligência artificial faz com a minha foto?', a: 'Ela dobra a largura e a altura da imagem (uma foto de 800 × 600 vira 1600 × 1200) e, em vez de só esticar os pixels, reconstrói bordas, texturas e contornos que a ampliação comum deixa borrados ou serrilhados. Funciona melhor em fotos pequenas, prints e imagens que ficaram borradas por terem sido reduzidas ou comprimidas. A IA não inventa detalhes que nunca estiveram na foto: um rosto fora de foco não ganha traços novos e um texto ilegível continua ilegível. Use a comparação <strong>Antes</strong> e <strong>Depois</strong> e o botão <strong>Ver em 100%</strong> para conferir a diferença.' },
       { q: 'Por que a primeira vez demora mais?', a: 'Na primeira vez, o navegador baixa o modelo de IA (cerca de 8 MB) e o guarda no cache; nas próximas, ele já está no aparelho e o processamento começa logo. O tempo depois disso depende do computador: com uma placa de vídeo compatível com WebGPU, leva segundos; sem ela, a IA roda no processador e uma imagem grande pode levar alguns minutos. A barra mostra a porcentagem, e dá para cancelar a qualquer momento.' },

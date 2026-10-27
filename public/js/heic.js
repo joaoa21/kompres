@@ -63,6 +63,8 @@
     fileInput.addEventListener('change', (event) => handleFiles([...event.target.files]));
     kompres.fileDrop({ signal, document, zone: dropZone, onFiles: handleFiles });
     downloadBtn.addEventListener('click', downloadAll);
+    // Várias fotos: separadas, numa pasta ou em ZIP (setinha ao lado do botão).
+    const dl = kompres.downloads.attach({ signal, button: downloadBtn, onPick: () => downloadAll() });
     clearBtn.addEventListener('click', clearAll);
 
     formatInputs.forEach((input) => input.addEventListener('change', () => {
@@ -284,29 +286,17 @@
       setTimeout(() => URL.revokeObjectURL(url), 4000);
     }
 
-    /** Nomes repetidos no ZIP (IMG_0001.heic e IMG_0001.HEIC) ganham " (2)" em vez de se sobrescrever. */
-    function uniqueName(name, used) {
-      let candidate = name;
-      const dot = name.lastIndexOf('.');
-      for (let n = 2; used.has(candidate.toLowerCase()); n++) candidate = `${name.slice(0, dot)} (${n})${name.slice(dot)}`;
-      used.add(candidate.toLowerCase());
-      return candidate;
-    }
 
     async function downloadAll() {
       const done = images.filter((item) => item.result);
       if (!done.length) return;
-      if (done.length === 1) { downloadBlob(done[0].result.blob, done[0].result.fileName); return; }
-
+      const files = done.map((item) => ({ name: item.result.fileName, blob: item.result.blob }));
       downloadBtn.disabled = true;
-      downloadBtn.textContent = 'Gerando ZIP…';
+      if (files.length > 1) downloadBtn.textContent = kompres.downloads.busyLabel();
       try {
-        const zip = new JSZip();
-        const used = new Set();
-        // JPG e PNG já são comprimidos: STORE gera o ZIP muito mais rápido sem aumentar o tamanho.
-        done.forEach((item) => zip.file(uniqueName(item.result.fileName, used), item.result.blob, { compression: 'STORE' }));
-        downloadBlob(await zip.generateAsync({ type: 'blob' }), 'fotos-convertidas-kompres.zip');
-      } catch { setStatus('Não foi possível gerar o ZIP. Tente novamente.', true); }
+        const result = await kompres.downloads.saveFiles(files, { zipName: 'fotos-convertidas-kompres.zip', store: true });
+        if (result === 'folder') setStatus(`${files.length} fotos salvas na pasta escolhida.`);
+      } catch { setStatus('Não foi possível salvar os arquivos. Tente outra forma de baixar na setinha ao lado do botão.', true); }
       finally { updateUI(); }
     }
 
@@ -345,7 +335,8 @@
       const working = busy && pending().length > 0;
       clearBtn.disabled = !images.length;
       downloadBtn.disabled = working || !done;
-      downloadBtn.textContent = working ? 'Convertendo…' : done > 1 ? '↓ Baixar ZIP' : '↓ Baixar';
+      dl.update(done);
+      if (working) downloadBtn.textContent = 'Convertendo…';
     }
 
     function formatBytes(bytes) {
