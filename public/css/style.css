@@ -1504,8 +1504,43 @@ html.light .control-group label.fmt-btn:has(input:checked) { color: #3d7000; }
 .guide { margin-block: clamp(96px, 10vw, 144px) 64px; max-width: 1000px; }
 .guide h2 { font-family: var(--font-head); font-size: clamp(1.4rem, 3vw, 2rem); margin-bottom: 24px; }
 .guide details { border-bottom: 1px solid var(--border); padding: 20px 0; }
-.guide summary { cursor: pointer; font-weight: 600; line-height: 1.6; }
+.guide summary {
+  display: flex; align-items: center; justify-content: space-between; gap: 16px;
+  cursor: pointer; font-weight: 600; line-height: 1.6; list-style: none;
+  transition: color .2s ease;
+}
+.guide summary::-webkit-details-marker { display: none; }
+.guide summary:hover { color: var(--accent); }
+html.light .guide summary:hover { color: #3d7000; }
+.guide summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; border-radius: 4px; }
+/* "+" à direita que gira e vira "×" quando a pergunta está aberta. */
+.guide summary::after {
+  content: ''; flex-shrink: 0; width: 14px; height: 14px;
+  background:
+    linear-gradient(currentColor, currentColor) center / 100% 2px no-repeat,
+    linear-gradient(currentColor, currentColor) center / 2px 100% no-repeat;
+  opacity: .6;
+  transition: transform .3s ease, opacity .2s ease;
+}
+.guide details[open] summary::after { transform: rotate(45deg); opacity: 1; }
 .guide p { color: var(--muted); line-height: 1.85; max-width: 80ch; margin-top: 14px; }
+
+/* Abrir e fechar a resposta com transição de altura (navegadores com ::details-content;
+   nos demais ela só aparece, com o fade do texto abaixo). */
+.guide { interpolate-size: allow-keywords; }
+.guide details::details-content {
+  block-size: 0;
+  overflow: hidden;
+  transition: block-size .3s ease, content-visibility .3s allow-discrete;
+}
+.guide details[open]::details-content { block-size: auto; }
+.guide details[open] p { animation: faq-reveal .35s ease both; }
+@keyframes faq-reveal { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) {
+  .guide details::details-content { transition: none; }
+  .guide details[open] p { animation: none; }
+  .guide summary::after { transition: none; }
+}
 .related-tools { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 28px 40px; margin-top: 36px; }
 .related-group h3 { font-family: var(--font-head); font-size: 1rem; font-weight: 600; color: var(--text); margin-bottom: 12px; }
 .related-group ul { list-style: none; display: flex; flex-wrap: wrap; gap: 10px 24px; padding: 0; margin: 0; }
