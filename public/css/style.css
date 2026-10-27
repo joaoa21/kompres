@@ -531,6 +531,54 @@ html.light .drop-zone.dragover {
   cursor: pointer;
 }
 
+/* Com arquivos na tela, a área de arrastar some e vira só um botão "+" num círculo verde,
+   no canto superior direito da pré-visualização (o campo de arquivo continua cobrindo o
+   botão, então o clique abre o seletor). Arrastar para qualquer ponto da página segue valendo. */
+.tool-section:has(.image-grid > *, .pdf-list > *, .org-grid .org-card, .bg-cards > *) .drop-zone {
+  align-self: flex-end;
+  width: 52px;
+  height: 52px;
+  min-height: 0;
+  padding: 0;
+  margin: 0 0 0.75rem auto;
+  border: 0;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 4px 14px rgba(184, 245, 90, 0.25);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.tool-section:has(.image-grid > *, .pdf-list > *, .org-grid .org-card, .bg-cards > *) .drop-zone:hover,
+.tool-section:has(.image-grid > *, .pdf-list > *, .org-grid .org-card, .bg-cards > *) .drop-zone.drag-over {
+  background: var(--accent);
+  transform: scale(1.08);
+  box-shadow: 0 6px 20px rgba(184, 245, 90, 0.4);
+}
+.tool-section:has(.image-grid > *, .pdf-list > *, .org-grid .org-card, .bg-cards > *) .drop-zone:focus-within { outline: 2px solid var(--accent); outline-offset: 3px; }
+.tool-section:has(.image-grid > *, .pdf-list > *, .org-grid .org-card, .bg-cards > *) .drop-zone p { display: none; }
+.tool-section:has(.image-grid > *, .pdf-list > *, .org-grid .org-card, .bg-cards > *) .drop-zone .drop-icon {
+  margin: 0;
+  font-size: 0;
+  line-height: 0;
+  pointer-events: none;
+}
+.tool-section:has(.image-grid > *, .pdf-list > *, .org-grid .org-card, .bg-cards > *) .drop-zone .drop-icon::before {
+  content: '';
+  display: block;
+  width: 22px;
+  height: 22px;
+  background:
+    linear-gradient(#0c0c0d, #0c0c0d) center / 100% 3px no-repeat,
+    linear-gradient(#0c0c0d, #0c0c0d) center / 3px 100% no-repeat;
+}
+html.light .tool-section:has(.image-grid > *, .pdf-list > *, .org-grid .org-card, .bg-cards > *) .drop-zone,
+html.light .tool-section:has(.image-grid > *, .pdf-list > *, .org-grid .org-card, .bg-cards > *) .drop-zone:hover,
+html.light .tool-section:has(.image-grid > *, .pdf-list > *, .org-grid .org-card, .bg-cards > *) .drop-zone.drag-over { background: #3d7000; box-shadow: 0 4px 14px rgba(61, 112, 0, 0.25); }
+html.light .tool-section:has(.image-grid > *, .pdf-list > *, .org-grid .org-card, .bg-cards > *) .drop-zone .drop-icon::before {
+  background:
+    linear-gradient(#fff, #fff) center / 100% 3px no-repeat,
+    linear-gradient(#fff, #fff) center / 3px 100% no-repeat;
+}
+
 .drop-icon {
   font-size: 2.4rem;
   margin-bottom: 0.6rem;
@@ -646,8 +694,9 @@ html.light .stat-value {
 
 .image-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-  gap: 1rem;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 300px));
+  justify-content: center;
+  gap: 1.1rem;
   padding-bottom: 2rem;
 }
 
@@ -681,23 +730,22 @@ html.light .preview-card.done {
 .card-thumb-wrap {
   position: relative;
   width: 100%;
-  aspect-ratio: 4/3;
+  aspect-ratio: 1;
   overflow: hidden;
-  background: var(--surface2);
+  /* Quadriculado discreto: deixa visível o que é transparente. */
+  background-color: var(--surface2);
+  background-image: linear-gradient(45deg, var(--border) 25%, transparent 25%, transparent 75%, var(--border) 75%),
+    linear-gradient(45deg, var(--border) 25%, transparent 25%, transparent 75%, var(--border) 75%);
+  background-size: 16px 16px;
+  background-position: 0 0, 8px 8px;
 }
 
 .card-thumb,
 .card-thumb-wrap img {
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit: contain;
   display: block;
-  transition: transform 0.3s ease;
-}
-
-.image-card:hover .card-thumb,
-.preview-card:hover .card-thumb-wrap img {
-  transform: scale(1.04);
 }
 
 .card-remove {
@@ -1202,8 +1250,8 @@ html.light .pdf-row.done {
 }
 
 .pdf-thumb {
-  width: 42px;
-  height: 56px;
+  width: 60px;
+  height: 80px;
   object-fit: cover;
   object-position: top;
   border-radius: 6px;
@@ -1458,9 +1506,12 @@ html.light .control-group label.fmt-btn:has(input:checked) { color: #3d7000; }
 .guide details { border-bottom: 1px solid var(--border); padding: 20px 0; }
 .guide summary { cursor: pointer; font-weight: 600; line-height: 1.6; }
 .guide p { color: var(--muted); line-height: 1.85; max-width: 80ch; margin-top: 14px; }
-.related-tools { display: flex; flex-wrap: wrap; gap: 16px 28px; margin-top: 28px; }
+.related-tools { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 28px 40px; margin-top: 36px; }
+.related-group h3 { font-family: var(--font-head); font-size: 1rem; font-weight: 600; color: var(--text); margin-bottom: 12px; }
+.related-group ul { list-style: none; display: flex; flex-wrap: wrap; gap: 10px 24px; padding: 0; margin: 0; }
 .related-tools a { color: var(--accent); line-height: 1.6; }
 html.light .related-tools a { color: #3d7000; }
+@media (max-width: 700px) { .related-tools { grid-template-columns: 1fr; } }
 .tool-status { color: var(--muted); font-size: .85rem; line-height: 1.6; margin-block: 1rem; }
 .tool-status.error { color: var(--danger); }
 html.light .tool-status.error { color: #ad2424; }
@@ -1492,9 +1543,110 @@ button:disabled { cursor: not-allowed; }
    Navegadores sem suporte seguem com a navegação normal. */
 @view-transition { navigation: auto; }
 .site-header { view-transition-name: site-header; }
-.image-tools { view-transition-name: image-tools; }
-html.vt-nav .image-tools { animation: none; }
+.tools-nav { view-transition-name: tools-nav; }
+html.vt-nav .tools-nav { animation: none; }
 ::view-transition-old(root), ::view-transition-new(root) { animation-duration: 120ms; }
 @media (prefers-reduced-motion: reduce) {
   ::view-transition-group(*), ::view-transition-old(*), ::view-transition-new(*) { animation: none !important; }
+}
+
+/* ── Quadro da ferramenta em duas colunas ──
+   Desktop: ajustes e botões numa coluna à esquerda, e a área de arrastar e a
+   pré-visualização grande na direita, desde o início, como nos editores.
+   Celular: .tool-side e .tool-main se dissolvem (display: contents) e os itens
+   seguem a ordem de sempre: ajustes, área de arrastar, botões, resultados. */
+.tool-workspace, .tool-side, .tool-main { display: contents; }
+.tool-workspace .controls { order: 1; }
+.tool-workspace .pdf-compression-option { order: 2; }
+.tool-workspace .tool-status, .tool-workspace .pdf-status, .tool-workspace .org-status, .tool-workspace .bg-status { order: 3; }
+.tool-workspace .drop-zone, .tool-workspace .crop-area { order: 4; }
+.tool-workspace .org-file { order: 5; }
+.tool-workspace .action-bar { order: 6; }
+.tool-workspace .stats-bar { order: 7; }
+.tool-workspace .image-grid, .tool-workspace .pdf-list, .tool-workspace .pdf-outputs,
+.tool-workspace .org-grid, .tool-workspace .bg-cards { order: 8; }
+.tool-section:has(> .tool-workspace) { display: flex; flex-direction: column; }
+.tool-section:has(> .tool-workspace) > .tool-header { order: 0; }
+
+@media (min-width: 901px) {
+  /* Quadro mais largo para caber a coluna de ajustes e uma pré-visualização grande. */
+  .tool-section.page2:has(> .tool-workspace) { width: min(1680px, calc(100% - 48px)); }
+  .tool-section.page2:has(> .tool-workspace) > .page-inner { width: calc(100% - 40px); }
+
+  .tool-workspace {
+    display: grid;
+    grid-template-columns: 340px minmax(0, 1fr);
+    align-items: start;
+    gap: 1.5rem;
+    margin-block: 1.5rem 1.75rem;
+  }
+  .tool-workspace .page-inner { width: 100%; margin-inline: 0; }
+
+  .tool-side {
+    grid-column: 1;
+    grid-row: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 0.9rem;
+    position: sticky;
+    top: 1rem;
+    max-height: calc(100vh - 2rem);
+    overflow-y: auto;
+    scrollbar-width: thin;
+  }
+  .tool-main {
+    grid-column: 2;
+    grid-row: 1;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    min-height: 560px;
+  }
+
+  /* Sem arquivos: a área de arrastar ocupa a coluna inteira. */
+  .tool-main > .drop-zone, .tool-main > .crop-area { flex: 1; margin-bottom: 0; }
+  .tool-main > .crop-area > .drop-zone { min-height: 560px; }
+
+  /* Com arquivos: a coluna vira um palco para a pré-visualização. */
+  .tool-workspace:has(.image-grid > *, .pdf-list > *, .org-grid .org-card, .crop-editor:not(.hidden), .bg-cards > *) .tool-main {
+    padding: 1rem;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+  }
+  /* O "+" fica no espaço livre ao lado da imagem centralizada: entra logo antes da grade
+     (depois das estatísticas) e a margem negativa devolve a altura dele, então a grade
+     começa na mesma linha. */
+  .tool-workspace:has(.image-grid > *, .pdf-list > *, .org-grid .org-card, .crop-editor:not(.hidden), .bg-cards > *) .tool-main > .stats-bar { order: 6; }
+  .tool-workspace:has(.image-grid > *, .pdf-list > *, .org-grid .org-card, .crop-editor:not(.hidden), .bg-cards > *) .tool-main > .drop-zone {
+    order: 7;
+    flex: 0 0 52px;
+    position: relative;
+    z-index: 3;
+    align-self: flex-start;
+    margin: 0 0 -52px 0;
+  }
+  /* Lista de PDFs ocupa a largura toda: o "+" ganha uma linha própria, à direita. */
+  .tool-workspace:has(.image-grid > *, .pdf-list > *, .org-grid .org-card, .crop-editor:not(.hidden), .bg-cards > *) .tool-main:has(.pdf-list > *, .pdf-outputs:not([hidden])) > .drop-zone {
+    align-self: flex-end;
+    margin: 0 0 0.75rem 0;
+  }
+
+  /* Ajustes empilhados numa coluna estreita. */
+  .tool-side .controls { display: flex; flex-direction: column; gap: 0.75rem; margin: 0; }
+  .tool-side .control-group { padding: 0.85rem 1rem; }
+  .tool-side .format-toggle { flex-wrap: wrap; }
+  .tool-side .format-toggle .fmt-btn { flex: 1 1 calc(50% - 0.25rem); min-width: 0; }
+  .tool-side .pdf-compression-option { margin: 0; }
+
+  /* Botões: o principal em destaque, largura total, como no iLoveIMG. */
+  .tool-side .action-bar { flex-direction: column; gap: 0.6rem; margin: 0; }
+  .tool-side .action-bar .btn { width: 100%; justify-content: center; }
+  .tool-side .action-bar .btn-primary { min-height: 3.4rem; font-size: 1rem; }
+
+  /* Pré-visualização centralizada; uma imagem só fica grande. */
+  .tool-main .image-grid { padding-bottom: 0; align-content: start; }
+  .tool-main .image-grid:has(> :only-child) { grid-template-columns: minmax(0, 520px); }
+  .tool-main .stats-bar { margin-bottom: 1rem; }
+  .tool-main .crop-frame { border: 0; padding: 12px; max-width: none; }
 }

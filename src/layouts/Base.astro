@@ -1,6 +1,9 @@
 ---
 import SiteHeader from '../components/SiteHeader.astro';
-import ImageToolsNav, { type ImageTool } from '../components/ImageToolsNav.astro';
+import ToolsNav from '../components/ToolsNav.astro';
+import type { ToolKey } from '../data/tools';
+import { ogSlug, ogCards } from '../data/og';
+import { allPages } from '../data/pages';
 import SiteFooter from '../components/SiteFooter.astro';
 import CookieBanner from '../components/CookieBanner.astro';
 import { ClientRouter } from 'astro:transitions';
@@ -12,9 +15,10 @@ interface Props {
   /** Título de páginas fora do registro (ex.: 404, que não é indexada). */
   title?: string;
   section: 'image' | 'pdf';
-  imageTool?: ImageTool;
+  /** Ferramenta ativa nos cartões de navegação abaixo do cabeçalho. */
+  activeTool?: ToolKey;
   /** Ferramenta montada nesta página (nome registrado em /js/*.js via kompres.register). */
-  tool?: 'compressor' | 'resizer' | 'pdf' | 'background';
+  tool?: string;
   /** CSS extra da ferramenta, depois de style.css. */
   styles?: string[];
   /** Aviso <noscript> no topo do conteúdo. */
@@ -22,7 +26,7 @@ interface Props {
 }
 
 const {
-  page, section, imageTool, tool, styles = [], noscriptNote = true,
+  page, section, activeTool, tool, styles = [], noscriptNote = true,
 } = Astro.props;
 const title = page?.title ?? Astro.props.title ?? 'Kompres';
 const description = page?.description;
@@ -30,22 +34,43 @@ const description = page?.description;
 const site = Astro.site!;
 const abs = (path: string) => new URL(path, site).href;
 const url = abs(Astro.url.pathname);
-const ogImage = abs('/og-image.png');
+// Cada página tem a sua imagem de compartilhamento (src/pages/og/[slug].png.ts).
+const ogImage = abs(page ? `/og/${ogSlug(page.path)}.png` : '/og-image.png');
+const ogAlt = page ? `${page.name} no Kompres: grátis, direto no navegador` : 'Kompres: ferramentas de imagem e PDF no navegador';
 
-// Dados estruturados: o app da página + WebSite/Organization na home (nome do site
-// nos resultados do Google) ou breadcrumbs nas páginas internas.
+// Dados estruturados: o site e a organização (com @id, para as outras entidades apontarem
+// para eles), o app de cada página e, na home, a lista de todas as ferramentas. Nas páginas
+// internas, breadcrumbs. Ajuda o Google (sitelinks) e os buscadores com IA a entender o site.
+const siteId = abs('/#website');
+const orgId = abs('/#organization');
 const jsonLd: object[] = [];
 if (page) {
+  const card = ogCards.find((item) => item.slug === ogSlug(page.path));
   jsonLd.push({
-    '@context': 'https://schema.org', '@type': 'WebApplication', name: page.appName, url, description,
-    applicationCategory: 'UtilitiesApplication', operatingSystem: 'Any', inLanguage: 'pt-BR',
-    isAccessibleForFree: true, offers: { '@type': 'Offer', price: '0', priceCurrency: 'BRL' },
+    '@context': 'https://schema.org', '@type': 'WebApplication', '@id': `${url}#app`,
+    name: page.appName, url, description, image: ogImage,
+    applicationCategory: 'MultimediaApplication', applicationSubCategory: page.group === 'pdf' ? 'Ferramenta de PDF' : 'Ferramenta de imagem',
+    operatingSystem: 'Any', inLanguage: 'pt-BR', isAccessibleForFree: true,
+    ...(card ? { featureList: card.subline } : {}),
+    offers: { '@type': 'Offer', price: '0', priceCurrency: 'BRL' },
     browserRequirements: 'Requires JavaScript',
+    isPartOf: { '@id': siteId }, publisher: { '@id': orgId },
   });
   if (page.path === '/') {
     jsonLd.push(
-      { '@context': 'https://schema.org', '@type': 'WebSite', name: 'Kompres', alternateName: 'kompres.com.br', url: abs('/'), inLanguage: 'pt-BR' },
-      { '@context': 'https://schema.org', '@type': 'Organization', name: 'Kompres', url: abs('/'), logo: abs('/apple-touch-icon.png') },
+      {
+        '@context': 'https://schema.org', '@type': 'WebSite', '@id': siteId, name: 'Kompres', alternateName: 'kompres.com.br',
+        url: abs('/'), inLanguage: 'pt-BR', publisher: { '@id': orgId },
+        description: 'Ferramentas gratuitas de imagem e PDF que funcionam no navegador, sem enviar arquivos a servidores.',
+      },
+      {
+        '@context': 'https://schema.org', '@type': 'Organization', '@id': orgId, name: 'Kompres', url: abs('/'),
+        logo: abs('/apple-touch-icon.png'), founder: { '@type': 'Person', name: 'João Alberto', url: 'https://joaoa.com.br' },
+      },
+      {
+        '@context': 'https://schema.org', '@type': 'ItemList', name: 'Ferramentas do Kompres',
+        itemListElement: allPages.map((item, i) => ({ '@type': 'ListItem', position: i + 1, name: item.name, url: abs(item.path) })),
+      },
     );
   } else {
     const trail = [{ name: 'Kompres', path: '/' }];
@@ -96,9 +121,9 @@ if (page) {
 
   <link rel="icon" type="image/svg+xml" href="/favicon.svg">
   <link rel="apple-touch-icon" href="/apple-touch-icon.png">
-  <link rel="stylesheet" href="/css/style.css?v=ux-1">
+  <link rel="stylesheet" href="/css/style.css?v=ux-14">
   {styles.map((href) => <link rel="stylesheet" href={href}>)}
-  <link rel="stylesheet" href="/css/tool-navigation.css?v=ux-1">
+  <link rel="stylesheet" href="/css/tool-navigation.css?v=ux-3">
   <link rel="stylesheet" href="/css/selects.css?v=1">
 
   {description && (
@@ -110,7 +135,7 @@ if (page) {
       <meta property="og:image" content={ogImage}>
       <meta property="og:image:width" content="1200">
       <meta property="og:image:height" content="630">
-      <meta property="og:image:alt" content="Kompres — ferramentas de imagem e PDF no navegador">
+      <meta property="og:image:alt" content={ogAlt}>
       <meta property="og:image:type" content="image/png">
       <meta property="og:locale" content="pt_BR">
       <meta property="og:site_name" content="Kompres">
@@ -119,7 +144,7 @@ if (page) {
       <meta name="twitter:title" content={title}>
       <meta name="twitter:description" content={description}>
       <meta name="twitter:image" content={ogImage}>
-      <meta name="twitter:image:alt" content="Kompres — ferramentas de imagem e PDF no navegador">
+      <meta name="twitter:image:alt" content={ogAlt}>
 
       {jsonLd.map((data) => <script type="application/ld+json" set:html={JSON.stringify(data)} />)}
     </>
@@ -133,7 +158,7 @@ if (page) {
 <body data-tools={['theme', tool, 'selects'].filter(Boolean).join(' ')}>
   <a class="skip-link" href="#main">Pular para o conteúdo</a>
   <SiteHeader section={section} />
-  {imageTool && <ImageToolsNav active={imageTool} />}
+  {activeTool && <ToolsNav active={activeTool} />}
 
   <main id="main">
     {noscriptNote && <noscript><p class="page tool-note">Ative o JavaScript para processar arquivos. As instruções abaixo continuam disponíveis.</p></noscript>}
@@ -146,7 +171,7 @@ if (page) {
 
   {/* Bibliotecas externas da ferramenta (carregam antes do tema e do script da página). */}
   <slot name="libs" />
-  <script is:inline src="/js/theme.js?v=app-1"></script>
+  <script is:inline src="/js/theme.js?v=app-2"></script>
   <script is:inline src="/js/input.js?v=ux-1"></script>
   <script is:inline src="/js/png-client.js?v=ux-1"></script>
   <slot name="scripts" />

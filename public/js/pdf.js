@@ -18,7 +18,6 @@ kompres.register('pdf', (signal, document) => {
   const downloadBtn = document.getElementById('downloadBtn');
   const clearBtn    = document.getElementById('clearBtn');
   const pdfList     = document.getElementById('pdfList');
-  const modeToggle  = document.getElementById('modeToggle');
   const pdfControls = document.getElementById('pdfControls');
   const dpiSelect   = document.getElementById('dpiSelect');
   const qualityIn   = document.getElementById('pdfQuality');
@@ -28,10 +27,10 @@ kompres.register('pdf', (signal, document) => {
   const statLabels = [1, 2, 3, 4].map((i) => document.getElementById(`statLabel${i}`));
   const statValues = [1, 2, 3, 4].map((i) => document.getElementById(`statValue${i}`));
 
-  // Modo inicial definido pela página (/pdf/, /pdf/comprimir/, ...).
-  let mode = modeToggle.querySelector('.fmt-btn.active')?.dataset.mode || 'merge';
+  // Modo definido pela página (/pdf/, /pdf/comprimir/, ...); trocar de modo é navegar.
+  const mode = pdfControls.dataset.mode || 'merge';
   const banks = { pdf: [], single: [], images: [] };
-  const SINGLE = ['extract', 'export', 'rotate', 'remove']; // um PDF por vez
+  const SINGLE = ['extract', 'export', 'rotate', 'remove', 'watermark', 'number', 'crop']; // um PDF por vez
   const bankKey = () => mode === 'images' ? 'images' : SINGLE.includes(mode) ? 'single' : 'pdf';
   let outputs = [];
   const field = id => document.getElementById(id);
@@ -48,9 +47,69 @@ kompres.register('pdf', (signal, document) => {
     field('exportQualityVal').textContent = `${field('exportQuality').value}%`;
     field('exportQualityGroup').classList.toggle('hidden', mode !== 'export' || field('exportFormat').value === 'png');
     field('pageRange').removeAttribute('aria-invalid');
+    syncWatermarkUi();
     invalidateResults(); refresh();
     if (window.updateAllRangeFills) window.updateAllRangeFills();
   }));
+
+  /* ── Marca d'água: tipo (texto/imagem) e imagem escolhida ── */
+  let wmType = 'text', wmImage = null; // { bytes, name }
+  const wmToggle = field('wmType');
+  wmToggle.querySelectorAll('.fmt-btn').forEach(btn => btn.addEventListener('click', () => {
+    if (busy || btn.dataset.type === wmType) return;
+    wmType = btn.dataset.type;
+    field('wmSize').value = wmType === 'image' ? 30 : 50; // imagem costuma ficar melhor menor que texto
+    syncWatermarkUi(); invalidateResults(); refresh();
+    if (window.updateAllRangeFills) window.updateAllRangeFills();
+  }));
+  function syncWatermarkUi() {
+    if (mode !== 'watermark') return;
+    wmToggle.querySelectorAll('.fmt-btn').forEach(btn => { const on = btn.dataset.type === wmType; btn.classList.toggle('active', on); btn.setAttribute('aria-pressed', String(on)); });
+    field('wmTextGroup').classList.toggle('hidden', wmType !== 'text');
+    field('wmColorGroup').classList.toggle('hidden', wmType !== 'text');
+    field('wmImageGroup').classList.toggle('hidden', wmType !== 'image');
+    field('wmSizeVal').textContent = `${field('wmSize').value}%`;
+    field('wmOpacityVal').textContent = `${field('wmOpacity').value}%`;
+    const nameEl = field('wmImageName');
+    nameEl.textContent = wmImage ? wmImage.name : 'Nenhuma imagem escolhida.';
+    nameEl.classList.toggle('has-file', !!wmImage);
+  }
+  field('wmImage').addEventListener('change', async () => {
+    const input = field('wmImage'), file = input.files[0];
+    input.value = ''; // permite escolher o mesmo arquivo de novo
+    if (!file || busy) return;
+    if (!/^image\/(png|jpeg)$/.test(file.type) && !/\.(png|jpe?g)$/i.test(file.name)) { setStatus("A marca d'água precisa ser uma imagem PNG ou JPG.", true); return; }
+    if (file.size > 20 * 1024 * 1024) { setStatus('Imagem muito grande (máximo 20 MB).', true); return; }
+    try { wmImage = { bytes: await file.arrayBuffer(), name: file.name }; }
+    catch { setStatus('Não foi possível ler a imagem.', true); return; }
+    invalidateResults(); refresh(); syncWatermarkUi();
+  });
+
+  // Lê as quatro margens do recorte; devolve { margins } ou { error, el } para focar o campo errado.
+  function cropMargins() {
+    const margins = {};
+    for (const [side, id] of [['top', 'cropTop'], ['right', 'cropRight'], ['bottom', 'cropBottom'], ['left', 'cropLeft']]) {
+      const el = field(id);
+      const value = el.value.trim() === '' ? 0 : Number(el.value.replace(',', '.'));
+      if (el.validity.badInput || !Number.isFinite(value) || value < 0 || value > 1000) return { error: 'Use margens de 0 a 1000 mm, só com números.', el };
+      margins[side] = value;
+    }
+    if (!Object.values(margins).some(value => value > 0)) return { error: 'Informe pelo menos uma margem maior que zero.', el: field('cropTop') };
+    return { margins };
+  }
+  // Validações dos campos de cada modo antes de processar.
+  function validateOptions() {
+    if (mode === 'watermark') {
+      if (wmType === 'text' && !field('wmText').value.trim()) return { error: "Digite o texto da marca d'água.", el: field('wmText') };
+      if (wmType === 'image' && !wmImage) return { error: "Escolha a imagem da marca d'água (PNG ou JPG).", el: field('wmImage') };
+    }
+    if (mode === 'number') {
+      const el = field('numberStart'), start = Number(el.value);
+      if (el.validity.badInput || el.value.trim() === '' || !Number.isInteger(start) || start < 0 || start > 999999) return { error: 'O número inicial precisa ser um inteiro entre 0 e 999999.', el };
+    }
+    if (mode === 'crop') { const read = cropMargins(); if (read.error) return read; }
+    return null;
+  }
   function refresh() { renderList(); renderOutputs(); updateStats(); updateButtons(); updateRangePlaceholder(); }
   function renderOutputs() {
     const root = field('pdfOutputs'); root.replaceChildren(); root.hidden = !outputs.length;
@@ -141,38 +200,25 @@ kompres.register('pdf', (signal, document) => {
       const ctx = canvas.getContext('2d');
       ctx.fillStyle = '#ffffff';
       ctx.fillRect(0, 0, canvas.width, canvas.height);
-      await page.render({ canvasContext: ctx, viewport }).promise;
+      await page.render({ canvasContext: ctx, viewport, intent: 'print' }).promise; // 'print': sem requestAnimationFrame, não trava em aba oculta
       return canvas.toDataURL('image/jpeg', 0.7);
     } catch {
       return null;
     }
   }
 
-  /* ── Modo (Juntar / Comprimir) ── */
-
-  modeToggle.querySelectorAll('.fmt-btn').forEach((btn) => {
-    btn.addEventListener('click', () => {
-      if (busy || btn.dataset.mode === mode) return;
-      modeToggle.querySelectorAll('.fmt-btn').forEach((b) => b.classList.remove('active'));
-      btn.classList.add('active');
-      banks[bankKey()] = items;
-      mode = btn.dataset.mode;
-      items = banks[bankKey()];
-      // "Páginas" muda de sentido entre extrair, remover e girar: começa vazio no modo novo.
-      field('pageRange').value = ''; field('pageRange').removeAttribute('aria-invalid');
-      applyMode();
-    });
-  });
+  /* ── Modo ── */
 
   function applyMode() {
     document.querySelectorAll('.compress-only').forEach(el => el.classList.toggle('hidden', mode !== 'compress'));
     document.querySelectorAll('[data-for]').forEach(el => el.classList.toggle('hidden', !el.dataset.for.split(' ').includes(mode)));
     field('exportQualityGroup').classList.toggle('hidden', mode !== 'export' || field('exportFormat').value === 'png');
-    modeToggle.querySelectorAll('button').forEach(btn => { btn.classList.toggle('active', btn.dataset.mode === mode); btn.setAttribute('aria-pressed', String(btn.dataset.mode === mode)); });
-    const titles = { merge: 'Juntar PDFs', compress: 'Comprimir PDFs', images: 'Imagens para PDF', extract: 'Extrair ou dividir PDF', remove: 'Remover páginas do PDF', rotate: 'Girar páginas do PDF', export: 'PDF para imagens' };
-    const descriptions = { merge: 'Adicione os PDFs e organize a ordem.', compress: 'Adicione seus PDFs e escolha a compressão.', images: 'Adicione as imagens e organize a ordem das páginas.', extract: 'Escolha as páginas que deseja salvar.', remove: 'Informe as páginas que devem sair do arquivo.', rotate: 'Escolha o ângulo e, se quiser, só algumas páginas.', export: 'Transforme as páginas do PDF em JPG ou PNG.' };
+    const titles = { merge: 'Juntar PDFs', compress: 'Comprimir PDFs', images: 'Imagens para PDF', extract: 'Extrair ou dividir PDF', remove: 'Remover páginas do PDF', rotate: 'Girar páginas do PDF', export: 'PDF para imagens', watermark: "Marca d'água no PDF", number: 'Numerar páginas do PDF', crop: 'Recortar margens do PDF' };
+    const descriptions = { merge: 'Adicione os PDFs e organize a ordem.', compress: 'Adicione seus PDFs e escolha a compressão.', images: 'Adicione as imagens e organize a ordem das páginas.', extract: 'Escolha as páginas que deseja salvar.', remove: 'Informe as páginas que devem sair do arquivo.', rotate: 'Escolha o ângulo e, se quiser, só algumas páginas.', export: 'Transforme as páginas do PDF em JPG ou PNG.', watermark: 'Escolha texto ou imagem, posição e opacidade.', number: 'Escolha posição, formato e número inicial.', crop: 'Informe quanto cortar de cada margem.' };
     field('toolTitle').textContent = titles[mode]; field('toolDescription').textContent = descriptions[mode];
-    field('rangeHint').textContent = mode === 'remove' ? 'Separe por vírgula e use hífen para intervalos: 2, 5-7.' : 'Deixe vazio para todas as páginas.';
+    const hints = { remove: 'Separe por vírgula e use hífen para intervalos: 2, 5-7.', number: 'Deixe vazio para numerar todas. Páginas fora da lista ficam sem número, mas contam na sequência.', watermark: 'Deixe vazio para marcar todas as páginas.', crop: 'Deixe vazio para recortar todas as páginas.' };
+    field('rangeHint').textContent = hints[mode] || 'Deixe vazio para todas as páginas.';
+    syncWatermarkUi();
     updateRangePlaceholder();
     const imageMode = mode === 'images', single = bankKey() === 'single';
     fileInput.accept = imageMode ? 'image/jpeg,image/png,.jpg,.jpeg,.png' : 'application/pdf,.pdf'; fileInput.multiple = !single;
@@ -390,7 +436,7 @@ kompres.register('pdf', (signal, document) => {
   function updateButtons() {
     const ready = items.filter(item => item.status === 'ready' || item.status === 'done');
     document.querySelectorAll('#pdfControls input, #pdfControls select, #pdfControls button, #allow-rasterize, #fileInput').forEach(el => el.disabled = busy);
-    const labels = { merge: 'Juntar PDFs', compress: 'Comprimir tudo', images: 'Criar PDF', extract: 'Extrair páginas', remove: 'Remover páginas', rotate: 'Girar páginas', export: 'Converter páginas' };
+    const labels = { merge: 'Juntar PDFs', compress: 'Comprimir tudo', images: 'Criar PDF', extract: 'Extrair páginas', remove: 'Remover páginas', rotate: 'Girar páginas', export: 'Converter páginas', watermark: "Aplicar marca d'água", number: 'Numerar páginas', crop: 'Recortar margens' };
     actionBtn.textContent = busy ? 'Processando…' : labels[mode];
     actionBtn.disabled = busy || ready.length < (mode === 'merge' ? 2 : 1) || items.some(item => item.status === 'error');
     const files = downloadable();
@@ -423,6 +469,8 @@ kompres.register('pdf', (signal, document) => {
         indices = KompresPDF.parsePages(field('pageRange').value, items[0].pages);
       }
     } catch (err) { field('pageRange').setAttribute('aria-invalid', 'true'); setStatus(err.message, true); field('pageRange').focus(); return; }
+    const problem = validateOptions();
+    if (problem) { setStatus(problem.error, true); problem.el.focus(); return; }
     invalidateResults(); busy = true; refresh();
     const progress = (current, total) => setStatus(`Processando ${current} de ${total}…`);
     try {
@@ -444,6 +492,12 @@ kompres.register('pdf', (signal, document) => {
         outputs = await KompresPDF.rotate(items[0], indices, Number(field('rotateAngle').value));
       } else if (mode === 'export') {
         outputs = await KompresPDF.exportImages(items[0], indices, { format: field('exportFormat').value, dpi: Number(field('exportDpi').value), quality: Number(field('exportQuality').value) / 100 }, progress);
+      } else if (mode === 'watermark') {
+        outputs = await KompresPDF.watermark(items[0], indices, { type: wmType, text: field('wmText').value, image: wmImage?.bytes, position: field('wmPosition').value, size: Number(field('wmSize').value), opacity: Number(field('wmOpacity').value), color: field('wmColor').value });
+      } else if (mode === 'number') {
+        outputs = await KompresPDF.numberPages(items[0], indices, { position: field('numberPosition').value, format: field('numberFormat').value, start: Number(field('numberStart').value), fontSize: Number(field('numberSize').value) });
+      } else if (mode === 'crop') {
+        outputs = await KompresPDF.crop(items[0], indices, cropMargins().margins);
       } else {
         for (let i = 0; i < items.length; i++) {
           const item = items[i]; item.status = 'working'; refresh(); progress(i + 1, items.length);
@@ -733,7 +787,7 @@ kompres.register('pdf', (signal, document) => {
       ctx.fillStyle = '#ffffff';
       ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-      await page.render({ canvasContext: ctx, viewport }).promise;
+      await page.render({ canvasContext: ctx, viewport, intent: 'print' }).promise; // 'print': sem requestAnimationFrame, não trava em aba oculta
 
       const jpegBlob = await new Promise((resolve) =>
         canvas.toBlob(resolve, 'image/jpeg', quality)

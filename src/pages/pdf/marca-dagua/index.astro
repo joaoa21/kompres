@@ -1,0 +1,22 @@
+---
+import PdfPage from '../../../layouts/PdfPage.astro';
+import { pages } from '../../../data/pages';
+---
+<PdfPage
+  page={pages.pdfWatermark}
+  mode="watermark"
+  hero={{
+    title: "Marca d'água",
+    highlight: 'em PDF.',
+    text: 'Carimbe um texto como "CONFIDENCIAL" ou o logotipo da sua empresa em todas as páginas ou só em algumas. Posição, tamanho e opacidade ajustáveis, direto no navegador.',
+  }}
+  guideTitle="Como colocar marca d'água em um PDF"
+  faqs={[
+    { q: "Como aplicar a marca d'água?", a: "Adicione o PDF, escolha entre Texto e Imagem, ajuste posição, tamanho e opacidade e clique em Aplicar marca d'água. O arquivo gerado mantém texto, links e qualidade do original: a marca é desenhada por cima das páginas, sem convertê-las em imagem." },
+    { q: 'Texto ou imagem: qual escolher?', a: 'Texto serve para avisos como CONFIDENCIAL, RASCUNHO ou o nome de quem recebe o documento; aceita acentos e você escolhe a cor. Imagem serve para logotipos: prefira um PNG com fundo transparente, para a marca não cobrir o conteúdo com um retângulo branco. JPG também funciona, mas sempre tem fundo.' },
+    { q: "Como deixar a marca d'água discreta ou bem visível?", a: "A opacidade controla a transparência: 20% a 30% deixa a leitura confortável; 60% ou mais chama atenção. O tamanho é uma porcentagem da largura da página. Para um carimbo clássico, use a posição Diagonal no centro em cinza; para um logotipo pequeno, um dos cantos com 15% a 25% de tamanho." },
+    { q: 'O que faz a posição Mosaico?', a: 'Repete a marca em uma grade por toda a página, com linhas alternadas deslocadas, como um padrão de fundo. Ajuste o tamanho para controlar quantas repetições aparecem: menor tamanho, mais repetições.' },
+    { q: 'Dá para marcar só algumas páginas?', a: 'Sim. No campo Páginas, informe números e intervalos, como 1 ou 3-8. Vazio aplica em todas. Em páginas digitalizadas de lado, a posição acompanha a orientação em que o leitor exibe a página, então "canto superior direito" continua sendo o canto superior direito na tela.' },
+    { q: "A marca d'água protege o documento?", a: "Ela identifica o arquivo e desencoraja o uso indevido, mas não é uma trava: editores de PDF conseguem remover a camada adicionada. Se quiser que a marca fique fundida ao conteúdo, converta as páginas em imagens em <a href=\"/pdf/pdf-para-jpg/\">PDF para JPG</a> e monte o PDF de novo em <a href=\"/pdf/jpg-para-pdf/\">JPG para PDF</a>. Nada é enviado ao servidor em nenhuma dessas etapas." },
+  ]}
+/>

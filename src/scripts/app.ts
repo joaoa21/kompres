@@ -57,6 +57,12 @@ export function mountTools() {
   for (const type of ['mouseover', 'focusin', 'touchstart']) {
     document.addEventListener(type, prefetchPdfLibs, { signal: controller.signal, passive: true });
   }
+  // Celular: a navegação entre ferramentas rola na horizontal; centraliza o cartão ativo.
+  const activeCard = document.querySelector<HTMLElement>('.tools-nav a.active');
+  const nav = activeCard?.parentElement;
+  if (activeCard && nav && nav.scrollWidth > nav.clientWidth) {
+    nav.scrollLeft = activeCard.offsetLeft - (nav.clientWidth - activeCard.offsetWidth) / 2;
+  }
   const doc = scopedDocument(document.body);
   for (const name of (document.body.dataset.tools ?? '').split(' ').filter(Boolean)) {
     try {

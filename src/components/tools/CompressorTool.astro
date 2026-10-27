@@ -5,9 +5,12 @@ interface Props {
   format?: 'webp' | 'png' | 'jpeg';
   heading?: string;
   intro?: string;
+  /** Página de SVG: o campo de largura fica sempre visível. */
+  svg?: boolean;
 }
 const {
   format = 'webp',
+  svg = false,
   heading = 'Compressor e conversor de imagens',
   intro = 'Arraste suas imagens, escolha o formato e gere versões otimizadas em poucos cliques.',
 } = Astro.props;
@@ -22,7 +25,9 @@ const formats = [['webp', 'WebP'], ['png', 'PNG'], ['jpeg', 'JPEG']] as const;
     </div>
   </div>
 
-  <div class="controls page-inner controls-compressor">
+  <div class="tool-workspace page-inner">
+    <div class="tool-side">
+      <div class="controls page-inner controls-compressor">
     <div class="control-group">
       <label>Modo</label>
       <div class="format-toggle" id="mode-toggle">
@@ -33,8 +38,8 @@ const formats = [['webp', 'WebP'], ['png', 'PNG'], ['jpeg', 'JPEG']] as const;
 
     <div class="control-group" id="quality-group">
       <label for="quality-slider">Qualidade</label>
-      <div class="value" id="quality-val">82%</div>
-      <input type="range" min="30" max="100" value="82" step="1" id="quality-slider">
+      <div class="value" id="quality-val">80%</div>
+      <input type="range" min="30" max="100" value="80" step="1" id="quality-slider">
     </div>
 
     <div class="control-group hidden" id="size-group">
@@ -48,6 +53,12 @@ const formats = [['webp', 'WebP'], ['png', 'PNG'], ['jpeg', 'JPEG']] as const;
       </div>
     </div>
 
+    <div class:list={['control-group', { hidden: !svg }]} id="svg-group" data-always={svg ? 'true' : undefined}>
+      <label for="svg-width">Largura do SVG rasterizado</label>
+      <input type="number" id="svg-width" min="16" max="8192" step="1" placeholder="Tamanho do arquivo" inputmode="numeric">
+      <small class="field-hint">Em pixels; a altura segue a proporção. Vazio usa o tamanho definido no SVG.</small>
+    </div>
+
     <div class="control-group">
       <label>Formato de saída</label>
       <div class="format-toggle" id="fmt-toggle">
@@ -58,17 +69,20 @@ const formats = [['webp', 'WebP'], ['png', 'PNG'], ['jpeg', 'JPEG']] as const;
     </div>
   </div>
 
-  <div class="drop-zone page-inner" id="drop-zone">
-    <input type="file" accept="image/png,image/webp,image/jpeg" multiple id="file-input" aria-label="Selecionar imagens para compressão">
-    <span class="drop-icon">⬇</span>
-    <p><strong>Arraste as imagens aqui</strong><br>ou clique para selecionar · PNG, WebP, JPEG<br><span class="drop-hint">Também dá para colar com Ctrl+V</span></p>
-  </div>
-
-  <div class="action-bar page-inner">
+      <div class="action-bar page-inner">
     <button class="btn btn-primary" id="btn-compress" disabled>Comprimir tudo</button>
     <button class="btn btn-outline" id="btn-download-all" disabled>↓ Baixar ZIP</button>
     <button class="btn btn-outline" id="btn-clear" disabled>Limpar</button>
   </div>
+    </div>
+    <div class="tool-main">
+      <div class="drop-zone page-inner" id="drop-zone">
+    <input type="file" accept="image/png,image/webp,image/jpeg,image/svg+xml,.svg" multiple id="file-input" aria-label="Selecionar imagens para compressão">
+    <span class="drop-icon">⬇</span>
+    <p><strong>Arraste as imagens aqui</strong><br>ou clique para selecionar · PNG, WebP, JPEG, SVG<br><span class="drop-hint">Também dá para colar com Ctrl+V</span></p>
+  </div>
+
+  
   <p class="tool-status page-inner" id="compressor-status" role="status" aria-live="polite" hidden></p>
 
   <div class="stats-bar page-inner" id="stats-bar" hidden>
@@ -91,4 +105,6 @@ const formats = [['webp', 'WebP'], ['png', 'PNG'], ['jpeg', 'JPEG']] as const;
   </div>
 
   <div class="image-grid page-inner" id="image-grid" data-ah-mask></div>
+    </div>
+  </div>
 </section>

@@ -1,0 +1,38 @@
+---
+import Base from '../../../layouts/Base.astro';
+import Hero from '../../../components/Hero.astro';
+import Guide from '../../../components/Guide.astro';
+import PdfOrganizeTool from '../../../components/tools/PdfOrganizeTool.astro';
+import { pages } from '../../../data/pages';
+import { PDF_LIBS } from '../../../data/libs';
+---
+<Base
+  page={pages.pdfOrganize}
+  section="pdf"
+  activeTool="pdfOrganize"
+  tool="pdf-organize"
+  styles={['/css/pdf-organize.css?v=2']}
+>
+  <Hero
+    title="Organizar PDF"
+    highlight="página por página."
+    text="Veja as miniaturas de cada página, arraste para mudar a ordem, gire as que estão de lado e exclua as que não precisa. Tudo no navegador, sem enviar o arquivo."
+  />
+  <PdfOrganizeTool />
+  <Guide
+    title="Como organizar as páginas de um PDF"
+    current={pages.pdfOrganize.path}
+    faqs={[
+      { q: 'Como mudar a ordem das páginas?', a: 'Adicione o PDF e arraste a miniatura de uma página para a nova posição: uma barra verde mostra onde ela vai entrar. No celular, arraste pela alça ⠿ no canto da miniatura ou use as setas ‹ e › de cada página. O botão Inverter ordem coloca a última página em primeiro, útil para documentos digitalizados ao contrário.' },
+      { q: 'Dá para girar e excluir só algumas páginas?', a: 'Sim. Cada miniatura tem um botão de girar 90° (clique de novo para 180° e 270°) e um de excluir. A página excluída fica esmaecida e pode ser restaurada com um clique; ela só sai do arquivo quando você clica em Aplicar e baixar PDF. Para girar o documento inteiro de uma vez, use a ferramenta <a href="/pdf/girar/">Girar PDF</a>.' },
+      { q: 'A qualidade do PDF muda?', a: 'Não. As páginas são copiadas para o novo arquivo exatamente como estão, com texto selecionável, links e imagens originais. A rotação é gravada como uma propriedade da página, sem converter nada em imagem. As miniaturas são só uma prévia e não entram no arquivo.' },
+      { q: 'Como volto ao original se me enganei?', a: 'Use Desfazer tudo: a ordem original volta, as rotações são zeradas e as páginas excluídas são restauradas. Nada é gravado antes de você baixar, então o arquivo no seu computador continua intacto.' },
+      { q: 'Posso juntar páginas de PDFs diferentes?', a: 'Esta ferramenta trabalha com um PDF por vez; soltar outro arquivo substitui o atual. Para combinar documentos, primeiro use <a href="/pdf/">Juntar PDFs</a> e depois organize as páginas do resultado aqui.' },
+      { q: 'O arquivo é enviado para algum servidor?', a: 'Não. A leitura, as miniaturas e a montagem do novo PDF acontecem no seu navegador. PDFs com centenas de páginas podem levar alguns segundos para mostrar todas as miniaturas, mas você já pode reorganizar enquanto elas carregam. PDFs protegidos por senha precisam ter a senha removida antes.' },
+    ]}
+  />
+
+  {PDF_LIBS.map((src) => <script is:inline slot="libs" src={src}></script>)}
+  <script slot="scripts" is:inline src="/js/pdf-tools.js?v=ux-3"></script>
+  <script slot="scripts" is:inline src="/js/pdf-organize.js?v=2"></script>
+</Base>

@@ -3,7 +3,7 @@ import Base from '../../layouts/Base.astro';
 import Guide from '../../components/Guide.astro';
 import { pages } from '../../data/pages';
 ---
-<Base page={pages.resize} section="image" imageTool="resize" tool="resizer">
+<Base page={pages.resize} section="image" activeTool="resize" tool="resizer">
   <section class="hero page">
         <div class="hero-content">
           <h1>Redimensionar imagens.<br><span>Simples e em lote.</span></h1>
@@ -22,7 +22,9 @@ import { pages } from '../../data/pages';
           </div>
         </div>
 
-        <div class="controls page-inner controls-resizer">
+        <div class="tool-workspace page-inner">
+          <div class="tool-side">
+            <div class="controls page-inner controls-resizer">
           <div class="control-group">
             <label>Modo</label>
             <div class="format-toggle">
@@ -72,7 +74,14 @@ import { pages } from '../../data/pages';
           </div>
         </div>
 
-        <p class="tool-status page-inner" id="resizer-status" role="status" aria-live="polite" hidden></p>
+            <div class="action-bar page-inner">
+          <button class="btn btn-primary" id="processBtn" disabled>Redimensionar tudo</button>
+          <button class="btn btn-outline" id="downloadZipBtn" disabled>↓ Baixar ZIP</button>
+          <button class="btn btn-outline" id="clearBtn" disabled>Limpar</button>
+        </div>
+          </div>
+          <div class="tool-main">
+            <p class="tool-status page-inner" id="resizer-status" role="status" aria-live="polite" hidden></p>
 
         <div class="drop-zone page-inner" id="dropZone">
           <input type="file" id="fileInput" accept="image/png,image/jpeg,image/webp" multiple aria-label="Selecionar imagens para redimensionar">
@@ -80,11 +89,7 @@ import { pages } from '../../data/pages';
           <p><strong>Arraste as imagens aqui</strong><br>ou clique para selecionar · PNG, WebP, JPEG<br><span class="drop-hint">Também dá para colar com Ctrl+V</span></p>
         </div>
 
-        <div class="action-bar page-inner">
-          <button class="btn btn-primary" id="processBtn" disabled>Redimensionar tudo</button>
-          <button class="btn btn-outline" id="downloadZipBtn" disabled>↓ Baixar ZIP</button>
-          <button class="btn btn-outline" id="clearBtn" disabled>Limpar</button>
-        </div>
+        
 
         <div class="stats-bar page-inner" id="statsBar" hidden>
           <div class="stat">
@@ -106,6 +111,8 @@ import { pages } from '../../data/pages';
         </div>
 
         <div class="image-grid page-inner" id="previewList" data-ah-mask></div>
+          </div>
+        </div>
       </section>
 
   <Guide

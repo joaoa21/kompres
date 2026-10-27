@@ -1,0 +1,123 @@
+---
+import Base from '../../layouts/Base.astro';
+import Hero from '../../components/Hero.astro';
+import Guide from '../../components/Guide.astro';
+import { pages } from '../../data/pages';
+
+const ratios = [
+  { value: 'free', label: 'Livre' }, { value: '1:1', label: '1:1' }, { value: '4:5', label: '4:5' },
+  { value: '16:9', label: '16:9' }, { value: '9:16', label: '9:16' }, { value: '4:3', label: '4:3' }, { value: '3:2', label: '3:2' },
+];
+const formats = [
+  { value: 'same', label: 'Mesmo formato' }, { value: 'png', label: 'PNG' }, { value: 'jpg', label: 'JPG' }, { value: 'webp', label: 'WebP' },
+];
+const handles = ['nw', 'n', 'ne', 'e', 'se', 's', 'sw', 'w'];
+---
+<Base
+  page={pages.cropImage}
+  section="image"
+  activeTool="cropImage"
+  tool="crop"
+  styles={['/css/crop.css?v=2']}
+>
+  <Hero
+    title="Recortar imagem"
+    highlight="livre ou em proporções prontas."
+    text="Escolha a área exata da foto arrastando a caixa ou use as proporções de Instagram, YouTube e perfil. Tudo no navegador: a imagem não sai do seu computador."
+  />
+
+  <section class="tool-section page2 crop-tool">
+    <div class="tool-header page-inner">
+      <div>
+        <h2>Recortador de imagens</h2>
+        <p>Solte uma imagem, ajuste a caixa de recorte e baixe só a parte que importa, na resolução original.</p>
+      </div>
+    </div>
+
+    <div class="tool-workspace page-inner">
+      <div class="tool-side">
+        <div class="controls page-inner controls-crop">
+      <div class="control-group">
+        <label>Proporção</label>
+        <div class="format-toggle" role="group" aria-label="Proporção do recorte">
+          {ratios.map((r, i) => (
+            <label class:list={['fmt-btn', { active: i === 0 }]}><input type="radio" name="cropRatio" value={r.value} checked={i === 0}>{r.label}</label>
+          ))}
+        </div>
+        <small class="field-hint">1:1 e 4:5 para feed, 9:16 para stories e reels, 16:9 para capas e YouTube.</small>
+      </div>
+
+      <div class="control-group">
+        <label for="cropWidth">Tamanho do recorte</label>
+        <div class="target-size-row dimension-row">
+          <input type="number" id="cropWidth" min="16" step="1" inputmode="numeric" placeholder="Largura" aria-label="Largura do recorte em pixels" disabled>
+          <span class="dimension-x" aria-hidden="true">×</span>
+          <input type="number" id="cropHeight" min="16" step="1" inputmode="numeric" placeholder="Altura" aria-label="Altura do recorte em pixels" disabled>
+        </div>
+        <small class="field-hint" id="cropPosition">Em pixels da imagem original.</small>
+      </div>
+
+      <div class="control-group">
+        <label>Formato de saída</label>
+        <div class="format-toggle" role="group" aria-label="Formato de saída">
+          {formats.map((f, i) => (
+            <label class:list={['fmt-btn', { active: i === 0 }]}><input type="radio" name="cropFormat" value={f.value} checked={i === 0}>{f.label}</label>
+          ))}
+        </div>
+        <small class="field-hint">PNG e WebP mantêm a transparência; JPG recebe fundo branco.</small>
+      </div>
+    </div>
+
+        <div class="action-bar page-inner">
+      <button class="btn btn-primary" id="cropRun" disabled>Recortar e baixar</button>
+      <button class="btn btn-outline" id="cropReset" disabled>Resetar seleção</button>
+      <button class="btn btn-outline" id="cropClear" disabled>Limpar</button>
+    </div>
+      </div>
+      <div class="tool-main">
+        <p class="tool-status page-inner" id="cropStatus" role="status" aria-live="polite" hidden></p>
+
+    <div class="crop-area page-inner" id="cropArea">
+      <div class="drop-zone" id="cropDrop">
+        <input type="file" id="cropFile" accept="image/png,image/jpeg,image/webp" aria-label="Selecionar imagem para recortar">
+        <span class="drop-icon">⬇</span>
+        <p><strong>Arraste a imagem aqui</strong><br>ou clique para selecionar · PNG, WebP, JPEG<br><span class="drop-hint">Também dá para colar com Ctrl+V</span></p>
+      </div>
+
+      <div class="crop-editor hidden" id="cropEditor">
+        <div class="crop-meta">
+          <strong id="cropName" data-ah-mask></strong>
+          <span id="cropDims"></span>
+          <button type="button" class="crop-change" id="cropChange">Trocar imagem</button>
+        </div>
+        <div class="crop-frame">
+          <div class="crop-stage" id="cropStage" tabindex="0" role="application" aria-label="Área de recorte. Arraste a caixa ou as alças; use as setas do teclado para mover a seleção 1 pixel, ou 10 com Shift.">
+            <canvas id="cropCanvas" width="1" height="1" aria-hidden="true"></canvas>
+            <div class="crop-shade" id="cropShade"></div>
+            <div class="crop-box" id="cropBox">
+              {handles.map((h) => <div class="crop-handle" data-handle={h}></div>)}
+            </div>
+          </div>
+        </div>
+        <small class="field-hint crop-help">Arraste o interior para mover e as alças para redimensionar. Com a área em foco, as setas movem 1 px (10 px com Shift).</small>
+      </div>
+    </div>
+      </div>
+    </div>
+  </section>
+
+  <Guide
+    title="Como recortar uma imagem online"
+    current={pages.cropImage.path}
+    faqs={[
+      { q: 'Como recortar uma foto?', a: 'Arraste a imagem para a página, cole com Ctrl+V ou clique na área pontilhada para escolher um arquivo PNG, JPG ou WebP. Uma caixa aparece sobre a foto: mova-a arrastando o interior e ajuste o tamanho pelas alças dos cantos e dos lados. Quando a área estiver certa, clique em Recortar e baixar.' },
+      { q: 'Como recortar na proporção certa para Instagram, stories ou YouTube?', a: 'Escolha uma proporção pronta: <strong>1:1</strong> para posts quadrados, <strong>4:5</strong> para fotos verticais no feed, <strong>9:16</strong> para stories, reels e TikTok, <strong>16:9</strong> para capas e miniaturas do YouTube. A caixa se ajusta ao maior recorte possível e mantém a proporção enquanto você redimensiona. Para a medida final em pixels (por exemplo, 1080 × 1350), passe depois pelo <a href="/resizer/">redimensionador de imagens</a> no modo Exato.' },
+      { q: 'Dá para definir o recorte em pixels exatos?', a: 'Sim. Digite a largura e a altura nos campos de Tamanho do recorte, em pixels da imagem original, e a caixa se ajusta. A posição X e Y aparece logo abaixo. Para um ajuste fino, clique na área de edição e use as setas do teclado: cada toque move a seleção 1 pixel, ou 10 pixels com Shift pressionado.' },
+      { q: 'O recorte perde qualidade?', a: 'Não. A caixa que você vê na tela é apenas uma prévia em escala; o corte é aplicado nos pixels da imagem original, sem redimensionar. Em PNG o resultado passa por uma otimização sem perdas; em JPG e WebP, a imagem é salva com qualidade 92%. Se quiser reduzir o tamanho do arquivo depois, use o <a href="/">compressor de imagens</a>.' },
+      { q: 'Em qual formato o recorte é salvo?', a: 'Por padrão, no mesmo formato do arquivo original. Você também pode escolher PNG, JPG ou WebP em Formato de saída. PNG e WebP mantêm o fundo transparente; JPG não aceita transparência, então as áreas transparentes ficam brancas. O arquivo é baixado com o sufixo <em>-recortado-kompres</em>. Fotos de celular giradas são corrigidas automaticamente pela orientação EXIF.' },
+      { q: 'A imagem é enviada para algum servidor?', a: 'Não. A imagem é aberta e recortada pelo seu próprio navegador e nunca sai do seu dispositivo. Nenhum arquivo é enviado ao Kompres ou a terceiros, e por isso a ferramenta também funciona com fotos grandes sem esperar upload.' },
+    ]}
+  />
+
+  <script slot="scripts" is:inline src="/js/crop.js?v=2"></script>
+</Base>

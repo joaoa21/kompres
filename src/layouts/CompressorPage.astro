@@ -12,16 +12,17 @@ interface Props {
   format?: 'webp' | 'png' | 'jpeg';
   heading?: string;
   intro?: string;
+  svg?: boolean;
   guideTitle: string;
   faqs: Faq[];
 }
-const { page, hero, format, heading, intro, guideTitle, faqs } = Astro.props;
+const { page, hero, format, heading, intro, svg, guideTitle, faqs } = Astro.props;
 ---
-<Base page={page} section="image" imageTool="compress" tool="compressor">
+<Base page={page} section="image" activeTool="compress" tool="compressor">
   <Hero {...hero} />
-  <CompressorTool format={format} heading={heading} intro={intro} />
+  <CompressorTool format={format} heading={heading} intro={intro} svg={svg} />
   <Guide title={guideTitle} faqs={faqs} current={page.path} />
 
   <script is:inline slot="libs" src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-  <script slot="scripts" is:inline src="/js/compressor.js?v=ux-1"></script>
+  <script slot="scripts" is:inline src="/js/compressor.js?v=ux-3"></script>
 </Base>

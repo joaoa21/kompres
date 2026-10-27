@@ -22,6 +22,8 @@ kompres.register('compressor', (signal, document) => {
   const sizeGroup = document.getElementById('size-group');
   const targetSizeInput = document.getElementById('target-size');
   const targetUnit = document.getElementById('target-unit');
+  const svgGroup = document.getElementById('svg-group');
+  const svgWidthInput = document.getElementById('svg-width');
 
   // Formato inicial definido pela página (/, /converter/png-para-jpg/, ...).
   let selectedFormat = fmtToggle.querySelector('.fmt-btn.active')?.dataset.fmt || 'webp';
@@ -79,6 +81,16 @@ kompres.register('compressor', (signal, document) => {
   targetSizeInput.addEventListener('change', resetCompressedResults);
   targetUnit.addEventListener('change', resetCompressedResults);
 
+  // SVG: a largura escolhida muda a rasterização, então o data URL é refeito.
+  svgWidthInput.addEventListener('change', () => {
+    images.filter((image) => image.svgText).forEach((image) => {
+      try { image.dataUrl = svgDataUrl(image.svgText, svgWidth()); } catch { return; }
+      const thumb = document.querySelector(`.image-card[data-id="${CSS.escape(image.id)}"] .card-thumb`);
+      if (thumb) thumb.src = image.dataUrl;
+    });
+    resetCompressedResults();
+  });
+
   kompres.fileDrop({ signal, document, zone: dropZone, onFiles: handleFiles });
 
   fileInput.addEventListener('change', () => {
@@ -91,9 +103,9 @@ kompres.register('compressor', (signal, document) => {
 
   function handleFiles(files) {
     const generation = inputGeneration;
-    const validFiles = files.filter((file) => ['image/png', 'image/webp', 'image/jpeg'].includes(file.type));
+    const validFiles = files.filter((file) => ['image/png', 'image/webp', 'image/jpeg', 'image/svg+xml'].includes(fileType(file)));
     const skipped = files.length - validFiles.length;
-    setStatus(skipped ? `${skipped} ${skipped === 1 ? 'arquivo ignorado' : 'arquivos ignorados'}: use PNG, JPG ou WebP.` : '', skipped > 0);
+    setStatus(skipped ? `${skipped} ${skipped === 1 ? 'arquivo ignorado' : 'arquivos ignorados'}: use PNG, JPG, WebP ou SVG.` : '', skipped > 0);
     fileInput.value = '';
     if (!validFiles.length) return;
 
@@ -105,12 +117,20 @@ kompres.register('compressor', (signal, document) => {
       const id = `${Date.now()}-${Math.random()}`;
       const reader = new FileReader();
 
+      const svg = fileType(file) === 'image/svg+xml';
       reader.onload = (event) => {
         if (generation !== inputGeneration) return;
+        let dataUrl = event.target.result, svgText = null;
+        if (svg) {
+          // SVG vira um data URL com largura explícita; o <img> rasteriza na hora de desenhar.
+          try { svgText = event.target.result; dataUrl = svgDataUrl(svgText, svgWidth()); }
+          catch { setStatus(`"${file.name}" não é um SVG válido.`, true); loaded(); return; }
+        }
         images.push({
           id,
           file,
-          dataUrl: event.target.result,
+          dataUrl,
+          svgText,
           compressed: null,
           compressedName: null,
         });
@@ -122,7 +142,8 @@ kompres.register('compressor', (signal, document) => {
       };
       reader.onerror = loaded;
 
-      reader.readAsDataURL(file);
+      if (svg) reader.readAsText(file);
+      else reader.readAsDataURL(file);
     });
   }
 
@@ -526,11 +547,41 @@ kompres.register('compressor', (signal, document) => {
   }
 
   function isConversion(image, format) {
-    return image.file.type !== `image/${format}`;
+    return fileType(image.file) !== `image/${format}`;
+  }
+
+  // Alguns sistemas não informam o tipo do .svg; a extensão resolve.
+  function fileType(file) {
+    return file.type || (/\.svg$/i.test(file.name) ? 'image/svg+xml' : '');
   }
 
   function stripExtension(name) {
-    return name.replace(/\.(png|webp|jpe?g)$/i, '');
+    return name.replace(/\.(png|webp|jpe?g|svg)$/i, '');
+  }
+
+  /* ── SVG ── */
+
+  function svgWidth() {
+    const value = Math.round(Number(svgWidthInput.value));
+    return value >= 16 && value <= 8192 ? value : null;
+  }
+
+  // Devolve o SVG como data URL com width/height definidos: sem isso, SVGs só com
+  // viewBox rasterizam em 300×150 ou vazio. `width` nulo mantém o tamanho do arquivo.
+  function svgDataUrl(text, width) {
+    const doc = new DOMParser().parseFromString(text, 'image/svg+xml');
+    const svg = doc.documentElement;
+    if (svg.nodeName !== 'svg' || doc.querySelector('parsererror')) throw new Error('SVG inválido');
+    const px = (value) => { const n = parseFloat(value); return /%/.test(value || '') || !(n > 0) ? null : n; };
+    const viewBox = (svg.getAttribute('viewBox') || '').trim().split(/[\s,]+/).map(Number);
+    const box = viewBox.length === 4 && viewBox[2] > 0 && viewBox[3] > 0 ? { w: viewBox[2], h: viewBox[3] } : null;
+    let w = px(svg.getAttribute('width')), h = px(svg.getAttribute('height'));
+    if (!w || !h) { w = box?.w ?? w ?? h ?? 1024; h = box?.h ?? h ?? w; }
+    if (!box) svg.setAttribute('viewBox', `0 0 ${w} ${h}`);
+    if (width) { h = Math.max(1, Math.round(width * h / w)); w = width; }
+    svg.setAttribute('width', String(Math.round(w)));
+    svg.setAttribute('height', String(Math.round(h)));
+    return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(new XMLSerializer().serializeToString(svg))}`;
   }
 
   async function downloadAllAsZip() {
@@ -579,6 +630,8 @@ kompres.register('compressor', (signal, document) => {
     btnClear.disabled = !hasImages;
     btnDownloadAll.disabled = !done;
     btnDownloadAll.textContent = done === 1 ? '↓ Baixar' : '↓ Baixar ZIP';
+    // O campo de largura só aparece quando há SVG (ou na página de SVG).
+    svgGroup.classList.toggle('hidden', !(svgGroup.dataset.always || images.some((image) => image.svgText)));
   }
 
   function updateStats() {

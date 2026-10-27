@@ -1,0 +1,22 @@
+---
+import PdfPage from '../../../layouts/PdfPage.astro';
+import { pages } from '../../../data/pages';
+---
+<PdfPage
+  page={pages.pdfNumber}
+  mode="number"
+  hero={{
+    title: 'Numerar páginas',
+    highlight: 'de um PDF.',
+    text: 'Adicione números de página a um PDF já pronto: escolha o canto, o formato ("3" ou "Página 3 de 20") e o número inicial, direto no navegador.',
+  }}
+  guideTitle="Como numerar as páginas de um PDF"
+  faqs={[
+    { q: 'Como numerar um PDF?', a: 'Adicione o PDF, escolha a posição (parte inferior ou superior; centro, direita ou esquerda), o formato e o número inicial e clique em Numerar páginas. Os números entram em Helvetica preta, a 12 mm da borda, sem alterar o resto do conteúdo.' },
+    { q: 'Como pular a capa ou começar em outro número?', a: 'O número de cada página é a posição dela no arquivo somada ao número inicial menos 1. Para numerar a partir da segunda página mantendo a sequência, informe 2-20 no campo Páginas: a capa fica sem número e a segunda página recebe o 2. Se quiser que a segunda página saia como 1, use número inicial 0. Para continuar um volume anterior, informe o próximo número, como 101.' },
+    { q: 'O que significa o N em "1 de N"?', a: 'É o número da última página do documento na contagem escolhida. Em um PDF de 20 páginas com número inicial 1, N é 20; com número inicial 11, N é 30. Páginas deixadas fora do campo Páginas não mudam esse total.' },
+    { q: 'O número ficou em cima de algo. E agora?', a: 'Escolha outra posição, como Superior, direita, ou um tamanho menor de fonte. Se o PDF já tem numeração antiga, <a href="/pdf/recortar/">recorte a margem</a> onde ela está e numere o arquivo recortado em seguida.' },
+    { q: 'Funciona em páginas giradas ou em paisagem?', a: 'Sim. A posição é calculada na orientação em que o leitor exibe a página, então "inferior, centro" fica embaixo e centralizado mesmo em páginas digitalizadas de lado. Se precisar corrigir a orientação antes, use <a href="/pdf/girar/">Girar PDF</a>.' },
+    { q: 'Os documentos são enviados ao servidor?', a: 'Não. A leitura e a numeração acontecem no navegador. Documentos muito grandes podem exigir bastante memória; se houver falha, tente com um arquivo menor ou feche outras abas.' },
+  ]}
+/>

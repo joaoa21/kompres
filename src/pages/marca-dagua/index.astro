@@ -1,0 +1,135 @@
+---
+import Base from '../../layouts/Base.astro';
+import Guide from '../../components/Guide.astro';
+import { pages } from '../../data/pages';
+
+// Grade 3×3 de posições: linha (t/m/b) + coluna (l/c/r), na ordem em que aparecem.
+const positions = [
+  ['tl', 'Canto superior esquerdo'], ['tc', 'Centro superior'], ['tr', 'Canto superior direito'],
+  ['ml', 'Meio à esquerda'], ['mc', 'Centro'], ['mr', 'Meio à direita'],
+  ['bl', 'Canto inferior esquerdo'], ['bc', 'Centro inferior'], ['br', 'Canto inferior direito'],
+] as const;
+---
+<Base page={pages.watermarkImage} section="image" activeTool="watermarkImage" tool="watermark" styles={['/css/image-edit.css?v=3']}>
+  <section class="hero page">
+    <div class="hero-content">
+      <h1>Marca d'água em imagens.<br><span>Texto ou logo, em lote.</span></h1>
+      <p class="hero-text">
+        Proteja e assine suas fotos com um texto ou o seu logo, em várias imagens de uma vez.
+        Escolha posição, tamanho e opacidade; tudo acontece no navegador, sem upload.
+      </p>
+    </div>
+  </section>
+
+  <section class="tool-section page2">
+    <div class="tool-header page-inner">
+      <div>
+        <h2>Marca d'água em imagens</h2>
+        <p>Configure a marca e solte as imagens: o resultado aparece na hora e acompanha cada ajuste.</p>
+      </div>
+    </div>
+
+    <div class="tool-workspace page-inner">
+      <div class="tool-side">
+        <div class="controls page-inner controls-edit controls-watermark">
+      <div class="control-group">
+        <label>Tipo</label>
+        <div class="format-toggle">
+          <label class="fmt-btn active"><input type="radio" name="wmType" value="text" checked>Texto</label>
+          <label class="fmt-btn"><input type="radio" name="wmType" value="logo">Logo</label>
+        </div>
+      </div>
+
+      <div class="control-group" id="wmTextGroup">
+        <label for="wmText">Texto</label>
+        <input type="text" id="wmText" value="© Seu nome" maxlength="80" autocomplete="off" spellcheck="false">
+        <small class="field-hint">Nome, site ou @ do perfil. Fonte Inter em negrito.</small>
+      </div>
+
+      <div class="control-group hidden" id="wmLogoGroup">
+        <label for="wmLogo">Logo</label>
+        <div class="file-pick">
+          <input type="file" id="wmLogo" accept="image/png,image/jpeg,image/webp,image/svg+xml" aria-label="Escolher arquivo do logo">
+          <label class="file-pick-btn" for="wmLogo">Escolher arquivo</label>
+          <span class="file-name" id="wmLogoName" data-ah-mask>Nenhum arquivo escolhido</span>
+        </div>
+        <small class="field-hint">PNG com fundo transparente fica melhor. Também aceita JPG, WebP e SVG.</small>
+      </div>
+
+      <div class="control-group" id="wmColorGroup">
+        <label>Cor do texto</label>
+        <div class="format-toggle">
+          <label class="fmt-btn active"><input type="radio" name="wmColor" value="white" checked>Branco</label>
+          <label class="fmt-btn"><input type="radio" name="wmColor" value="black">Preto</label>
+        </div>
+        <small class="field-hint">Com uma leve sombra para ficar legível em qualquer fundo.</small>
+      </div>
+
+      <div class="control-group">
+        <label>Posição</label>
+        <div class="pos-row">
+          <div class="pos-grid" role="group" aria-label="Posição da marca d'água">
+            {positions.map(([value, label]) => (
+              <button class="pos-btn" type="button" data-pos={value} aria-pressed={value === 'br' ? 'true' : 'false'} aria-label={label} title={label}></button>
+            ))}
+          </div>
+          <button class="pos-tile" type="button" data-pos="tile" aria-pressed="false" title="Repete a marca em diagonal pela imagem inteira">Mosaico</button>
+        </div>
+      </div>
+
+      <div class="control-group">
+        <label for="wmSize" class="range-head">Tamanho <span class="range-val" id="wmSizeVal">25%</span></label>
+        <input type="range" id="wmSize" min="5" max="80" value="25" step="1">
+        <small class="field-hint">Largura da marca em relação à largura da imagem.</small>
+      </div>
+
+      <div class="control-group">
+        <label for="wmOpacity" class="range-head">Opacidade <span class="range-val" id="wmOpacityVal">50%</span></label>
+        <input type="range" id="wmOpacity" min="5" max="100" value="50" step="1">
+      </div>
+
+      <div class="control-group">
+        <label for="wmMargin" class="range-head">Margem <span class="range-val" id="wmMarginVal">3%</span></label>
+        <input type="range" id="wmMargin" min="0" max="15" value="3" step="1">
+        <small class="field-hint">Distância da borda, em relação ao lado menor da imagem.</small>
+      </div>
+    </div>
+
+        <div class="action-bar page-inner">
+      <button class="btn btn-primary" id="processBtn" disabled>Aplicar em tudo</button>
+      <button class="btn btn-outline" id="downloadZipBtn" disabled>↓ Baixar ZIP</button>
+      <button class="btn btn-outline" id="clearBtn" disabled>Limpar</button>
+    </div>
+      </div>
+      <div class="tool-main">
+        <p class="tool-status page-inner" id="watermark-status" role="status" aria-live="polite" hidden></p>
+
+    <div class="drop-zone page-inner" id="dropZone">
+      <input type="file" id="fileInput" accept="image/png,image/jpeg,image/webp" multiple aria-label="Selecionar imagens para aplicar marca d'água">
+      <span class="drop-icon">⬇</span>
+      <p><strong>Arraste as imagens aqui</strong><br>ou clique para selecionar · PNG, WebP, JPEG<br><span class="drop-hint">Também dá para colar com Ctrl+V</span></p>
+    </div>
+
+    
+
+    <div class="image-grid page-inner" id="imageGrid" data-ah-mask></div>
+      </div>
+    </div>
+  </section>
+
+  <Guide
+    title="Como colocar marca d'água em fotos"
+    current={pages.watermarkImage.path}
+    faqs={[
+      { q: "Como colocar meu nome como marca d'água em várias fotos?", a: "Deixe o tipo em Texto, digite o nome, site ou @ do perfil e solte as fotos na área acima. Todas recebem a mesma marca na posição escolhida. Cada ajuste de tamanho, opacidade ou posição refaz os resultados na hora, e o botão Baixar entrega um arquivo direto ou um ZIP quando há vários." },
+      { q: "Como usar meu logo como marca d'água?", a: "Escolha o tipo Logo e selecione o arquivo. Um PNG com fundo transparente dá o melhor resultado, porque só o desenho aparece sobre a foto; JPG, WebP e SVG também funcionam. O logo é redimensionado em proporção à largura de cada imagem, então fica do mesmo tamanho relativo em fotos grandes e pequenas." },
+      { q: "Qual tamanho e opacidade usar?", a: "Para assinar fotos sem atrapalhar, algo em torno de 20% a 30% de largura e 40% a 60% de opacidade costuma bastar. Para proteger imagens contra uso indevido, use o modo Mosaico, que repete a marca em diagonal por toda a imagem, com opacidade entre 25% e 40%." },
+      { q: "O texto fica legível em fotos claras e escuras?", a: "Sim. O texto recebe uma sombra leve na cor oposta: branco com sombra escura, preto com sombra clara. Em fotos predominantemente claras, experimente a cor preta; em fotos escuras ou coloridas, o branco costuma funcionar melhor." },
+      { q: "A marca d'água altera a qualidade ou o formato da foto?", a: "O arquivo sai no mesmo formato de entrada: PNG e WebP mantêm a transparência; o JPEG é recodificado em qualidade alta (92). As dimensões não mudam. Se o arquivo ficar pesado, passe pelo <a href=\"/\">compressor de imagens</a> depois; para ajustar as medidas, use o <a href=\"/resizer/\">redimensionador</a>." },
+      { q: "Minhas fotos e meu logo são enviados para algum servidor?", a: "Não. Tudo acontece dentro do seu navegador: as imagens e o logo nunca saem do seu computador ou celular, e nada fica guardado depois que você fecha a página." },
+    ]}
+  />
+
+  <script is:inline slot="libs" src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+  <script slot="scripts" is:inline src="/js/watermark.js?v=1"></script>
+</Base>
