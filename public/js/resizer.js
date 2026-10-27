@@ -181,7 +181,7 @@ kompres.register('resizer', (signal, document) => {
       card.innerHTML = `
         <div class="card-thumb-wrap">
           <img src="${data.processed ? data.downloadUrl : data.previewUrl}" alt="Preview da imagem">
-          <button class="card-remove" type="button" data-index="${index}" aria-label="Remover imagem">×</button>
+          <button class="card-remove" type="button" data-ah-label="Remover imagem" data-index="${index}" aria-label="Remover imagem">×</button>
           <span class="card-saving-overlay">-${savingPercent}%</span>
         </div>
         <div class="preview-info">

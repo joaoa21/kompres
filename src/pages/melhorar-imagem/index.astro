@@ -20,7 +20,7 @@ const formats = [{ value: 'png', label: 'PNG' }, { value: 'jpg', label: 'JPG' },
     text="Dobre a largura e a altura de fotos pequenas ou borradas e recupere nitidez com inteligência artificial, direto no navegador. A imagem não sai do seu aparelho."
   />
 
-  <section class="tool-section page2 upscale-tool">
+  <section data-ah-label="Área da ferramenta" class="tool-section page2 upscale-tool">
     <div class="tool-header page-inner">
       <div>
         <h2>Ampliar imagem com IA</h2>
@@ -29,7 +29,7 @@ const formats = [{ value: 'png', label: 'PNG' }, { value: 'jpg', label: 'JPG' },
     </div>
 
     <div class="tool-workspace page-inner">
-      <div class="tool-side">
+      <div class="tool-side" data-ah-label="Coluna de ajustes">
         <div class="controls page-inner controls-upscale">
           <div class="control-group">
             <label>Formato de saída</label>
@@ -58,7 +58,7 @@ const formats = [{ value: 'png', label: 'PNG' }, { value: 'jpg', label: 'JPG' },
         </div>
       </div>
 
-      <div class="tool-main">
+      <div class="tool-main" data-ah-label="Área de pré-visualização">
         <p class="tool-status page-inner" id="upStatus" role="status" aria-live="polite" hidden></p>
 
         <div class="drop-zone page-inner" id="upDrop">

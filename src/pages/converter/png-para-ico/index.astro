@@ -25,7 +25,7 @@ const snippet = `<link rel="icon" href="/favicon.ico" sizes="any">
     text="Gere um favicon.ico com vários tamanhos a partir de PNG, JPG, WebP ou SVG, mais os ícones para Apple e Android. Tudo no navegador: a imagem não sai do seu computador."
   />
 
-  <section class="tool-section page2 favicon-tool">
+  <section data-ah-label="Área da ferramenta" class="tool-section page2 favicon-tool">
     <div class="tool-header page-inner">
       <div>
         <h2>Gerador de favicon</h2>
@@ -34,7 +34,7 @@ const snippet = `<link rel="icon" href="/favicon.ico" sizes="any">
     </div>
 
     <div class="tool-workspace page-inner">
-      <div class="tool-side">
+      <div class="tool-side" data-ah-label="Coluna de ajustes">
         <div class="controls page-inner controls-favicon">
           <div class="control-group">
             <label id="favSizesLabel">Tamanhos do .ico</label>
@@ -95,7 +95,7 @@ const snippet = `<link rel="icon" href="/favicon.ico" sizes="any">
         </div>
       </div>
 
-      <div class="tool-main">
+      <div class="tool-main" data-ah-label="Área de pré-visualização">
         <p class="tool-status page-inner" id="favStatus" role="status" aria-live="polite" hidden></p>
 
         <div class="drop-zone page-inner" id="favDrop">

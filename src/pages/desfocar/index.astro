@@ -23,7 +23,7 @@ const formats = [
     text="Marque rostos, placas, nomes ou dados de um print e aplique desfoque ou pixelização só nessas áreas. Tudo no navegador: a imagem não sai do seu dispositivo."
   />
 
-  <section class="tool-section page2 blur-tool">
+  <section data-ah-label="Área da ferramenta" class="tool-section page2 blur-tool">
     <div class="tool-header page-inner">
       <div>
         <h2>Desfocar ou pixelar partes da imagem</h2>
@@ -32,7 +32,7 @@ const formats = [
     </div>
 
     <div class="tool-workspace page-inner">
-      <div class="tool-side">
+      <div class="tool-side" data-ah-label="Coluna de ajustes">
         <div class="controls page-inner controls-blur">
           <div class="control-group">
             <label>Efeito</label>
@@ -55,7 +55,7 @@ const formats = [
 
           <div class="control-group">
             <label for="blurStrength" class="range-head">Intensidade <span class="range-val" id="blurStrengthVal">50%</span></label>
-            <input type="range" id="blurStrength" min="1" max="100" value="50" step="1">
+            <input type="range" id="blurStrength" data-ah-label="Intensidade" min="1" max="100" value="50" step="1">
             <small class="field-hint">Para textos e números, prefira intensidade alta: com efeito fraco, letras podem continuar legíveis.</small>
           </div>
 
@@ -86,7 +86,7 @@ const formats = [
         </div>
       </div>
 
-      <div class="tool-main">
+      <div class="tool-main" data-ah-label="Área de pré-visualização">
         <p class="tool-status page-inner" id="blurStatus" role="status" aria-live="polite" hidden></p>
 
         <div class="drop-zone page-inner" id="blurDrop">

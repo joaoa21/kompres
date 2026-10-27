@@ -14,6 +14,7 @@ Projeto: `C:\Users\joaoa\OneDrive\Área de Trabalho\Arquivos\Dev\kompres` — As
 - Download: um arquivo → direto; vários → ZIP com JSZip (`<script is:inline slot="libs" src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>`).
 - Bibliotecas externas: só de `cdnjs.cloudflare.com` ou `cdn.jsdelivr.net/npm/` com **versão exata** (confira que existe: `curl -sI <url>` deve dar 200). Carregue sob demanda quando for pesada.
 - Elementos que mostram nome de arquivo do usuário levam `data-ah-mask` (privacidade do analytics).
+- Nomes no analytics (cartão "Mais clicados" do Trackik): botões só com ícone precisam de `aria-label`, campos de `<label for>`; onde o texto não serve (rótulo com valor, como "Intensidade 50%"; botões gerados dentro de `data-ah-mask`), use `data-ah-label="Nome"`. A `.tool-side`, a `.tool-main` e a `.tool-section` já levam `data-ah-label` (copie da página modelo).
 
 ## Página (`src/pages/.../index.astro`)
 Use como modelo `src/pages/girar/index.astro` (ferramenta de imagem em lote) ou `src/pages/recortar/index.astro` (editor de uma imagem). Estrutura obrigatória:

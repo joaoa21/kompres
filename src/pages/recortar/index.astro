@@ -26,7 +26,7 @@ const handles = ['nw', 'n', 'ne', 'e', 'se', 's', 'sw', 'w'];
     text="Escolha a área exata da foto arrastando a caixa ou use as proporções de Instagram, YouTube e perfil. Tudo no navegador: a imagem não sai do seu computador."
   />
 
-  <section class="tool-section page2 crop-tool">
+  <section data-ah-label="Área da ferramenta" class="tool-section page2 crop-tool">
     <div class="tool-header page-inner">
       <div>
         <h2>Recortador de imagens</h2>
@@ -35,7 +35,7 @@ const handles = ['nw', 'n', 'ne', 'e', 'se', 's', 'sw', 'w'];
     </div>
 
     <div class="tool-workspace page-inner">
-      <div class="tool-side">
+      <div class="tool-side" data-ah-label="Coluna de ajustes">
         <div class="controls page-inner controls-crop">
       <div class="control-group">
         <label>Proporção</label>
@@ -74,7 +74,7 @@ const handles = ['nw', 'n', 'ne', 'e', 'se', 's', 'sw', 'w'];
       <button class="btn btn-outline" id="cropClear" disabled>Limpar</button>
     </div>
       </div>
-      <div class="tool-main">
+      <div class="tool-main" data-ah-label="Área de pré-visualização">
         <p class="tool-status page-inner" id="cropStatus" role="status" aria-live="polite" hidden></p>
 
     <div class="crop-area page-inner" id="cropArea">

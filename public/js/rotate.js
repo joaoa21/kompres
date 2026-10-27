@@ -165,7 +165,7 @@ kompres.register('rotate', (signal, document) => {
           <button class="rotate-card-btn" type="button" data-rotate="left" title="Girar para a esquerda" aria-label="Girar a imagem ${name} para a esquerda">${ICONS.left}</button>
           <button class="rotate-card-btn" type="button" data-rotate="right" title="Girar para a direita" aria-label="Girar a imagem ${name} para a direita">${ICONS.right}</button>
         </div>
-        <button class="card-remove" type="button" aria-label="Remover imagem ${name}">✕</button>
+        <button class="card-remove" type="button" data-ah-label="Remover imagem" aria-label="Remover imagem ${name}">✕</button>
       </div>
       <div class="card-body">
         <div class="card-name">${name}</div>
@@ -227,8 +227,8 @@ kompres.register('rotate', (signal, document) => {
     else size.textContent = `${formatBytes(item.file.size)} → aguardando`;
 
     card.querySelector('.rotate-card-action').innerHTML = processed
-      ? `<a class="card-download" href="${item.downloadUrl || item.previewUrl}" download="${escapeHtml(processed.fileName)}">↓ baixar</a>`
-      : '<button class="card-download" type="button" disabled>↓ baixar</button>';
+      ? `<a class="card-download" data-ah-label="Baixar resultado" href="${item.downloadUrl || item.previewUrl}" download="${escapeHtml(processed.fileName)}">↓ baixar</a>`
+      : '<button class="card-download" type="button" data-ah-label="Baixar resultado" disabled>↓ baixar</button>';
   }
 
   // ── Processamento ─────────────────────────────────────────────────

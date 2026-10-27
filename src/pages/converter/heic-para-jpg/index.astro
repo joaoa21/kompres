@@ -16,7 +16,7 @@ const formats = [
     text="Solte as fotos .heic do iPhone e receba JPG ou PNG prontos para enviar, imprimir ou abrir no Windows. Em lote e direto no navegador: as fotos não saem do seu aparelho."
   />
 
-  <section class="tool-section page2">
+  <section data-ah-label="Área da ferramenta" class="tool-section page2">
     <div class="tool-header page-inner">
       <div>
         <h2>Conversor de HEIC para JPG/PNG</h2>
@@ -25,7 +25,7 @@ const formats = [
     </div>
 
     <div class="tool-workspace page-inner">
-      <div class="tool-side">
+      <div class="tool-side" data-ah-label="Coluna de ajustes">
         <div class="controls page-inner controls-heic">
           <div class="control-group">
             <label id="heicFormatLabel">Formato de saída</label>
@@ -50,7 +50,7 @@ const formats = [
           <button class="btn btn-outline" id="heicClear" disabled>Limpar</button>
         </div>
       </div>
-      <div class="tool-main">
+      <div class="tool-main" data-ah-label="Área de pré-visualização">
         <p class="tool-status page-inner" id="heicStatus" role="status" aria-live="polite" hidden></p>
 
         <div class="drop-zone page-inner" id="heicDropZone">
@@ -59,7 +59,7 @@ const formats = [
           <p><strong>Arraste as fotos HEIC aqui</strong><br>ou clique para selecionar · HEIC, HEIF<br><span class="drop-hint">Também dá para colar com Ctrl+V</span></p>
         </div>
 
-        <div class="image-grid page-inner heic-grid" id="heicGrid" data-ah-mask></div>
+        <div class="image-grid page-inner heic-grid" id="heicGrid" data-ah-mask data-ah-label="Cartão de resultado"></div>
       </div>
     </div>
   </section>

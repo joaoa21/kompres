@@ -11,7 +11,7 @@ const inks = [
   { value: 'blue', label: 'Azul' },
 ];
 ---
-<section class="tool-section page2 sign-tool">
+<section data-ah-label="Área da ferramenta" class="tool-section page2 sign-tool">
   <div class="tool-header page-inner">
     <div>
       <h2>Assinar PDF</h2>
@@ -20,7 +20,7 @@ const inks = [
   </div>
 
   <div class="tool-workspace page-inner">
-    <div class="tool-side">
+    <div class="tool-side" data-ah-label="Coluna de ajustes">
       <div class="controls page-inner controls-sign">
         <div class="control-group">
           <label>Sua assinatura</label>
@@ -95,7 +95,7 @@ const inks = [
       </div>
     </div>
 
-    <div class="tool-main">
+    <div class="tool-main" data-ah-label="Área de pré-visualização">
       <p class="tool-status page-inner" id="signStatus" role="status" aria-live="polite" hidden></p>
 
       <div class="drop-zone page-inner" id="signDrop">

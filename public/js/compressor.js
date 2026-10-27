@@ -161,7 +161,7 @@ kompres.register('compressor', (signal, document) => {
     card.innerHTML = `
       <div class="card-thumb-wrap">
         <img class="card-thumb" src="${image.dataUrl}" alt="${escapeHtml(image.file.name)}">
-        <button class="card-remove" type="button" title="Remover" aria-label="Remover imagem">✕</button>
+        <button class="card-remove" type="button" data-ah-label="Remover imagem" title="Remover" aria-label="Remover imagem">✕</button>
         <span class="card-saving-overlay" id="overlay-${image.id}"></span>
       </div>
 
@@ -174,7 +174,7 @@ kompres.register('compressor', (signal, document) => {
           <span class="size-new" style="color:var(--muted)!important">aguardando</span>
         </div>
         <div class="card-note" id="note-${image.id}"></div>
-        <button class="card-download" type="button" disabled id="dl-${image.id}">↓ baixar</button>
+        <button class="card-download" type="button" data-ah-label="Baixar resultado" disabled id="dl-${image.id}">↓ baixar</button>
       </div>
     `;
 
@@ -467,7 +467,7 @@ kompres.register('compressor', (signal, document) => {
       <span>Com as configurações atuais ficou acima de ${escapeHtml(target.label)}. Posso reduzir as dimensões para caber?</span>
       <div class="card-note-actions">
         <button class="card-download primary" type="button" data-act="resize">Redimensionar</button>
-        <button class="card-download" type="button" data-act="keep">Manter assim</button>
+        <button class="card-download" type="button" data-ah-label="Manter tamanho original" data-act="keep">Manter assim</button>
       </div>
     `;
 
