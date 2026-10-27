@@ -5,7 +5,7 @@
 import { pages, type PageKey } from './pages';
 
 export type ToolKey = Extract<PageKey,
-  | 'compress' | 'resize' | 'background' | 'rotateImage' | 'cropImage' | 'watermarkImage'
+  | 'compress' | 'resize' | 'background' | 'rotateImage' | 'cropImage' | 'watermarkImage' | 'svgToPng'
   | 'pdfMerge' | 'pdfCompress' | 'pdfFromImages' | 'pdfSplit' | 'pdfRemove' | 'pdfRotate' | 'pdfToImages'
   | 'pdfWatermark' | 'pdfNumber' | 'pdfOrganize' | 'pdfCrop'>;
 
@@ -49,6 +49,7 @@ export const toolGroups: Record<'image' | 'pdf', ToolNavItem[]> = {
     item('rotateImage', 'Girar e espelhar', '90°, 180° ou espelho, em lote', 'flip'),
     item('cropImage', 'Recortar', 'Livre ou em proporções prontas', 'crop'),
     item('watermarkImage', "Marca d'água", 'Texto ou logo sobre as fotos', 'stamp'),
+    item('svgToPng', 'SVG para PNG', 'Na largura que quiser, transparente', 'convert'),
   ],
   pdf: [
     item('pdfMerge', 'Juntar', 'Vários PDFs em um só', 'merge'),
