@@ -1643,6 +1643,11 @@ html.vt-nav .tools-nav { animation: none; }
   .tool-side .action-bar { flex-direction: column; gap: 0.6rem; margin: 0; }
   .tool-side .action-bar .btn { width: 100%; justify-content: center; }
   .tool-side .action-bar .btn-primary { min-height: 3.4rem; font-size: 1rem; }
+  /* Na coluna o botão ocupa a largura toda: ampliar no hover passaria da borda e abriria
+     uma rolagem horizontal. Uma sombra dá o mesmo retorno sem ocupar espaço. */
+  .tool-side .action-bar .btn:hover { transform: none; }
+  .tool-side .action-bar .btn-primary:hover:not(:disabled) { box-shadow: 0 6px 18px rgba(184, 245, 90, 0.25); }
+  html.light .tool-side .action-bar .btn-primary:hover:not(:disabled) { box-shadow: 0 6px 18px rgba(61, 112, 0, 0.2); }
 
   /* Pré-visualização centralizada; uma imagem só fica grande. */
   .tool-main .image-grid { padding-bottom: 0; align-content: start; }
