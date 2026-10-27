@@ -1,8 +1,7 @@
 /* Extensions scoped to the PDF page; the shared stylesheet is unchanged. */
 #pdfControls, #pdfControls.merge { grid-template-columns: repeat(3, minmax(0, 1fr)); }
-#pdfControls .pdf-mode-group { grid-column: 1 / -1; }
-#modeToggle { flex-wrap: wrap; }
-#modeToggle .fmt-btn { flex: 1 1 140px; white-space: nowrap; }
+/* Sem nenhum ajuste visível (modo Juntar): o bloco de controles some. */
+#pdfControls:not(:has(.control-group:not(.hidden))) { display: none; }
 #pdfControls .control-group { min-width: 0; }
 #pdfControls select, #pdfControls input[type="text"] { width: 100%; min-width: 0; }
 #pdfControls input[type="text"] { border: 1px solid var(--border); border-radius: 6px; padding: .7rem; background: var(--surface2); color: var(--text); font: inherit; }
@@ -17,7 +16,31 @@ html.light .pdf-status.error { color: #ad2424; }
 .pdf-output small { display: block; color: var(--muted); margin-top: .3rem; }
 .pdf-output button { flex-shrink: 0; }
 @media (max-width: 900px) { #pdfControls, #pdfControls.merge { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
-@media (max-width: 600px) { #pdfControls, #pdfControls.merge { grid-template-columns: minmax(0, 1fr); } #modeToggle .fmt-btn { flex-basis: 120px; white-space: normal; } }
+@media (max-width: 600px) { #pdfControls, #pdfControls.merge { grid-template-columns: minmax(0, 1fr); } }
+
+/* Marca d'água, numerar e recortar: o campo Páginas vai para o fim, depois das opções do modo. */
+#pdfControls:is([data-mode="watermark"], [data-mode="number"], [data-mode="crop"]) #pageRangeGroup { order: 99; }
+#pdfControls input[type="number"] { width: 100%; box-sizing: border-box; height: 2.9rem; }
+
+/* Imagem da marca d'água: o input fica invisível e um botão estilizado faz o papel dele. */
+.pdf-file-field { position: relative; }
+.pdf-file-field input[type="file"] { position: absolute; width: 1px; height: 1px; opacity: 0; overflow: hidden; pointer-events: none; }
+.control-group label.pdf-file-btn { display: inline-flex; align-items: center; justify-content: center; width: 100%; height: 2.9rem; box-sizing: border-box; margin: 0; padding: 0 1rem; background: var(--surface2); border: 1px solid var(--border); border-radius: 6px; color: var(--text); font-size: .85rem; text-transform: none; letter-spacing: 0; cursor: pointer; transition: border-color .15s; }
+.control-group label.pdf-file-btn:hover { border-color: var(--accent); }
+html.light .control-group label.pdf-file-btn:hover { border-color: #3d7000; }
+.pdf-file-field:has(input:focus-visible) .pdf-file-btn { outline: 2px solid var(--accent); outline-offset: 2px; }
+html.light .pdf-file-field:has(input:focus-visible) .pdf-file-btn { outline-color: #3d7000; }
+.pdf-file-field:has(input:disabled) .pdf-file-btn { opacity: .5; pointer-events: none; }
+.pdf-file-name { overflow-wrap: anywhere; }
+.pdf-file-name.has-file { color: var(--text); }
+
+/* Recortar: os quatro lados lado a lado, ocupando a linha inteira. */
+#pdfControls .pdf-margins-group { grid-column: 1 / -1; }
+.pdf-margins { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: .75rem; }
+.pdf-margins > div { min-width: 0; }
+.control-group .pdf-margins label { font-size: .7rem; letter-spacing: .05em; margin-bottom: .35rem; }
+.pdf-margins input[type="number"] { padding-inline: .75rem; }
+@media (max-width: 600px) { .pdf-margins { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 
 /* Compact, opt-in stronger compression. */
 .pdf-compression-option { margin-block: 0 24px; }
@@ -25,4 +48,3 @@ html.light .pdf-status.error { color: #ad2424; }
 .pdf-compression-option input { flex: 0 0 18px; width: 18px; height: 18px; margin: 0; accent-color: var(--accent); cursor: pointer; }
 .pdf-compression-option p { margin: 6px 0 0 28px; color: var(--muted); font-size: .8rem; line-height: 1.6; }
 html.light .pdf-compression-option input { accent-color: #3d7000; }
-

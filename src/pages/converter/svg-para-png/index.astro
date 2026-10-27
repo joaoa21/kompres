@@ -1,0 +1,25 @@
+---
+import CompressorPage from '../../../layouts/CompressorPage.astro';
+import { pages } from '../../../data/pages';
+---
+<CompressorPage
+  page={pages.svgToPng}
+  format="png"
+  svg
+  hero={{
+    title: 'Converter SVG para PNG',
+    highlight: 'na largura que quiser.',
+    text: 'Transforme ícones e ilustrações SVG em PNG com fundo transparente, direto no navegador. Escolha a largura em pixels e baixe um ou vários de uma vez.',
+  }}
+  heading="Conversor de SVG para PNG"
+  intro="Arraste seus arquivos SVG, informe a largura do PNG e pronto. O formato PNG já vem selecionado."
+  guideTitle="Como converter SVG para PNG"
+  faqs={[
+    { q: 'Como converter SVG para PNG?', a: 'Arraste os arquivos SVG para a área acima e, se quiser, informe a largura do PNG em pixels. A conversão começa sozinha; baixe cada imagem ou todas em ZIP.' },
+    { q: 'Qual largura escolher?', a: 'Deixe o campo vazio para usar o tamanho definido no próprio SVG. Para ícones de site, 64 a 512 px costumam bastar; para impressão ou apresentações, 1024 a 4096 px. A altura segue a proporção do desenho e nada é esticado.' },
+    { q: 'O fundo transparente é mantido?', a: 'Sim, com saída em PNG ou WebP. Se escolher JPEG, as áreas transparentes recebem fundo branco.' },
+    { q: 'O PNG fica igual ao SVG?', a: 'O desenho é rasterizado pelo próprio navegador, então o resultado é o que você vê ao abrir o SVG nele. Fontes e imagens referenciadas por link externo não são carregadas por segurança: converta o texto em curvas ou incorpore as imagens antes.' },
+    { q: 'Dá para converter SVG para JPG ou WebP?', a: 'Sim. Escolha o formato de saída em JPEG ou WebP e ajuste a qualidade. Para logotipos e ícones, PNG ou WebP preservam melhor os contornos.' },
+    { q: 'Os arquivos são enviados para algum servidor?', a: 'Não. A conversão acontece no seu navegador e os arquivos não saem do dispositivo. Veja mais em <a href="/">perguntas do compressor</a>.' },
+  ]}
+/>

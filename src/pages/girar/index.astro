@@ -1,0 +1,94 @@
+---
+import Base from '../../layouts/Base.astro';
+import Guide from '../../components/Guide.astro';
+import { pages } from '../../data/pages';
+
+// Ícones em traço (Feather, MIT). Os botões acumulam em todas as imagens carregadas.
+const svg = (body: string) =>
+  `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${body}</svg>`;
+
+const actions = [
+  { value: 'left', label: 'Esquerda', title: 'Girar 90° para a esquerda', icon: svg('<polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/>') },
+  { value: 'right', label: 'Direita', title: 'Girar 90° para a direita', icon: svg('<polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>') },
+  { value: 'half', label: '180°', title: 'Girar meia volta', icon: svg('<polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>') },
+  { value: 'flipH', label: 'Espelhar horizontal', title: 'Inverter esquerda e direita', icon: svg('<path d="m3 7 5 5-5 5V7"/><path d="m21 7-5 5 5 5V7"/><path d="M12 20v2"/><path d="M12 14v2"/><path d="M12 8v2"/><path d="M12 2v2"/>') },
+  { value: 'flipV', label: 'Espelhar vertical', title: 'Inverter alto e baixo', icon: svg('<path d="m17 3-5 5-5-5h10"/><path d="m17 21-5-5-5 5h10"/><path d="M4 12H2"/><path d="M10 12H8"/><path d="M16 12h-2"/><path d="M22 12h-2"/>') },
+];
+---
+<Base page={pages.rotateImage} section="image" activeTool="rotateImage" tool="rotate" styles={['/css/image-edit.css?v=3']}>
+  <section class="hero page">
+    <div class="hero-content">
+      <h1>Girar e espelhar imagens.<br><span>Em lote, sem perder qualidade.</span></h1>
+      <p class="hero-text">
+        Gire para a esquerda ou para a direita quantas vezes precisar, espelhe na horizontal ou vertical
+        e ajuste uma imagem de cada vez direto na miniatura. Tudo no navegador: o formato e a
+        transparência são mantidos e nada é enviado para servidor.
+      </p>
+    </div>
+  </section>
+
+  <section class="tool-section page2">
+    <div class="tool-header page-inner">
+      <div>
+        <h2>Girar e espelhar imagens</h2>
+        <p>Solte as imagens e clique em Esquerda ou Direita: cada clique soma 90° em todas. Para girar só uma, use ↺ ↻ na miniatura.</p>
+      </div>
+    </div>
+
+    <div class="tool-workspace page-inner">
+      <div class="tool-side">
+        <div class="controls page-inner controls-edit">
+      <div class="control-group rotate-group">
+        <div class="rotate-head">
+          <label id="rotateLabel">Rotação</label>
+          <button type="button" class="rotate-reset" id="rotateReset" disabled>Redefinir todas</button>
+        </div>
+        <div class="rotate-actions" role="group" aria-labelledby="rotateLabel">
+          {actions.map(({ value, label, title, icon }) => (
+            <button type="button" class="btn btn-outline rot-btn" data-rotate={value} title={title} disabled>
+              <span class="rot-icon" set:html={icon} />{label}
+            </button>
+          ))}
+        </div>
+        <small class="field-hint">Clique nos botões para girar todas as imagens, ou use ↺ ↻ em cada miniatura. Fotos de celular já chegam na orientação correta (EXIF).</small>
+      </div>
+    </div>
+
+        <div class="action-bar page-inner">
+      <button class="btn btn-primary" id="downloadZipBtn" disabled>↓ Baixar</button>
+      <button class="btn btn-outline" id="clearBtn" disabled>Limpar</button>
+    </div>
+      </div>
+      <div class="tool-main">
+        <p class="tool-status page-inner" id="rotate-status" role="status" aria-live="polite" hidden></p>
+
+    <div class="drop-zone page-inner" id="dropZone">
+      <input type="file" id="fileInput" accept="image/png,image/jpeg,image/webp" multiple aria-label="Selecionar imagens para girar ou espelhar">
+      <span class="drop-icon">⬇</span>
+      <p><strong>Arraste as imagens aqui</strong><br>ou clique para selecionar · PNG, WebP, JPEG<br><span class="drop-hint">Também dá para colar com Ctrl+V</span></p>
+    </div>
+
+    
+
+    <div class="image-grid page-inner rotate-grid" id="imageGrid" data-ah-mask></div>
+      </div>
+    </div>
+  </section>
+
+  <Guide
+    title="Como girar e espelhar imagens sem perder qualidade"
+    current={pages.rotateImage.path}
+    faqs={[
+      { q: 'Como girar uma foto que ficou de lado?', a: 'Solte a foto na área acima e clique em Direita ou Esquerda: a miniatura gira na hora e o arquivo é gerado em seguida. Cada clique soma 90°, então dois cliques em Direita dão 180° (ou use o botão 180° direto). Errou o sentido? Clique no outro botão, que desfaz, ou em Redefinir todas para voltar ao original.' },
+      { q: 'Dá para girar só uma das imagens?', a: 'Sim. Cada miniatura tem os botões ↺ e ↻, que giram apenas aquela imagem; no celular eles ficam sempre visíveis, no computador aparecem ao passar o mouse. Os botões grandes acima agem em todas as imagens carregadas, somando ao que cada uma já tinha. Abaixo do nome do arquivo aparece o estado atual, como "90°" ou "sem alteração".' },
+      { q: 'Qual a diferença entre girar e espelhar?', a: 'Girar muda a orientação da imagem, como virar uma folha de papel sobre a mesa. Espelhar inverte a imagem como num espelho: na horizontal, o que estava à esquerda vai para a direita (útil para selfies invertidas); na vertical, o alto e o baixo trocam de lugar. Você pode combinar os dois na mesma imagem.' },
+      { q: 'Girar a imagem reduz a qualidade?', a: 'Girar em 90° ou 180° e espelhar não reamostram os pixels, então nenhum detalhe se perde. PNG e WebP saem com transparência preservada; o JPEG é recodificado em qualidade alta (92), o que pode mudar um pouco o tamanho em KB. Imagens sem alteração são baixadas exatamente como entraram. Se quiser reduzir o peso depois, use o <a href="/">compressor de imagens</a>.' },
+      { q: 'Por que minha foto de celular aparece na posição certa antes de girar?', a: 'Fotos de celular guardam a orientação em um dado chamado EXIF. A ferramenta lê essa informação e já endireita a imagem antes de aplicar a rotação escolhida, então o arquivo final fica exatamente como você vê na tela, em qualquer programa.' },
+      { q: 'Posso girar várias imagens de uma vez?', a: 'Sim. Solte quantas imagens quiser (PNG, JPG ou WebP). Os botões de rotação valem para todas as que estão carregadas; imagens adicionadas depois entram sem rotação. Com um resultado só, o botão Baixar entrega o arquivo direto; com vários, um ZIP reúne tudo. Cada cartão também tem o botão de baixar individual.' },
+      { q: 'Dá para girar PDF também?', a: 'Para documentos, use a ferramenta de <a href="/pdf/girar/">girar páginas de PDF</a>, que permite escolher as páginas e o ângulo sem converter o arquivo em imagem.' },
+    ]}
+  />
+
+  <script is:inline slot="libs" src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+  <script slot="scripts" is:inline src="/js/rotate.js?v=3"></script>
+</Base>

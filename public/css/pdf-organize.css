@@ -1,0 +1,195 @@
+/* Organizar páginas de PDF: grade de miniaturas com reordenação, rotação e exclusão.
+ * Complementa style.css (variáveis de tema e .btn/.drop-zone/.action-bar). */
+
+.org-file {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: .35rem 1rem;
+  margin-top: -.5rem;
+  font-size: .85rem;
+  line-height: 1.6;
+}
+.org-file-name { color: var(--text); font-weight: 600; overflow-wrap: anywhere; }
+.org-summary { color: var(--muted); font-family: var(--font-mono); font-size: .75rem; }
+
+.org-actions { flex-wrap: wrap; margin-top: 1.6rem; }
+
+.org-status { color: var(--muted); font-size: .85rem; line-height: 1.6; margin-block: 1rem; }
+.org-status.error { color: var(--danger); }
+html.light .org-status.error { color: #ad2424; }
+
+/* ── Grade ── */
+.org-grid {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 220px));
+  justify-content: center;
+  gap: .9rem;
+  margin-block: 1.2rem 2rem;
+}
+.org-grid:not(:has(.org-card)) { margin: 0; } /* só o indicador dentro: sem espaço extra */
+
+.org-card {
+  display: flex;
+  flex-direction: column;
+  gap: .55rem;
+  padding: .6rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  user-select: none;
+  -webkit-user-select: none;
+  transition: border-color .2s, opacity .2s;
+}
+.org-card:hover { border-color: var(--border-hover); }
+.org-card.dragging { opacity: .35; }
+.org-card.deleted { opacity: .45; }
+.org-card.deleted .org-thumb img { filter: grayscale(1); }
+.org-card.deleted .org-num { text-decoration: line-through; }
+
+/* Caixa quadrada: qualquer página cabe nela em qualquer rotação. */
+.org-thumb {
+  position: relative;
+  aspect-ratio: 1;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  overflow: hidden;
+  cursor: grab;
+}
+.org-grid.is-dragging .org-thumb, .org-grabbing, .org-grabbing * { cursor: grabbing !important; }
+.org-thumb img {
+  position: absolute;
+  inset: 0;
+  margin: auto;
+  max-width: 100%;
+  max-height: 100%;
+  display: block;
+  box-shadow: 0 2px 10px rgba(0,0,0,.25);
+  transition: transform .3s ease, opacity .25s ease;
+  opacity: 0;
+  pointer-events: none;
+}
+.org-card.loaded .org-thumb img { opacity: 1; }
+/* Placeholder enquanto a miniatura não renderiza. */
+.org-thumb::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  margin: auto;
+  width: 22px;
+  height: 22px;
+  border: 2px solid var(--border-hover);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: org-spin 1s linear infinite;
+}
+html.light .org-thumb::before { border-top-color: #3d7000; }
+.org-card.loaded .org-thumb::before, .org-card.thumb-error .org-thumb::before { display: none; }
+.org-card.thumb-error .org-thumb::after {
+  content: 'Sem prévia';
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  color: var(--muted);
+  font-family: var(--font-mono);
+  font-size: .7rem;
+}
+@keyframes org-spin { to { transform: rotate(360deg); } }
+
+.org-handle {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 28px;
+  height: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--muted);
+  font-size: 1rem;
+  line-height: 1;
+  cursor: grab;
+  touch-action: none; /* o toque na alça inicia o arrasto em vez de rolar a página */
+}
+.org-rot {
+  position: absolute;
+  left: 6px;
+  bottom: 6px;
+  padding: .15rem .4rem;
+  background: var(--accent-dim);
+  border: 1px solid var(--accent);
+  border-radius: 6px;
+  color: var(--accent);
+  font-family: var(--font-mono);
+  font-size: .68rem;
+  line-height: 1.2;
+}
+html.light .org-rot { color: #3d7000; border-color: #3d7000; }
+
+.org-meta { display: flex; justify-content: space-between; align-items: baseline; padding-inline: .1rem; }
+.org-num { font-family: var(--font-mono); font-size: .75rem; color: var(--muted); }
+
+.org-btns { display: grid; grid-template-columns: repeat(4, 1fr); gap: .3rem; }
+.org-btn {
+  height: 30px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--muted);
+  font-size: .95rem;
+  line-height: 1;
+  cursor: pointer;
+  transition: all .15s;
+}
+.org-btn:hover:not(:disabled) { border-color: var(--accent); color: var(--accent); background: var(--accent-dim); }
+html.light .org-btn:hover:not(:disabled) { border-color: #3d7000; color: #3d7000; }
+.org-btn-x:hover:not(:disabled) { border-color: var(--danger); color: var(--danger); background: transparent; }
+.org-btn:disabled { opacity: .3; cursor: default; }
+.org-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+
+/* Indicador da posição onde a página vai entrar. */
+.org-indicator {
+  position: absolute;
+  width: 4px;
+  margin-left: -2px;
+  background: var(--accent);
+  border-radius: 2px;
+  box-shadow: 0 0 0 3px var(--accent-dim);
+  pointer-events: none;
+  z-index: 2;
+}
+html.light .org-indicator { background: #3d7000; }
+.org-indicator[hidden] { display: none; }
+
+/* Miniatura que segue o ponteiro durante o arrasto. */
+.org-ghost {
+  position: fixed;
+  z-index: 1000;
+  pointer-events: none;
+  border-radius: 8px;
+  background: var(--surface2);
+  box-shadow: 0 12px 32px rgba(0,0,0,.4);
+  opacity: .92;
+  transform-origin: center;
+}
+.org-ghost img { position: absolute; inset: 0; margin: auto; max-width: 100%; max-height: 100%; display: block; }
+
+@media (max-width: 768px) {
+  .org-grid { grid-template-columns: repeat(auto-fill, minmax(128px, 1fr)); gap: .6rem; }
+  .org-card { padding: .5rem; gap: .45rem; }
+  .org-handle, .org-btn { height: 34px; }
+  .org-handle { width: 34px; }
+  .org-file { margin-top: 0; }
+}
+@media (max-width: 400px) {
+  .org-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}

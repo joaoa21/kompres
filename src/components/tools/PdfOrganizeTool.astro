@@ -1,0 +1,43 @@
+---
+/** Organizar páginas de PDF (lógica em /js/pdf-organize.js): miniaturas de cada
+ *  página para reordenar arrastando, girar e excluir antes de baixar. */
+---
+<section class="tool-section page2 organize-tool">
+  <div class="tool-header page-inner">
+    <div>
+      <h2>Organizar páginas do PDF</h2>
+      <p>Adicione um PDF, arraste as miniaturas para reordenar, gire ou exclua páginas e baixe o resultado.</p>
+    </div>
+  </div>
+
+  <div class="tool-workspace page-inner">
+    <div class="tool-side">
+      <div class="org-file page-inner" id="orgFileInfo" hidden>
+    <span class="org-file-name" id="orgFileName" data-ah-mask></span>
+    <span class="org-summary" id="orgSummary"></span>
+  </div>
+
+      <div class="action-bar page-inner org-actions">
+    <button class="btn btn-primary" id="orgApply" disabled>Aplicar e baixar PDF</button>
+    <button class="btn btn-outline" id="orgReverse" disabled>Inverter ordem</button>
+    <button class="btn btn-outline" id="orgReset" disabled>Desfazer tudo</button>
+    <button class="btn btn-outline" id="orgClear" disabled>Limpar</button>
+  </div>
+    </div>
+    <div class="tool-main">
+      <div class="drop-zone page-inner" id="orgDrop">
+    <input type="file" id="orgFile" accept="application/pdf,.pdf" aria-label="Selecionar arquivo PDF">
+    <span class="drop-icon">⬇</span>
+    <p><strong>Arraste o PDF aqui</strong><br>ou clique para selecionar · um arquivo .pdf<br><span class="drop-hint">Também dá para colar com Ctrl+V</span></p>
+  </div>
+
+  
+
+  
+
+  <p class="page-inner org-status" id="orgStatus" role="status" aria-live="polite" hidden></p>
+
+  <div class="org-grid page-inner" id="orgGrid" role="list" aria-label="Páginas do PDF"></div>
+    </div>
+  </div>
+</section>

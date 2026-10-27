@@ -1,0 +1,22 @@
+---
+import PdfPage from '../../../layouts/PdfPage.astro';
+import { pages } from '../../../data/pages';
+---
+<PdfPage
+  page={pages.pdfCrop}
+  mode="crop"
+  hero={{
+    title: 'Recortar PDF',
+    highlight: 'sem as margens.',
+    text: 'Corte bordas brancas, cabeçalhos ou marcas de digitalização informando quantos milímetros tirar de cada lado. Vale para todas as páginas ou só algumas, direto no navegador.',
+  }}
+  guideTitle="Como recortar as margens de um PDF"
+  faqs={[
+    { q: 'Como recortar um PDF?', a: 'Adicione o PDF, informe quantos milímetros cortar nas margens superior, direita, inferior e esquerda (deixe 0 onde não quiser cortar) e clique em Recortar margens. O recorte vale para todas as páginas; use o campo Páginas para limitar a algumas.' },
+    { q: 'Como sei quantos milímetros cortar?', a: 'Uma folha A4 tem 210 × 297 mm e uma Carta, 216 × 279 mm; a maioria dos documentos usa margens de 20 a 30 mm. Abra o PDF no leitor e estime a margem branca em relação à largura total, ou faça um teste com um valor e ajuste: a ferramenta é rápida e o original não é alterado. O que sobrar precisa ter pelo menos 20 mm de largura e de altura.' },
+    { q: 'O conteúdo cortado é apagado de verdade?', a: 'Não. O recorte ajusta a área visível da página (as caixas MediaBox e CropBox), então leitores e impressoras mostram só a parte escolhida, mas o conteúdo continua dentro do arquivo e pode ser recuperado por um editor de PDF. Se precisar eliminar a área cortada, por exemplo por sigilo, converta as páginas em <a href="/pdf/pdf-para-jpg/">PDF para JPG</a> e monte o PDF de novo em <a href="/pdf/jpg-para-pdf/">JPG para PDF</a>.' },
+    { q: 'Posso cortar valores diferentes em páginas diferentes?', a: 'Sim, em duas rodadas: recorte primeiro as páginas pares com um conjunto de margens, baixe o arquivo, adicione o resultado de novo e recorte as ímpares com outro conjunto. Páginas fora do campo Páginas ficam intactas.' },
+    { q: 'E se a página estiver girada?', a: '"Superior" é sempre o topo como o leitor exibe a página. Em páginas digitalizadas de lado (com rotação de 90° ou 270° gravada no arquivo), a ferramenta troca os lados internamente para que o corte saia como você vê na tela. Se preferir corrigir a orientação antes, use <a href="/pdf/girar/">Girar PDF</a>.' },
+    { q: 'Os documentos são enviados ao servidor?', a: 'Não. A leitura e o recorte acontecem no navegador. O texto continua selecionável e o arquivo tem praticamente o mesmo tamanho, já que só as medidas das páginas mudam.' },
+  ]}
+/>

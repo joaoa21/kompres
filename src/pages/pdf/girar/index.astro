@@ -1,0 +1,21 @@
+---
+import PdfPage from '../../../layouts/PdfPage.astro';
+import { pages } from '../../../data/pages';
+---
+<PdfPage
+  page={pages.pdfRotate}
+  mode="rotate"
+  hero={{
+    title: 'Girar PDF',
+    highlight: 'na direção certa.',
+    text: 'Corrija páginas digitalizadas de lado ou de cabeça para baixo. Gire todas ou só algumas, direto no navegador.',
+  }}
+  guideTitle="Como girar as páginas de um PDF"
+  faqs={[
+    { q: 'Como girar um PDF?', a: 'Adicione o PDF, escolha o ângulo (90° para um lado ou para o outro, ou 180°) e clique em Girar páginas. Deixe o campo Páginas vazio para girar o documento inteiro.' },
+    { q: 'Dá para girar só algumas páginas?', a: 'Sim. No campo Páginas, informe números e intervalos, como 3 ou 5-8. As demais páginas ficam como estão.' },
+    { q: 'A rotação é salva no arquivo?', a: 'Sim. O PDF gerado abre já na orientação nova em qualquer leitor, sem perder texto, links ou qualidade: nada é convertido em imagem.' },
+    { q: 'Girei para o lado errado. E agora?', a: 'Adicione o PDF original de novo e escolha o outro sentido, ou gire o arquivo já girado mais uma vez. Como nada é recomprimido, repetir a operação não degrada o documento.' },
+    { q: 'Os documentos são enviados ao servidor?', a: 'Não. A leitura e a transformação dos PDFs acontecem no navegador. Documentos muito grandes podem exigir bastante memória; se houver falha, processe menos arquivos por vez.' },
+  ]}
+/>

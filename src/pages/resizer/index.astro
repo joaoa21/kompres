@@ -3,13 +3,13 @@ import Base from '../../layouts/Base.astro';
 import Guide from '../../components/Guide.astro';
 import { pages } from '../../data/pages';
 ---
-<Base page={pages.resize} section="image" imageTool="resize" tool="resizer">
+<Base page={pages.resize} section="image" activeTool="resize" tool="resizer">
   <section class="hero page">
         <div class="hero-content">
           <h1>Redimensionar imagens.<br><span>Simples e em lote.</span></h1>
           <p class="hero-text">
-            Redimensione imagens em lote direto no navegador. Escolha por largura ou porcentagem,
-            veja o preview e baixe tudo em ZIP.
+            Redimensione imagens em lote direto no navegador. Escolha por largura, altura, porcentagem
+            ou medida exata, veja o preview e baixe tudo em ZIP.
           </p>
         </div>
       </section>
@@ -18,28 +18,33 @@ import { pages } from '../../data/pages';
         <div class="tool-header page-inner">
           <div>
             <h2>Redimensionador de imagens</h2>
-            <p>Ideal para reduzir imagens grandes demais antes de subir no site.</p>
+            <p>Reduza fotos pesadas ou ajuste para a medida exata de redes sociais. O resultado aparece assim que você solta as imagens.</p>
           </div>
         </div>
 
-        <div class="controls page-inner controls-resizer">
+        <div class="tool-workspace page-inner">
+          <div class="tool-side">
+            <div class="controls page-inner controls-resizer">
           <div class="control-group">
             <label>Modo</label>
             <div class="format-toggle">
-              <label class="fmt-btn active">
-                <input type="radio" name="resizeMode" value="width" checked>
-                Largura
-              </label>
-              <label class="fmt-btn">
-                <input type="radio" name="resizeMode" value="percent">
-                Porcentagem
-              </label>
+              <label class="fmt-btn active"><input type="radio" name="resizeMode" value="width" checked>Largura</label>
+              <label class="fmt-btn"><input type="radio" name="resizeMode" value="height">Altura</label>
+              <label class="fmt-btn"><input type="radio" name="resizeMode" value="percent">Porcentagem</label>
+              <label class="fmt-btn"><input type="radio" name="resizeMode" value="exact">Exato</label>
             </div>
           </div>
 
           <div class="control-group" id="widthGroup">
             <label for="maxWidth">Largura máxima</label>
-            <input type="number" id="maxWidth" value="720" min="1">
+            <input type="number" id="maxWidth" value="720" min="1" inputmode="numeric">
+            <small class="field-hint">Em pixels. A altura acompanha; imagens menores não são ampliadas.</small>
+          </div>
+
+          <div class="control-group hidden" id="heightGroup">
+            <label for="maxHeight">Altura máxima</label>
+            <input type="number" id="maxHeight" value="720" min="1" inputmode="numeric">
+            <small class="field-hint">Em pixels. A largura acompanha; imagens menores não são ampliadas.</small>
           </div>
 
           <div class="control-group hidden" id="percentGroup">
@@ -53,19 +58,38 @@ import { pages } from '../../data/pages';
               <option value="25">25%</option>
             </select>
           </div>
+
+          <div class="control-group hidden" id="exactGroup">
+            <label for="exactWidth">Largura × altura</label>
+            <div class="target-size-row dimension-row">
+              <input type="number" id="exactWidth" value="1080" min="1" inputmode="numeric" aria-label="Largura em pixels">
+              <span class="dimension-x" aria-hidden="true">×</span>
+              <input type="number" id="exactHeight" value="1080" min="1" inputmode="numeric" aria-label="Altura em pixels">
+            </div>
+            <select id="exactFit" aria-label="Como ajustar à medida">
+              <option value="cover" selected>Preencher e cortar o centro</option>
+              <option value="contain">Caber sem cortar</option>
+            </select>
+            <small class="field-hint">Para medidas fixas, como 1080 × 1080 de redes sociais. Pode ampliar a imagem.</small>
+          </div>
         </div>
+
+            <div class="action-bar page-inner">
+          <button class="btn btn-primary" id="processBtn" disabled>Redimensionar tudo</button>
+          <button class="btn btn-outline" id="downloadZipBtn" disabled>↓ Baixar ZIP</button>
+          <button class="btn btn-outline" id="clearBtn" disabled>Limpar</button>
+        </div>
+          </div>
+          <div class="tool-main">
+            <p class="tool-status page-inner" id="resizer-status" role="status" aria-live="polite" hidden></p>
 
         <div class="drop-zone page-inner" id="dropZone">
           <input type="file" id="fileInput" accept="image/png,image/jpeg,image/webp" multiple aria-label="Selecionar imagens para redimensionar">
           <span class="drop-icon">⬇</span>
-          <p><strong>Arraste as imagens aqui</strong><br>ou clique para selecionar · PNG, WebP, JPEG</p>
+          <p><strong>Arraste as imagens aqui</strong><br>ou clique para selecionar · PNG, WebP, JPEG<br><span class="drop-hint">Também dá para colar com Ctrl+V</span></p>
         </div>
 
-        <div class="action-bar page-inner">
-          <button class="btn btn-primary" id="processBtn">Redimensionar tudo</button>
-          <button class="btn btn-outline" id="downloadZipBtn" disabled>↓ Baixar ZIP</button>
-          <button class="btn btn-outline" id="clearBtn" disabled>Limpar</button>
-        </div>
+        
 
         <div class="stats-bar page-inner" id="statsBar" hidden>
           <div class="stat">
@@ -87,6 +111,8 @@ import { pages } from '../../data/pages';
         </div>
 
         <div class="image-grid page-inner" id="previewList" data-ah-mask></div>
+          </div>
+        </div>
       </section>
 
   <Guide
@@ -94,6 +120,7 @@ import { pages } from '../../data/pages';
     current={pages.resize.path}
     faqs={[
       { q: 'Como mudar a largura de uma imagem?', a: 'Adicione imagens PNG, JPG ou WebP e informe a largura máxima em pixels. A altura é calculada automaticamente para manter a proporção. Imagens menores que essa largura não são ampliadas.' },
+      { q: 'Como redimensionar para uma medida exata, como 1080 × 1080?', a: 'Escolha o modo Exato e informe largura e altura. Em Preencher e cortar o centro, a imagem ocupa toda a medida e o excesso das bordas é recortado, sem distorcer. Em Caber sem cortar, a imagem inteira é ajustada dentro da medida. Útil para redes sociais, capas e miniaturas.' },
       { q: 'Como reduzir uma imagem pela metade?', a: 'Escolha o modo Porcentagem e selecione 50%. Tanto a largura quanto a altura serão reduzidas pela metade, respeitando o mínimo de um pixel. Confira as dimensões antes de baixar.' },
       { q: 'Redimensionar diminui o tamanho em KB?', a: 'Reduzir as dimensões geralmente diminui o peso, mas o resultado também depende do formato e da codificação. Se você precisa de um limite específico em KB, use o <a href="/">compressor de imagens</a> após redimensionar.' },
       { q: 'É possível redimensionar várias imagens de uma vez?', a: 'Sim. Selecione vários arquivos, defina a largura ou porcentagem e clique em Redimensionar tudo. Você pode baixar os resultados individualmente ou em um arquivo ZIP.' },
@@ -102,5 +129,5 @@ import { pages } from '../../data/pages';
   />
 
   <script is:inline slot="libs" src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-  <script slot="scripts" is:inline src="/js/resizer.js?v=app-1"></script>
+  <script slot="scripts" is:inline src="/js/resizer.js?v=ux-1"></script>
 </Base>

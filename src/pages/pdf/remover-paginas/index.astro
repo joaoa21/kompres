@@ -1,0 +1,21 @@
+---
+import PdfPage from '../../../layouts/PdfPage.astro';
+import { pages } from '../../../data/pages';
+---
+<PdfPage
+  page={pages.pdfRemove}
+  mode="remove"
+  hero={{
+    title: 'Remover páginas',
+    highlight: 'de um PDF.',
+    text: 'Tire páginas em branco, repetidas ou desnecessárias de um PDF e baixe o arquivo limpo, direto no navegador.',
+  }}
+  guideTitle="Como apagar páginas de um PDF"
+  faqs={[
+    { q: 'Como remover páginas de um PDF?', a: 'Adicione o PDF, informe no campo Páginas quais devem sair, por exemplo 2, 5-7, e clique em Remover páginas. O arquivo gerado mantém todas as outras páginas na ordem original.' },
+    { q: 'Qual a diferença para extrair páginas?', a: 'Remover apaga as páginas que você informa e mantém o resto. <a href="/pdf/dividir/">Extrair</a> faz o contrário: salva só as páginas informadas. Use o que exigir digitar menos números.' },
+    { q: 'Como sei o número de cada página?', a: 'Depois de adicionar o PDF, o total aparece na lista e no campo Páginas. Abra o arquivo no seu leitor para conferir a numeração antes de remover.' },
+    { q: 'O arquivo original é alterado?', a: 'Não. O Kompres gera um novo PDF; o original continua intacto no seu computador.' },
+    { q: 'Os documentos são enviados ao servidor?', a: 'Não. A leitura e a transformação dos PDFs acontecem no navegador. Documentos muito grandes podem exigir bastante memória; se houver falha, processe menos arquivos por vez.' },
+  ]}
+/>

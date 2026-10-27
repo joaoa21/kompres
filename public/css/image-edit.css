@@ -1,0 +1,237 @@
+/* Ferramentas de edição de imagem em lote: Girar e espelhar (/girar/) e Marca d'água (/marca-dagua/).
+   Complementa style.css; só o que as duas páginas precisam além das classes compartilhadas. */
+
+/* ── Grade de controles ─────────────────────────────────────────── */
+.controls-edit { grid-template-columns: repeat(2, 1fr); }
+.controls-watermark { grid-template-columns: repeat(3, 1fr); }
+/* Um grupo só (girar: cinco operações) usa a largura inteira. */
+.controls-edit > .control-group:only-child { grid-column: 1 / -1; }
+
+/* Botões de opção e campos na mesma altura dos outros formulários do site. */
+.controls-edit .fmt-btn,
+.controls-edit input[type="text"] {
+  box-sizing: border-box;
+  height: 2.9rem;
+}
+.controls-edit .fmt-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.controls-edit .format-toggle { flex-wrap: wrap; }
+.controls-edit .format-toggle .fmt-btn { flex: 1 1 auto; min-width: 7rem; }
+
+/* style.css só estiliza number e select; o texto da marca d'água segue o mesmo visual. */
+.controls-edit input[type="text"] {
+  width: 100%;
+  background: var(--surface2);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0 1rem;
+  font-family: var(--font-mono);
+  outline: none;
+}
+.controls-edit input[type="text"]:focus { border-color: var(--accent); }
+html.light .controls-edit input[type="text"]:focus { border-color: #3d7000; }
+
+/* Rótulo do grupo com o valor atual do range à direita ("Tamanho ...... 25%").
+   Seletores com .control-group para vencer `.control-group label` do style.css. */
+.control-group .range-head { display: flex; justify-content: space-between; align-items: baseline; gap: .5rem; }
+.control-group .range-head .range-val {
+  font-family: var(--font-mono);
+  font-size: .8rem;
+  color: var(--accent);
+  text-transform: none;
+  letter-spacing: 0;
+}
+html.light .range-head .range-val { color: #3d7000; }
+.controls-edit input[type="range"] { margin-block: .9rem .4rem; }
+
+/* ── Escolha do logo ────────────────────────────────────────────── */
+.file-pick { position: relative; display: flex; align-items: center; gap: .75rem; min-width: 0; }
+/* O input fica invisível mas focável; o <label> ao lado faz o papel de botão. */
+.file-pick input[type="file"] {
+  position: absolute; width: 1px; height: 1px; opacity: 0; overflow: hidden; pointer-events: none;
+}
+.control-group .file-pick-btn {
+  flex-shrink: 0;
+  display: inline-flex; align-items: center; justify-content: center;
+  height: 2.9rem; padding: 0 1rem; margin: 0;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text);
+  font-size: .85rem;
+  text-transform: none; letter-spacing: 0;
+  cursor: pointer;
+  transition: border-color .15s, color .15s;
+}
+.file-pick-btn:hover,
+.file-pick:focus-within .file-pick-btn { border-color: var(--accent); color: var(--accent); }
+html.light .file-pick-btn:hover,
+html.light .file-pick:focus-within .file-pick-btn { border-color: #3d7000; color: #3d7000; }
+.file-name {
+  min-width: 0;
+  font-family: var(--font-mono);
+  font-size: .75rem;
+  color: var(--muted);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+
+/* ── Posição: grade 3×3 + mosaico ───────────────────────────────── */
+.pos-row { display: flex; align-items: flex-start; gap: .9rem; flex-wrap: wrap; }
+.pos-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 2.3rem);
+  grid-auto-rows: 2.3rem;
+  gap: .3rem;
+  padding: .3rem;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+.pos-btn {
+  position: relative;
+  border: 1px solid transparent;
+  border-radius: 5px;
+  background: transparent;
+  cursor: pointer;
+  transition: background .15s, border-color .15s;
+}
+/* O ponto marca o canto/centro onde a marca d'água cai. */
+.pos-btn::after {
+  content: "";
+  position: absolute; inset: 0; margin: auto;
+  width: .55rem; height: .55rem;
+  border-radius: 2px;
+  background: var(--muted);
+  transition: background .15s, transform .15s;
+}
+.pos-btn:hover { background: var(--accent-dim); }
+.pos-btn[aria-pressed="true"] { background: var(--accent-dim); border-color: var(--accent); }
+.pos-btn[aria-pressed="true"]::after { background: var(--accent); transform: scale(1.25); }
+html.light .pos-btn[aria-pressed="true"] { border-color: #3d7000; }
+html.light .pos-btn[aria-pressed="true"]::after { background: #3d7000; }
+
+.pos-tile {
+  display: inline-flex; align-items: center; justify-content: center;
+  height: 2.9rem; padding: 0 1rem;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--muted);
+  font-size: .8rem;
+  cursor: pointer;
+  transition: all .15s;
+}
+.pos-tile:hover { border-color: var(--border-hover); color: var(--text); }
+.pos-tile[aria-pressed="true"] { background: var(--accent-dim); border-color: var(--accent); color: var(--accent); }
+html.light .pos-tile[aria-pressed="true"] { border-color: #3d7000; color: #3d7000; }
+
+/* ── Cartões de resultado ───────────────────────────────────────── */
+.card-meta {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: .72rem;
+  color: var(--muted);
+}
+
+/* ── Girar: botões de rotação acumulada ─────────────────────────── */
+/* Rótulo "Rotação" à esquerda e "Redefinir todas" discreto à direita. */
+.control-group .rotate-head {
+  display: flex; justify-content: space-between; align-items: baseline; gap: .75rem;
+  margin-bottom: .6rem;
+}
+.control-group .rotate-head label { margin-bottom: 0; }
+.control-group .rotate-reset {
+  padding: 0; margin: 0;
+  background: none; border: 0;
+  color: var(--muted);
+  font-family: var(--font-text);
+  font-size: .75rem;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+  transition: color .15s;
+}
+.rotate-reset:hover:not(:disabled) { color: var(--accent); }
+html.light .rotate-reset:hover:not(:disabled) { color: #3d7000; }
+.rotate-reset:disabled { opacity: .4; cursor: not-allowed; text-decoration: none; }
+
+/* Botões em linha; quebram se faltar espaço. */
+.rotate-actions { display: flex; flex-wrap: wrap; gap: .5rem; }
+.rotate-actions .rot-btn {
+  flex: 1 1 auto;
+  display: inline-flex; align-items: center; justify-content: center; gap: .5rem;
+  min-height: 2.9rem; padding: .6rem 1rem;
+  font-family: var(--font-text);
+  font-size: .85rem; font-weight: 500;
+  line-height: 1;
+  white-space: nowrap;
+  transition: border-color .15s, color .15s, background .15s;
+}
+.rotate-actions .rot-icon { display: inline-flex; width: 1.1rem; height: 1.1rem; flex-shrink: 0; }
+.rotate-actions .rot-icon svg { width: 100%; height: 100%; }
+.rotate-actions .rot-btn:hover:not(:disabled) {
+  border-color: var(--accent); color: var(--accent); background: var(--accent-dim);
+}
+html.light .rotate-actions .rot-btn:hover:not(:disabled) { border-color: #3d7000; color: #3d7000; }
+.rotate-actions .rot-btn:active:not(:disabled) { transform: scale(.98); }
+
+/* ── Girar: cartões ─────────────────────────────────────────────── */
+/* A miniatura mostra o resultado com transform em CSS: anima em todo clique, nos dois sentidos. */
+.rotate-grid .card-thumb.rotate-previewing { transition: transform .3s ease; }
+/* Segurando a miniatura: o original, sem rotação (vence o transform inline). */
+.rotate-grid .image-card.comparing .card-thumb { transform: none !important; transition: none; }
+
+/* ↺ ↻ sobre a miniatura: só no hover no computador, sempre visíveis no toque. */
+.rotate-card-btns {
+  position: absolute; top: 8px; left: 8px; z-index: 5;
+  display: flex; gap: 4px;
+  opacity: 0;
+  transform: scale(.92);
+  transition: opacity .2s, transform .2s;
+}
+.image-card:hover .rotate-card-btns,
+.rotate-card-btns:focus-within { opacity: 1; transform: scale(1); }
+.rotate-card-btn {
+  width: 28px; height: 28px; padding: 5px;
+  display: inline-flex; align-items: center; justify-content: center;
+  border-radius: 50%;
+  background: rgba(0,0,0,.6);
+  border: 1px solid rgba(255,255,255,.15);
+  color: #fff;
+  cursor: pointer;
+  backdrop-filter: blur(4px);
+  transition: background .15s, border-color .15s, color .15s;
+}
+.rotate-card-btn svg { width: 100%; height: 100%; }
+.rotate-card-btn:hover { background: var(--accent); border-color: transparent; color: #0c0c0d; }
+html.light .rotate-card-btn:hover { background: #3d7000; color: #fff; }
+.rotate-card-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+/* Enquanto o usuário segura a miniatura para comparar, os botões não atrapalham. */
+.image-card.comparing .rotate-card-btns { opacity: 0; pointer-events: none; }
+@media (hover: none) {
+  .rotate-card-btns { opacity: 1; transform: none; }
+}
+
+/* Estado atual abaixo do nome ("90°", "180° · espelhada H", "sem alteração"). */
+.rotate-state.changed { color: var(--accent); }
+html.light .rotate-state.changed { color: #3d7000; }
+/* O botão de baixar continua colado ao pé do cartão (margin-top: auto do .card-download). */
+.rotate-card-action { display: contents; }
+
+/* ── Telas menores ──────────────────────────────────────────────── */
+@media (max-width: 1024px) {
+  .controls-edit, .controls-watermark { grid-template-columns: 1fr 1fr; }
+}
+@media (max-width: 768px) {
+  .controls-edit, .controls-watermark { grid-template-columns: 1fr; }
+  .controls-edit .format-toggle .fmt-btn { min-width: calc(50% - .25rem); }
+  .pos-grid { grid-template-columns: repeat(3, 2.6rem); grid-auto-rows: 2.6rem; }
+  /* Girar: botões em grade de 2 colunas; ↺ ↻ sempre visíveis. */
+  .rotate-actions { display: grid; grid-template-columns: 1fr 1fr; }
+  .rotate-actions .rot-btn { white-space: normal; padding-inline: .75rem; }
+  .rotate-card-btns { opacity: 1; transform: none; }
+}

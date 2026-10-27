@@ -1,13 +1,12 @@
 ---
-/** Ferramentas de PDF (lógica em /js/pdf.js). O modo inicial vem da página;
- *  o usuário continua podendo trocar de modo sem recarregar. */
-export type PdfMode = 'merge' | 'compress' | 'images' | 'extract' | 'export';
+/** Ferramentas de PDF (lógica em /js/pdf.js). O modo vem da página; a troca de
+ *  modo é pelos cartões de navegação abaixo do cabeçalho (ToolsNav). */
+export type PdfMode = 'merge' | 'compress' | 'images' | 'extract' | 'remove' | 'rotate' | 'export' | 'watermark' | 'number' | 'crop';
 interface Props { mode?: PdfMode }
 const { mode = 'merge' } = Astro.props;
-const modes = [['merge', 'Juntar'], ['compress', 'Comprimir'], ['images', 'Imagens → PDF'], ['extract', 'Extrair / dividir'], ['export', 'PDF → imagens']] as const;
 // Mesmos textos que o pdf.js aplica ao trocar de modo.
-const titles: Record<PdfMode, string> = { merge: 'Juntar PDFs', compress: 'Comprimir PDFs', images: 'Imagens para PDF', extract: 'Extrair ou dividir PDF', export: 'PDF para imagens' };
-const descriptions: Record<PdfMode, string> = { merge: 'Adicione os PDFs e organize a ordem.', compress: 'Adicione seus PDFs e escolha a compressão.', images: 'Adicione as imagens e organize a ordem das páginas.', extract: 'Escolha as páginas que deseja salvar.', export: 'Transforme as páginas do PDF em JPG ou PNG.' };
+const titles: Record<PdfMode, string> = { merge: 'Juntar PDFs', compress: 'Comprimir PDFs', images: 'Imagens para PDF', extract: 'Extrair ou dividir PDF', remove: 'Remover páginas do PDF', rotate: 'Girar páginas do PDF', export: 'PDF para imagens', watermark: "Marca d'água no PDF", number: 'Numerar páginas do PDF', crop: 'Recortar margens do PDF' };
+const descriptions: Record<PdfMode, string> = { merge: 'Adicione os PDFs e organize a ordem.', compress: 'Adicione seus PDFs e escolha a compressão.', images: 'Adicione as imagens e organize a ordem das páginas.', extract: 'Escolha as páginas que deseja salvar.', remove: 'Informe as páginas que devem sair do arquivo.', rotate: 'Escolha o ângulo e, se quiser, só algumas páginas.', export: 'Transforme as páginas do PDF em JPG ou PNG.', watermark: 'Escolha texto ou imagem, posição e opacidade.', number: 'Escolha posição, formato e número inicial.', crop: 'Informe quanto cortar de cada margem.' };
 ---
 
 <section class="tool-section page2">
@@ -18,16 +17,9 @@ const descriptions: Record<PdfMode, string> = { merge: 'Adicione os PDFs e organ
     </div>
   </div>
 
-  <div class="controls page-inner controls-pdf" id="pdfControls">
-    <div class="control-group pdf-mode-group">
-      <label>Ferramenta</label>
-      <div class="format-toggle" id="modeToggle">
-        {modes.map(([key, label]) => (
-          <button class:list={['fmt-btn', { active: key === mode }]} type="button" data-mode={key}>{label}</button>
-        ))}
-      </div>
-    </div>
-
+  <div class="tool-workspace page-inner">
+    <div class="tool-side">
+      <div class="controls page-inner controls-pdf" id="pdfControls" data-mode={mode}>
     <div class="control-group compress-only hidden" id="dpiGroup">
       <label for="dpiSelect">Resolução</label>
       <select id="dpiSelect">
@@ -50,10 +42,102 @@ const descriptions: Record<PdfMode, string> = { merge: 'Adicione os PDFs e organ
       <label for="imageMargin">Margem</label>
       <select id="imageMargin"><option value="0">Sem margem</option><option value="10" selected>10 mm</option><option value="20">20 mm</option></select>
     </div>
-    <div class="control-group hidden" data-for="extract export">
+    <div class="control-group hidden" id="pageRangeGroup" data-for="extract export remove rotate watermark number crop">
       <label for="pageRange">Páginas</label>
       <input type="text" id="pageRange" placeholder="Todas ou 1-3, 7" autocomplete="off" spellcheck="false" aria-describedby="rangeHint">
       <small id="rangeHint" class="pdf-field-hint">Deixe vazio para todas as páginas.</small>
+    </div>
+    <div class="control-group hidden" data-for="rotate">
+      <label for="rotateAngle">Ângulo</label>
+      <select id="rotateAngle"><option value="90">90° no sentido horário</option><option value="270">90° no sentido anti-horário</option><option value="180">180° (de cabeça para baixo)</option></select>
+    </div>
+
+    <!-- Marca d'água: texto ou imagem (o pdf.js mostra só os campos do tipo escolhido) -->
+    <div class="control-group hidden" data-for="watermark">
+      <label id="wmTypeLabel">Tipo</label>
+      <div class="format-toggle" id="wmType" role="group" aria-labelledby="wmTypeLabel">
+        <button class="fmt-btn active" type="button" data-type="text" aria-pressed="true">Texto</button>
+        <button class="fmt-btn" type="button" data-type="image" aria-pressed="false">Imagem</button>
+      </div>
+    </div>
+    <div class="control-group hidden" id="wmTextGroup" data-for="watermark">
+      <label for="wmText">Texto</label>
+      <input type="text" id="wmText" value="CONFIDENCIAL" maxlength="120" autocomplete="off" spellcheck="false">
+    </div>
+    <div class="control-group hidden pdf-file-field" id="wmImageGroup" data-for="watermark">
+      <label for="wmImage">Imagem</label>
+      <label class="pdf-file-btn" for="wmImage">Escolher PNG ou JPG…</label>
+      <input type="file" id="wmImage" accept="image/png,image/jpeg,.png,.jpg,.jpeg" aria-describedby="wmImageName">
+      <small id="wmImageName" class="pdf-field-hint pdf-file-name" data-ah-mask>Nenhuma imagem escolhida.</small>
+    </div>
+    <div class="control-group hidden" data-for="watermark">
+      <label for="wmPosition">Posição</label>
+      <select id="wmPosition">
+        <option value="diagonal" selected>Diagonal no centro</option>
+        <option value="center">Centro</option>
+        <option value="top-left">Canto superior esquerdo</option>
+        <option value="top-right">Canto superior direito</option>
+        <option value="bottom-left">Canto inferior esquerdo</option>
+        <option value="bottom-right">Canto inferior direito</option>
+        <option value="tile">Mosaico (repetida em grade)</option>
+      </select>
+    </div>
+    <div class="control-group hidden" data-for="watermark">
+      <label for="wmSize">Tamanho</label>
+      <div class="value" id="wmSizeVal">50%</div>
+      <input type="range" min="5" max="100" value="50" step="1" id="wmSize" aria-describedby="wmSizeHint">
+      <small id="wmSizeHint" class="pdf-field-hint">Em relação à largura da página.</small>
+    </div>
+    <div class="control-group hidden" data-for="watermark">
+      <label for="wmOpacity">Opacidade</label>
+      <div class="value" id="wmOpacityVal">30%</div>
+      <input type="range" min="5" max="100" value="30" step="1" id="wmOpacity">
+    </div>
+    <div class="control-group hidden" id="wmColorGroup" data-for="watermark">
+      <label for="wmColor">Cor do texto</label>
+      <select id="wmColor"><option value="gray" selected>Cinza</option><option value="black">Preto</option><option value="red">Vermelho</option><option value="blue">Azul</option></select>
+    </div>
+
+    <!-- Numerar páginas -->
+    <div class="control-group hidden" data-for="number">
+      <label for="numberPosition">Posição</label>
+      <select id="numberPosition">
+        <option value="bottom-center" selected>Inferior, centro</option>
+        <option value="bottom-right">Inferior, direita</option>
+        <option value="bottom-left">Inferior, esquerda</option>
+        <option value="top-center">Superior, centro</option>
+        <option value="top-right">Superior, direita</option>
+        <option value="top-left">Superior, esquerda</option>
+      </select>
+    </div>
+    <div class="control-group hidden" data-for="number">
+      <label for="numberFormat">Formato</label>
+      <select id="numberFormat">
+        <option value="n" selected>1</option>
+        <option value="pagina-n">Página 1</option>
+        <option value="n-de-total">1 de N</option>
+        <option value="pagina-n-de-total">Página 1 de N</option>
+      </select>
+    </div>
+    <div class="control-group hidden" data-for="number">
+      <label for="numberStart">Número inicial</label>
+      <input type="number" id="numberStart" value="1" min="0" max="999999" step="1" inputmode="numeric">
+    </div>
+    <div class="control-group hidden" data-for="number">
+      <label for="numberSize">Tamanho da fonte</label>
+      <select id="numberSize"><option value="10">10 pt</option><option value="12" selected>12 pt</option><option value="14">14 pt</option></select>
+    </div>
+
+    <!-- Recortar margens: os quatro lados em milímetros -->
+    <div class="control-group hidden pdf-margins-group" data-for="crop">
+      <label id="cropLabel">Margens a cortar (mm)</label>
+      <div class="pdf-margins" role="group" aria-labelledby="cropLabel">
+        <div><label for="cropTop">Superior</label><input type="number" id="cropTop" value="0" min="0" max="1000" step="any" inputmode="decimal"></div>
+        <div><label for="cropRight">Direita</label><input type="number" id="cropRight" value="0" min="0" max="1000" step="any" inputmode="decimal"></div>
+        <div><label for="cropBottom">Inferior</label><input type="number" id="cropBottom" value="0" min="0" max="1000" step="any" inputmode="decimal"></div>
+        <div><label for="cropLeft">Esquerda</label><input type="number" id="cropLeft" value="0" min="0" max="1000" step="any" inputmode="decimal"></div>
+      </div>
+      <small class="pdf-field-hint">O que sobrar precisa ter pelo menos 20 mm de largura e de altura.</small>
     </div>
     <div class="control-group hidden" data-for="extract">
       <label for="extractOutput">Salvar como</label>
@@ -74,21 +158,25 @@ const descriptions: Record<PdfMode, string> = { merge: 'Adicione os PDFs e organ
     </div>
   </div>
 
-  <div class="pdf-compression-option page-inner compress-only hidden">
+      <div class="pdf-compression-option page-inner compress-only hidden">
     <label for="allow-rasterize"><input type="checkbox" id="allow-rasterize" aria-describedby="rasterize-hint"><span>Permitir compressão mais forte</span></label>
     <p id="rasterize-hint">Pode transformar páginas em imagens, removendo texto selecionável, links e campos.</p>
   </div>
-  <div class="drop-zone page-inner" id="dropZone">
+
+      <div class="action-bar page-inner">
+    <button class="btn btn-primary" id="actionBtn" disabled>Juntar PDFs</button>
+    <button class="btn btn-outline" id="downloadBtn" disabled>↓ Baixar PDF</button>
+    <button class="btn btn-outline" id="clearBtn" disabled>Limpar</button>
+  </div>
+    </div>
+    <div class="tool-main">
+      <div class="drop-zone page-inner" id="dropZone">
     <input type="file" id="fileInput" accept="application/pdf,.pdf" multiple aria-label="Selecionar arquivos PDF">
     <span class="drop-icon">⬇</span>
     <p id="dropText"><strong>Arraste os PDFs aqui</strong><br>ou clique para selecionar · somente .pdf</p>
   </div>
 
-  <div class="action-bar page-inner">
-    <button class="btn btn-primary" id="actionBtn" disabled>Juntar PDFs</button>
-    <button class="btn btn-outline" id="downloadBtn" disabled>↓ Baixar PDF</button>
-    <button class="btn btn-outline" id="clearBtn" disabled>Limpar</button>
-  </div>
+  
 
   <p class="page-inner pdf-status" id="pdfStatus" role="status" aria-live="polite" hidden></p>
 
@@ -113,4 +201,6 @@ const descriptions: Record<PdfMode, string> = { merge: 'Adicione os PDFs e organ
 
   <div class="pdf-list page-inner" id="pdfList" data-ah-mask></div>
   <div class="page-inner pdf-outputs" id="pdfOutputs" data-ah-mask hidden></div>
+    </div>
+  </div>
 </section>

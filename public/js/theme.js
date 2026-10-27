@@ -18,16 +18,19 @@ function setThemeColor() {
   });
 }
 
+// Parte verde do controle deslizante, do início até o círculo.
+function updateRangeFill(range) {
+  const min = Number(range.min || 0);
+  const max = Number(range.max || 100);
+  const value = Number(range.value || 0);
+  const pct = max > min ? ((value - min) / (max - min)) * 100 : 0;
+  const track = getComputedStyle(document.documentElement).getPropertyValue('--surface2').trim();
+  const fill = document.documentElement.classList.contains('light') ? '#3d7000' : '#b8f55a';
+  range.style.background = `linear-gradient(to right, ${fill} 0%, ${fill} ${pct}%, ${track} ${pct}%, ${track} 100%)`;
+}
+
 function updateAllRangeFills() {
-  document.querySelectorAll('input[type="range"]').forEach((range) => {
-    const min = Number(range.min || 0);
-    const max = Number(range.max || 100);
-    const value = Number(range.value || 0);
-    const pct = ((value - min) / (max - min)) * 100;
-    const track = getComputedStyle(document.documentElement).getPropertyValue('--surface2').trim();
-    const fill = document.documentElement.classList.contains('light') ? '#3d7000' : '#b8f55a';
-    range.style.background = `linear-gradient(to right, ${fill} 0%, ${fill} ${pct}%, ${track} ${pct}%, ${track} 100%)`;
-  });
+  document.querySelectorAll('input[type="range"]').forEach(updateRangeFill);
 }
 
 function toggleTheme() {
@@ -43,6 +46,11 @@ window.updateAllRangeFills = updateAllRangeFills;
 // O cabeçalho é trocado a cada navegação: religa o botão e reaplica cores na página nova.
 kompres.register('theme', (signal, document) => {
   document.getElementById('theme-switch')?.addEventListener('click', toggleTheme, { signal });
+  // Qualquer controle deslizante de qualquer ferramenta: o preenchimento acompanha o círculo,
+  // sem depender de cada ferramenta lembrar de atualizar.
+  document.addEventListener('input', (event) => {
+    if (event.target instanceof HTMLInputElement && event.target.type === 'range') updateRangeFill(event.target);
+  }, { signal });
   setThemeColor();
   updateAllRangeFills();
 });

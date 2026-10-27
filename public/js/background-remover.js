@@ -62,9 +62,7 @@ kompres.register('background', (signal, document) => {
     } finally { busy = false; render(); }
   }
   fileInput.onchange = async () => { const files = [...fileInput.files]; fileInput.value = ''; await addFiles(files); };
-  $('bgDrop').ondragover = e => { e.preventDefault(); if (!busy) $('bgDrop').classList.add('dragover'); };
-  $('bgDrop').ondragleave = () => $('bgDrop').classList.remove('dragover');
-  $('bgDrop').ondrop = e => { e.preventDefault(); $('bgDrop').classList.remove('dragover'); addFiles([...e.dataTransfer.files]); };
+  kompres.fileDrop({ signal, document, zone: $('bgDrop'), onFiles: files => { if (!busy) addFiles(files); } });
   function process(file) {
     return new Promise((resolve,reject) => {
       worker ||= new Worker('/js/background-worker.js?v=1', { type:'module' });

@@ -1,0 +1,21 @@
+---
+/** Cartões de navegação entre as ferramentas de um grupo (imagem ou PDF). */
+import { toolGroups, groupOf, type ToolKey } from '../data/tools';
+interface Props { active: ToolKey }
+const { active } = Astro.props;
+const group = groupOf(active);
+const items = toolGroups[group];
+---
+<nav class:list={['tools-nav', 'page', `tools-nav-${group}`]} aria-label={group === 'pdf' ? 'Ferramentas de PDF' : 'Ferramentas de imagem'}>
+  {items.map(({ key, href, label, description, icon }) => (
+    <a href={href} class:list={{ active: key === active }} aria-current={key === active ? 'page' : undefined}>
+      <span class="tools-nav-icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24" set:html={icon} />
+      </span>
+      <span class="tools-nav-text">
+        <strong>{label}</strong>
+        <small>{description}</small>
+      </span>
+    </a>
+  ))}
+</nav>

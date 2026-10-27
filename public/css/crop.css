@@ -1,0 +1,102 @@
+/* Recortar imagem: área de edição com caixa de recorte, alças e sombra fora da seleção. */
+.crop-tool { --crop-accent: var(--accent); padding-bottom: 28px; }
+html.light .crop-tool { --crop-accent: #3d7000; }
+
+.controls-crop { grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr) minmax(0, 1fr); }
+.controls-crop .format-toggle { flex-wrap: wrap; }
+.controls-crop .fmt-btn { flex: 1 1 auto; min-width: 3rem; white-space: nowrap; }
+.controls-crop input[type="number"]:disabled { opacity: .5; cursor: not-allowed; }
+
+/* Destaque de arrastar vale para a área pontilhada e para o editor. */
+.crop-area { margin-bottom: 1.5rem; }
+.crop-area .drop-zone { margin-bottom: 0; }
+.crop-area.drag-over .crop-frame { border-color: var(--crop-accent); border-style: dashed; }
+.crop-area.drag-over .drop-zone { border-color: var(--crop-accent); background: var(--accent-dim); }
+
+.crop-meta {
+  display: flex; align-items: center; gap: .5rem 1rem; flex-wrap: wrap;
+  margin-bottom: .8rem; font: .78rem/1.5 var(--font-mono); color: var(--muted);
+}
+.crop-meta strong { color: var(--text); font-weight: 500; overflow-wrap: anywhere; min-width: 0; }
+.crop-meta .crop-change {
+  margin-left: auto; padding: .5rem .8rem; border: 1px solid var(--border); border-radius: 7px;
+  background: var(--surface2); color: var(--text); font: .75rem var(--font-text); cursor: pointer;
+}
+.crop-meta .crop-change:hover:not(:disabled) { color: var(--crop-accent); border-color: var(--crop-accent); }
+.crop-meta .crop-change:disabled { opacity: .4; cursor: not-allowed; }
+
+/* O quadro centraliza a prévia e deixa folga para as alças que saem da imagem. */
+.crop-frame {
+  max-width: 820px; margin-inline: auto;
+  display: flex; justify-content: center; padding: 18px;
+  border: 1px solid var(--border); border-radius: 12px; background: var(--surface);
+  transition: border-color .25s ease;
+}
+.crop-stage {
+  position: relative; display: block; width: fit-content; max-width: 100%; line-height: 0;
+  touch-action: none; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none;
+  border-radius: 2px;
+}
+.crop-stage:focus-visible { outline: 2px solid var(--crop-accent); outline-offset: 6px; }
+.crop-stage canvas {
+  display: block; max-width: 100%;
+  background-color: #fff;
+  background-image: conic-gradient(#e3e3e3 25%, #fff 0 50%, #e3e3e3 0 75%, #fff 0);
+  background-size: 20px 20px;
+}
+.crop-shade { position: absolute; inset: 0; background: rgba(0, 0, 0, .55); pointer-events: none; }
+html.light .crop-shade { background: rgba(0, 0, 0, .45); }
+
+.crop-box {
+  position: absolute; left: 0; top: 0; box-sizing: border-box;
+  outline: 1px solid var(--crop-accent); outline-offset: -1px;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, .35);
+  cursor: move; will-change: transform, width, height;
+}
+/* Terços: guias de composição dentro da seleção. */
+.crop-box::before {
+  content: ''; position: absolute; inset: 0; pointer-events: none;
+  background-image:
+    linear-gradient(to right, rgba(255, 255, 255, .35) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, .35) 1px, transparent 1px);
+  background-size: 33.3334% 100%, 100% 33.3334%;
+  background-position: -1px 0, 0 -1px;
+}
+.crop-box.dragging::before { opacity: .8; }
+
+/* Alças: área de toque de 28 px, quadrado visível de 12 px. */
+.crop-handle {
+  position: absolute; width: 28px; height: 28px; transform: translate(-50%, -50%);
+  display: flex; align-items: center; justify-content: center; z-index: 2;
+}
+.crop-handle::after {
+  content: ''; width: 12px; height: 12px; border-radius: 3px;
+  background: #fff; border: 2px solid var(--crop-accent); box-shadow: 0 1px 4px rgba(0, 0, 0, .45);
+  transition: transform .12s;
+}
+.crop-handle:hover::after, .crop-box.dragging .crop-handle::after { transform: scale(1.15); }
+.crop-handle[data-handle="nw"] { left: 0; top: 0; cursor: nwse-resize; }
+.crop-handle[data-handle="n"] { left: 50%; top: 0; cursor: ns-resize; }
+.crop-handle[data-handle="ne"] { left: 100%; top: 0; cursor: nesw-resize; }
+.crop-handle[data-handle="e"] { left: 100%; top: 50%; cursor: ew-resize; }
+.crop-handle[data-handle="se"] { left: 100%; top: 100%; cursor: nwse-resize; }
+.crop-handle[data-handle="s"] { left: 50%; top: 100%; cursor: ns-resize; }
+.crop-handle[data-handle="sw"] { left: 0; top: 100%; cursor: nesw-resize; }
+.crop-handle[data-handle="w"] { left: 0; top: 50%; cursor: ew-resize; }
+/* Alças de lado ficam como barras, para diferenciar dos cantos. */
+.crop-handle[data-handle="n"]::after, .crop-handle[data-handle="s"]::after { width: 22px; height: 7px; }
+.crop-handle[data-handle="e"]::after, .crop-handle[data-handle="w"]::after { width: 7px; height: 22px; }
+
+.crop-help { margin: .8rem 0 0; }
+
+@media (max-width: 1024px) {
+  .controls-crop { grid-template-columns: 1fr 1fr; }
+  .controls-crop .control-group:first-child { grid-column: 1 / -1; }
+}
+@media (max-width: 768px) {
+  .controls-crop { grid-template-columns: 1fr; }
+  .crop-frame { padding: 14px 12px; }
+  .crop-meta .crop-change { margin-left: 0; width: 100%; padding: .7rem; }
+  .crop-handle { width: 32px; height: 32px; }
+  .crop-help { font-size: .72rem; }
+}
