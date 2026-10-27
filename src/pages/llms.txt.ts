@@ -30,7 +30,7 @@ ${allPages.filter((page) => page.group === 'pdf').map(line).join('\n')}
 ## Como funciona
 
 - Tudo roda no navegador, com JavaScript, inclusive em celulares. Os arquivos não saem do dispositivo.
-- Formatos de imagem: PNG, JPG (JPEG), WebP e SVG (entrada). Saída em PNG, JPG ou WebP.
+- Formatos de imagem: PNG, JPG (JPEG), WebP, SVG e HEIC/HEIF do iPhone (entrada). Saída em PNG, JPG, WebP, ICO (favicon) ou GIF animado.
 - Processamento em lote: várias imagens de uma vez, com download individual ou em ZIP.
 - O remover fundo usa um modelo de IA baixado uma vez para o navegador; as imagens continuam locais.
 - PDFs protegidos por senha não são desbloqueados.
