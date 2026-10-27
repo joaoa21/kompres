@@ -1,6 +1,6 @@
 /**
  * Registro central das páginas indexáveis. Alimenta metatags, sitemap,
- * breadcrumbs (JSON-LD) e os links de "Outras ferramentas".
+ * breadcrumbs (JSON-LD) e a lista de ferramentas do rodapé.
  */
 export interface PageInfo {
   path: string;

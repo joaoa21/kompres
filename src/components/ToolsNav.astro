@@ -1,20 +1,21 @@
 ---
 /** Cartões de navegação entre as ferramentas de um grupo (imagem ou PDF), com filtro por
- *  categoria acima. O filtro só esconde cartões: todos os links continuam no HTML. */
+ *  categoria acima. O filtro só esconde cartões: todos os links continuam no HTML.
+ *  Sem `active` (página 404), mostra o grupo pedido em `group`, sem filtro. */
 import { toolGroups, groupOf, categoryLabels, type ToolKey, type ToolCategory } from '../data/tools';
-interface Props { active: ToolKey }
+interface Props { active?: ToolKey; group?: 'image' | 'pdf' }
 const { active } = Astro.props;
-const group = groupOf(active);
+const group = active ? groupOf(active) : Astro.props.group ?? 'image';
 const items = toolGroups[group];
 // Categorias na ordem em que aparecem nos cartões.
 const categories = [...new Set(items.map((item) => item.category))] as ToolCategory[];
 ---
-<div class="tools-filter page" role="group" aria-label="Filtrar ferramentas" data-group={group}>
+{active && <div class="tools-filter page" role="group" aria-label="Filtrar ferramentas" data-group={group}>
   <button type="button" class="active" data-filter="todas" aria-pressed="true">Todas</button>
   {categories.map((category) => (
     <button type="button" data-filter={category} aria-pressed="false">{categoryLabels[category]}</button>
   ))}
-</div>
+</div>}
 <nav class:list={['tools-nav', 'page', `tools-nav-${group}`]} data-filter="todas" aria-label={group === 'pdf' ? 'Ferramentas de PDF' : 'Ferramentas de imagem'}>
   {items.map(({ key, href, label, description, icon, category }) => (
     <a href={href} data-ah-label={label} data-category={category} class:list={{ active: key === active }} aria-current={key === active ? 'page' : undefined}>

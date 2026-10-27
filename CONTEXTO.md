@@ -12,7 +12,7 @@ Ferramentas de imagem: comprimir/converter (`/`, aceita SVG), redimensionar (`/r
 
 - `src/layouts/Base.astro`: cabeçalho, navegação, metatags, JSON-LD, scripts compartilhados, `ClientRouter` (navegação sem recarregar).
 - `src/layouts/CompressorPage.astro` e `PdfPage.astro`: páginas de ferramenta com textos próprios.
-- `src/components/tools/*.astro`: marcação das ferramentas. `Guide.astro`: perguntas frequentes. `RelatedTools.astro`: links entre ferramentas.
+- `src/components/tools/*.astro`: marcação das ferramentas. `Guide.astro`: perguntas frequentes. `SiteFooter.astro`: rodapé com todas as ferramentas por assunto (o build falha se uma página nova ficar sem coluna).
 - `src/data/pages.ts`: registro central de páginas (título, descrição, nome). Alimenta sitemap (`src/pages/sitemap.xml.ts`), breadcrumbs e links.
 - `src/scripts/app.ts`: monta/desmonta as ferramentas a cada navegação (`astro:page-load` / `astro:before-swap`) e pré-busca as bibliotecas de PDF ao passar o mouse em links para `/pdf/`.
 - `src/data/tools.ts` + `src/components/ToolsNav.astro`: cartões de navegação (ícone, nome, descrição) abaixo do cabeçalho; `Base.astro` recebe `activeTool`.

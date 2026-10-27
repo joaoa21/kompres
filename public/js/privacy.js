@@ -33,6 +33,13 @@
   }
   window.acceptCookies = () => choose('accepted');
   window.rejectCookies = () => choose('rejected');
+  // Link "Preferências de cookies" do rodapé: apaga a escolha e mostra o aviso de novo
+  // (recusar precisa ser tão fácil quanto aceitar).
+  window.showCookiePreferences = () => {
+    try { localStorage.removeItem('kompres-cookies'); } catch {}
+    banner?.classList.add('show');
+    banner?.querySelector('.cookie-btn')?.focus();
+  };
   if (read() === 'accepted') {
     enableAnalytics();
     trackik('consentir');

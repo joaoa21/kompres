@@ -23,7 +23,7 @@ const { page, hero, mode, guideTitle, faqs } = Astro.props;
 <Base page={page} section="pdf" activeTool={navKey[mode]} tool="pdf" styles={['/css/pdf-tools.css?v=ux-5']}>
   <Hero {...hero} />
   <PdfTool mode={mode} />
-  <Guide title={guideTitle} faqs={faqs} current={page.path} />
+  <Guide title={guideTitle} faqs={faqs} />
 
   {PDF_LIBS.map((src) => <script is:inline slot="libs" src={src}></script>)}
   <script is:inline slot="libs" src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>

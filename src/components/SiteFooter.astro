@@ -1,6 +1,48 @@
+---
+/** Rodapé com todas as ferramentas, separadas por assunto. Links internos em todas as páginas
+ *  ajudam o Google a entender a estrutura do site (e a montar sitelinks). */
+import { pages, allPages, type PageKey } from '../data/pages';
+
+const columns: { title: string; keys: PageKey[] }[] = [
+  { title: 'Editar imagens', keys: ['compress', 'resize', 'upscaleImage', 'background', 'rotateImage', 'cropImage', 'watermarkImage', 'blurImage'] },
+  { title: 'Converter imagens', keys: ['heicToJpg', 'svgToPng', 'pngToIco', 'gifMaker', 'pngToJpg', 'jpgToPng', 'webpToJpg', 'webpToPng', 'pngToWebp', 'jpgToWebp'] },
+  { title: 'Organizar PDF', keys: ['pdfMerge', 'pdfSplit', 'pdfRemove', 'pdfRotate', 'pdfOrganize', 'pdfCompress'] },
+  { title: 'Editar e converter PDF', keys: ['pdfSign', 'pdfWatermark', 'pdfNumber', 'pdfCrop', 'pdfFromImages', 'pngToPdf', 'pdfToImages', 'pdfToText'] },
+];
+// Página nova sem lugar no rodapé quebra o build, para nenhuma ficar sem link.
+const listed = new Set(columns.flatMap((column) => column.keys).map((key) => pages[key].path));
+const missing = allPages.filter((page) => !listed.has(page.path));
+if (missing.length) throw new Error(`SiteFooter: sem coluna para ${missing.map((page) => page.path).join(', ')}`);
+
+const current = Astro.url.pathname;
+---
 <div class="footer-wrap">
-  <footer class="site-footer">
-    <p>© Kompres — Todos os direitos reservados.</p>
-    <p class="creator">Criado por&nbsp;<a href="https://joaoa.com.br" target="_blank" rel="noopener">João Alberto<span>.</span></a></p>
+  <footer class="site-footer" data-ah-label="Rodapé">
+    <div class="footer-top">
+      <div class="footer-about">
+        <a class="footer-brand" href="/" aria-label="Kompres - Página inicial">
+          <img src="/favicon.svg" alt="" width="28" height="28">
+          <span>Kompres</span>
+        </a>
+        <p>Ferramentas grátis de imagem e PDF. Tudo acontece no seu navegador: seus arquivos não são enviados.</p>
+        <button type="button" class="footer-cookies" onclick="showCookiePreferences()">Preferências de cookies</button>
+      </div>
+      <nav class="footer-tools" aria-label="Todas as ferramentas">
+        {columns.map(({ title, keys }) => (
+          <div class="footer-col">
+            <h2>{title}</h2>
+            <ul>
+              {keys.map((key) => (
+                <li><a href={pages[key].path} aria-current={pages[key].path === current ? 'page' : undefined}>{pages[key].name}</a></li>
+              ))}
+            </ul>
+          </div>
+        ))}
+      </nav>
+    </div>
+    <div class="footer-bottom">
+      <p>© Kompres — Todos os direitos reservados.</p>
+      <p class="creator">Criado por&nbsp;<a href="https://joaoa.com.br" target="_blank" rel="noopener">João Alberto<span>.</span></a></p>
+    </div>
   </footer>
 </div>
