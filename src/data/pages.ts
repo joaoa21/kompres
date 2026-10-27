@@ -160,6 +160,22 @@ export const pages = {
     appName: 'Kompres JPG para WebP',
     group: 'image',
   },
+  compress100kb: {
+    path: '/comprimir-imagem-para-100kb/',
+    title: 'Comprimir imagem para 100 KB online grátis | Kompres',
+    description: 'Reduza fotos e imagens para até 100 KB em um clique, para formulários, cadastros e inscrições. JPG, PNG e WebP, grátis e sem enviar arquivos.',
+    name: 'Comprimir imagem para 100 KB',
+    appName: 'Kompres Comprimir para 100 KB',
+    group: 'image',
+  },
+  compress50kb: {
+    path: '/comprimir-imagem-para-50kb/',
+    title: 'Comprimir foto para 50 KB online grátis | Kompres',
+    description: 'Deixe fotos e imagens com até 50 KB para concursos, matrículas e sites com limite de envio. JPG, PNG e WebP, grátis e sem enviar arquivos.',
+    name: 'Comprimir foto para 50 KB',
+    appName: 'Kompres Comprimir para 50 KB',
+    group: 'image',
+  },
   pdfMerge: {
     path: '/pdf/',
     title: 'Juntar PDF online grátis: una arquivos em um só | Kompres',
@@ -174,6 +190,14 @@ export const pages = {
     description: 'Reduza o tamanho de PDFs no navegador preservando o texto selecionável. Escolha resolução e qualidade. Grátis, sem cadastro e sem upload.',
     name: 'Comprimir PDF',
     appName: 'Kompres Comprimir PDF',
+    group: 'pdf',
+  },
+  pdfCompress1mb: {
+    path: '/pdf/comprimir-para-1mb/',
+    title: 'Comprimir PDF para 1 MB ou 2 MB online grátis | Kompres',
+    description: 'Reduza PDFs para caber no limite de 1 MB, 2 MB ou 500 KB de formulários e e-mails. Mostra se o arquivo coube. Grátis e sem enviar documentos.',
+    name: 'Comprimir PDF para 1 MB',
+    appName: 'Kompres Comprimir PDF para 1 MB',
     group: 'pdf',
   },
   pdfFromImages: {

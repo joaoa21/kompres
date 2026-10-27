@@ -41,6 +41,9 @@ kompres.register('pdf', (signal, document) => {
   let busy = false;
   let uid = 0;
   const rasterizeInput = document.getElementById('allow-rasterize');
+  // Limite de tamanho da compressão (0 = sem limite), em bytes como o resto do site (1 MB = 1.000.000).
+  const limitSelect = document.getElementById('pdfLimit');
+  const sizeLimit = () => Number(limitSelect?.value) || 0;
   function escapeHtml(value) { return String(value).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
   document.querySelectorAll('#pdfControls input, #pdfControls select, #allow-rasterize').forEach(el => el.addEventListener('input', () => {
     if (busy) return;
@@ -608,7 +611,7 @@ kompres.register('pdf', (signal, document) => {
       if (mode === 'compress' && item.status === 'done') {
         const saved = Math.round((1 - item.outSize / item.size) * 100);
         if (item.method === 'original' || saved <= 0) {
-          result = `<div class="pdf-result"><small class="pdf-nogain">PDF já otimizado — mantido o original</small></div>`;
+          result = `<div class="pdf-result"><small class="pdf-nogain">PDF já otimizado — mantido o original</small>${limitNote(item)}</div>`;
         } else {
           const tag = (item.method === 'lossless' || item.method === 'images')
             ? '<small class="pdf-nogain">texto preservado</small>'
@@ -619,6 +622,7 @@ kompres.register('pdf', (signal, document) => {
                <span class="size-new">${formatBytes(item.outSize)}</span>
                <span class="pdf-badge">−${saved}%</span>
                ${tag}
+               ${limitNote(item)}
              </div>`;
         }
       }
@@ -843,6 +847,7 @@ kompres.register('pdf', (signal, document) => {
           try {
             const result = await compressSmart(item, Number(dpiSelect.value), Number(qualityIn.value) / 100);
             item.outBlob = result.blob; item.outSize = result.blob.size; item.method = result.method; item.status = 'done';
+            item.limit = sizeLimit(); item.limitLabel = limitSelect?.selectedOptions[0]?.textContent; item.rasterized = rasterizeInput.checked;
           } catch { item.status = 'error'; item.error = 'Falha ao comprimir este PDF'; }
         }
       }
@@ -862,8 +867,18 @@ kompres.register('pdf', (signal, document) => {
     Preferência: resultados que preservam o texto vencem, a menos que o
     re-render seja pelo menos 15% menor.
   */
+  // Com limite: diz se o resultado coube e, se não, o que ainda dá para tentar.
+  function limitNote(item) {
+    const limit = item.limit;
+    if (!limit) return '';
+    if (item.outSize <= limit) return `<small class="pdf-limit ok">✓ Cabe em ${item.limitLabel}</small>`;
+    const hint = item.rasterized ? 'Tente dividir o PDF ou remover páginas.' : 'Marque “Permitir compressão mais forte” e comprima de novo.';
+    return `<small class="pdf-limit over">Ainda passa de ${item.limitLabel}. ${hint}</small>`;
+  }
+
   async function compressSmart(item, dpi, quality) {
     const candidates = [];
+    const limit = sizeLimit();
 
     // 1) sem perdas
     try {
@@ -885,7 +900,7 @@ kompres.register('pdf', (signal, document) => {
 
     // se já temos ganho bom preservando o texto, nem tenta rasterizar
     const bestTextSafe = candidates.slice().sort((a, b) => a.blob.size - b.blob.size)[0];
-    const goodEnough = bestTextSafe && bestTextSafe.blob.size < item.size * 0.6;
+    const goodEnough = bestTextSafe && (limit ? bestTextSafe.blob.size <= limit : bestTextSafe.blob.size < item.size * 0.6);
 
     // 3) re-render com fallback progressivo
     if (!goodEnough && rasterizeInput.checked) {
@@ -893,6 +908,8 @@ kompres.register('pdf', (signal, document) => {
         { dpi, q: quality },
         { dpi: Math.max(96, dpi - 24), q: Math.max(0.5, quality - 0.15) },
         { dpi: 96, q: Math.max(0.45, quality - 0.3) },
+        // Com limite, desce mais até caber (o texto continua legível na tela).
+        ...(limit ? [{ dpi: 72, q: 0.45 }, { dpi: 60, q: 0.35 }] : []),
       ];
       const seen = new Set();
 
@@ -904,7 +921,7 @@ kompres.register('pdf', (signal, document) => {
         const blob = await compressOne(item, attempt.dpi, attempt.q);
         if (blob.size < item.size) candidates.push({ blob, method: 'render' });
 
-        if (blob.size < item.size * 0.9) break;
+        if (limit ? blob.size <= limit : blob.size < item.size * 0.9) break;
       }
     }
 
@@ -918,6 +935,9 @@ kompres.register('pdf', (signal, document) => {
     candidates.sort((a, b) => a.blob.size - b.blob.size);
     const smallest = candidates[0];
     const textSafe = candidates.find((c) => c.method !== 'render');
+
+    // Com limite: o que preserva o texto, se couber; senão, o menor (que cabe ou chega mais perto).
+    if (limit) return textSafe && textSafe.blob.size <= limit ? textSafe : smallest;
 
     // render só vence um resultado com texto preservado se for 15%+ menor
     if (textSafe && smallest.method === 'render' && textSafe.blob.size <= smallest.blob.size * 1.15) {

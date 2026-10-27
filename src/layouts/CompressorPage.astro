@@ -14,18 +14,20 @@ interface Props {
   heading?: string;
   intro?: string;
   svg?: boolean;
+  /** Abre no modo Tamanho máx. com este limite. */
+  target?: { value: number; unit: 'KB' | 'MB' };
   /** Cartão marcado na navegação (o padrão é o compressor). */
   activeTool?: ToolKey;
   guideTitle: string;
   faqs: Faq[];
 }
-const { page, hero, format, heading, intro, svg, activeTool = 'compress', guideTitle, faqs } = Astro.props;
+const { page, hero, format, heading, intro, svg, target, activeTool = 'compress', guideTitle, faqs } = Astro.props;
 ---
 <Base page={page} section="image" activeTool={activeTool} tool="compressor">
   <Hero {...hero} />
-  <CompressorTool format={format} heading={heading} intro={intro} svg={svg} />
+  <CompressorTool format={format} heading={heading} intro={intro} svg={svg} target={target} />
   <Guide title={guideTitle} faqs={faqs} />
 
   <script is:inline slot="libs" src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-  <script slot="scripts" is:inline src="/js/compressor.js?v=dl-1"></script>
+  <script slot="scripts" is:inline src="/js/compressor.js?v=dl-2"></script>
 </Base>

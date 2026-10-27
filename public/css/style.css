@@ -1425,6 +1425,16 @@ html.light .pdf-badge {
   color: var(--muted);
 }
 
+/* Comprimir com limite de tamanho: coube (verde) ou ainda passa (vermelho) */
+.pdf-limit {
+  flex-basis: 100%;
+  font-size: 0.75rem;
+}
+.pdf-limit.ok { color: var(--accent); }
+html.light .pdf-limit.ok { color: #3d7000; }
+.pdf-limit.over { color: var(--danger); }
+html.light .pdf-limit.over { color: #ad2424; }
+
 .pdf-actions {
   display: flex;
   align-items: center;
