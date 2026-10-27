@@ -40,6 +40,8 @@ kompres.register('rotate', (signal, document) => {
   globalButtons.forEach((button) => button.addEventListener('click', () => applyToAll(button.dataset.rotate)));
   resetBtn.addEventListener('click', () => applyToAll('reset'));
   downloadBtn.addEventListener('click', downloadAll);
+  // Vários resultados: separados, numa pasta ou em ZIP (setinha ao lado do botão).
+  const dl = kompres.downloads.attach({ signal, button: downloadBtn, onPick: () => downloadAll() });
   clearBtn.addEventListener('click', clearAll);
 
   async function handleFiles(files) {
@@ -317,19 +319,17 @@ kompres.register('rotate', (signal, document) => {
     setTimeout(() => URL.revokeObjectURL(url), 4000);
   }
 
-  // Um resultado só sai direto; vários vão em ZIP. Imagens sem alteração vão como estão.
+  // Um resultado só sai direto; vários na forma escolhida. Imagens sem alteração vão como estão.
   async function downloadAll() {
     const done = images.filter((item) => item.processed);
     if (!done.length) return;
-    if (done.length === 1) { downloadBlob(done[0].processed.blob, done[0].processed.fileName); return; }
-
+    const files = done.map((item) => ({ name: item.processed.fileName, blob: item.processed.blob }));
     downloadBtn.disabled = true;
-    downloadBtn.textContent = 'Gerando ZIP...';
+    if (files.length > 1) downloadBtn.textContent = kompres.downloads.busyLabel();
     try {
-      const zip = new JSZip();
-      done.forEach((item, index) => zip.file(`${index + 1}-${item.processed.fileName}`, item.processed.blob));
-      downloadBlob(await zip.generateAsync({ type: 'blob' }), 'imagens-giradas-kompres.zip');
-    } catch { setStatus('Não foi possível gerar o ZIP. Tente novamente.', true); }
+      const result = await kompres.downloads.saveFiles(files, { zipName: 'imagens-giradas-kompres.zip' });
+      if (result === 'folder') setStatus(`${files.length} imagens salvas na pasta escolhida.`);
+    } catch { setStatus('Não foi possível salvar os arquivos. Tente outra forma de baixar na setinha ao lado do botão.', true); }
     finally { updateUI(); }
   }
 
@@ -368,7 +368,8 @@ kompres.register('rotate', (signal, document) => {
     resetBtn.disabled = !images.some((item) => !isUnchanged(item));
     clearBtn.disabled = !hasImages;
     downloadBtn.disabled = busy || !done || pending().length > 0;
-    downloadBtn.textContent = busy || pending().length ? 'Processando…' : done === 1 ? '↓ Baixar' : '↓ Baixar ZIP';
+    dl.update(done);
+    if (busy || pending().length) downloadBtn.textContent = 'Processando…';
   }
 
   function formatBytes(bytes) {

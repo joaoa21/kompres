@@ -1712,3 +1712,45 @@ html.light { --scroll-thumb: rgba(0, 0, 0, 0.18); --scroll-thumb-hover: #3d7000;
 @supports (-moz-appearance: none) {
   * { scrollbar-width: thin; scrollbar-color: var(--scroll-thumb) transparent; }
 }
+
+/* ── Botão de baixar com formas de download (public/js/downloads.js) ──
+   Com mais de um arquivo, uma setinha ao lado abre: Baixar todas, Salvar numa pasta, ZIP. */
+.dl-split { position: relative; display: flex; align-items: stretch; }
+.dl-split > .btn:first-child { flex: 1 1 auto; }
+.dl-split .dl-caret { display: none; flex: 0 0 auto; width: 2.6rem; padding: 0; align-items: center; justify-content: center; }
+.dl-split.has-menu > .btn:first-child { border-top-right-radius: 0; border-bottom-right-radius: 0; }
+.dl-split.has-menu .dl-caret {
+  display: inline-flex;
+  border-top-left-radius: 0; border-bottom-left-radius: 0;
+  border-left: 1px solid rgba(12, 12, 13, 0.18);
+}
+.dl-split .dl-caret.btn-outline { border-left-color: var(--border); margin-left: -1px; }
+.dl-caret svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; transition: transform .15s ease; }
+.dl-caret[aria-expanded="true"] svg { transform: rotate(180deg); }
+.dl-caret:hover { transform: none !important; }
+.dl-menu {
+  position: fixed; z-index: 60;
+  padding: 6px;
+  background: var(--surface); border: 1px solid var(--border-hover); border-radius: 12px;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.35);
+}
+.dl-menu[hidden] { display: none; }
+.dl-menu button {
+  display: grid; gap: 2px; width: 100%; padding: 9px 10px 9px 32px; position: relative;
+  border: 0; border-radius: 8px; background: none; color: var(--text); text-align: left; cursor: pointer;
+}
+.dl-menu button:hover, .dl-menu button:focus-visible { background: var(--surface2); outline: none; }
+.dl-menu strong { font: 600 .85rem var(--font-head); }
+.dl-menu small { font-size: .72rem; line-height: 1.35; color: var(--muted); }
+.dl-menu button[aria-checked="true"]::before {
+  content: ''; position: absolute; left: 11px; top: 13px; width: 10px; height: 6px;
+  border-left: 2px solid var(--accent); border-bottom: 2px solid var(--accent); transform: rotate(-45deg);
+}
+html.light .dl-menu button[aria-checked="true"]::before { border-color: #3d7000; }
+html.light .dl-menu { box-shadow: 0 12px 32px rgba(0, 0, 0, 0.12); }
+/* Na barra horizontal (celular e páginas sem coluna), o botão não estica. */
+.action-bar .dl-split { flex: 0 1 auto; }
+/* Na coluna de ajustes os botões ocupam a largura toda: o principal estica, a setinha não. */
+.tool-side .action-bar .dl-split { width: 100%; }
+.tool-side .action-bar .dl-split > .btn:first-child { width: auto; flex: 1 1 auto; min-width: 0; }
+.tool-side .action-bar .dl-split .dl-caret { width: 2.8rem; flex: 0 0 2.8rem; min-height: 0; padding: 0; font-size: 1rem; }

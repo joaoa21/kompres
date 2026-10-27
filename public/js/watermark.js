@@ -87,6 +87,8 @@ kompres.register('watermark', (signal, document) => {
 
   processBtn.addEventListener('click', () => processAll(true));
   downloadBtn.addEventListener('click', downloadAll);
+  // Vários resultados: separados, numa pasta ou em ZIP (setinha ao lado do botão).
+  const dl = kompres.downloads.attach({ signal, button: downloadBtn, onPick: () => downloadAll() });
   clearBtn.addEventListener('click', clearAll);
   prevBtn.addEventListener('click', () => stepPreview(-1));
   nextBtn.addEventListener('click', () => stepPreview(1));
@@ -692,19 +694,17 @@ kompres.register('watermark', (signal, document) => {
     setTimeout(() => URL.revokeObjectURL(url), 4000);
   }
 
-  // Um resultado só sai direto; vários vão em ZIP.
+  // Um resultado só sai direto; vários na forma escolhida.
   async function downloadAll() {
     const done = images.filter((item) => item.processed);
     if (!done.length) return;
-    if (done.length === 1) { downloadBlob(done[0].processed.blob, done[0].processed.fileName); return; }
-
+    const files = done.map((item) => ({ name: item.processed.fileName, blob: item.processed.blob }));
     downloadBtn.disabled = true;
-    downloadBtn.textContent = 'Gerando ZIP...';
+    if (files.length > 1) downloadBtn.textContent = kompres.downloads.busyLabel();
     try {
-      const zip = new JSZip();
-      done.forEach((item, index) => zip.file(`${index + 1}-${item.processed.fileName}`, item.processed.blob));
-      downloadBlob(await zip.generateAsync({ type: 'blob' }), 'imagens-marca-dagua-kompres.zip');
-    } catch { setStatus('Não foi possível gerar o ZIP. Tente novamente.', true); }
+      const result = await kompres.downloads.saveFiles(files, { zipName: 'imagens-marca-dagua-kompres.zip' });
+      if (result === 'folder') setStatus(`${files.length} imagens salvas na pasta escolhida.`);
+    } catch { setStatus('Não foi possível salvar os arquivos. Tente outra forma de baixar na setinha ao lado do botão.', true); }
     finally { updateUI(); }
   }
 
@@ -745,7 +745,7 @@ kompres.register('watermark', (signal, document) => {
     processBtn.textContent = busy ? 'Processando…' : hasImages && !pending().length ? 'Aplicar novamente' : 'Aplicar em tudo';
     clearBtn.disabled = !hasImages;
     downloadBtn.disabled = !done;
-    downloadBtn.textContent = done === 1 ? '↓ Baixar' : '↓ Baixar ZIP';
+    dl.update(done);
     updateStage();
   }
 

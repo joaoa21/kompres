@@ -99,6 +99,8 @@ kompres.register('compressor', (signal, document) => {
 
   btnCompress.addEventListener('click', () => compressAllImages(true));
   btnDownloadAll.addEventListener('click', downloadAllAsZip);
+  // Vários resultados: separados, numa pasta ou em ZIP (setinha ao lado do botão).
+  const dl = kompres.downloads.attach({ signal, button: btnDownloadAll, onPick: () => downloadAllAsZip() });
   btnClear.addEventListener('click', clearAll);
 
   function handleFiles(files) {
@@ -585,23 +587,15 @@ kompres.register('compressor', (signal, document) => {
   }
 
   async function downloadAllAsZip() {
-    const doneImages = images.filter((image) => image.compressed);
-    if (!doneImages.length) return;
-    if (doneImages.length === 1) { downloadBlob(doneImages[0].compressed, doneImages[0].compressedName); return; }
-
-    btnDownloadAll.textContent = 'Gerando ZIP...';
+    const done = images.filter((image) => image.compressed);
+    if (!done.length) return;
+    const files = done.map((item) => ({ name: item.compressedName, blob: item.compressed }));
     btnDownloadAll.disabled = true;
-
+    if (files.length > 1) btnDownloadAll.textContent = kompres.downloads.busyLabel();
     try {
-    const zip = new JSZip();
-    doneImages.forEach((image, index) => {
-      zip.file(`${index + 1}-${image.compressedName}`, image.compressed);
-    });
-
-    const blob = await zip.generateAsync({ type: 'blob' });
-    downloadBlob(blob, 'imagens-kompres.zip');
-
-    } catch { setStatus('Não foi possível gerar o ZIP. Tente novamente.', true); }
+      const result = await kompres.downloads.saveFiles(files, { zipName: 'imagens-kompres.zip' });
+      if (result === 'folder') setStatus(`${files.length} imagens salvas na pasta escolhida.`);
+    } catch { setStatus('Não foi possível salvar os arquivos. Tente outra forma de baixar na setinha ao lado do botão.', true); }
     finally { updateUI(); }
   }
 
@@ -629,7 +623,7 @@ kompres.register('compressor', (signal, document) => {
     btnCompress.textContent = busy ? 'Comprimindo…' : hasImages && !pendingImages().length ? 'Comprimir novamente' : 'Comprimir tudo';
     btnClear.disabled = !hasImages;
     btnDownloadAll.disabled = !done;
-    btnDownloadAll.textContent = done === 1 ? '↓ Baixar' : '↓ Baixar ZIP';
+    dl.update(done);
     // O campo de largura só aparece quando há SVG (ou na página de SVG).
     svgGroup.classList.toggle('hidden', !(svgGroup.dataset.always || images.some((image) => image.svgText)));
   }
