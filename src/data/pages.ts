@@ -18,8 +18,8 @@ export interface PageInfo {
 export const pages = {
   compress: {
     path: '/',
-    title: 'Compressor de imagens online grátis: PNG, JPG e WebP | Kompres',
-    description: 'Comprima e converta PNG, JPG e WebP em lote, grátis e sem enviar arquivos. Também redimensione, recorte, remova o fundo e edite PDFs.',
+    title: 'Comprimir imagem online grátis: PNG, JPG e WebP | Kompres',
+    description: 'Comprima imagens e fotos PNG, JPG e WebP e diminua o tamanho em KB, em lote, grátis e sem enviar arquivos. Também remova o fundo e edite PDFs.',
     name: 'Comprimir imagens',
     appName: 'Kompres',
     group: 'image',
@@ -35,7 +35,7 @@ export const pages = {
   background: {
     path: '/remover-fundo/',
     title: 'Remover fundo de imagem online grátis com IA | Kompres',
-    description: 'Remova o fundo de fotos com IA direto no navegador, sem enviar as imagens. Ajuste o recorte com pincel e baixe em PNG transparente, grátis.',
+    description: 'Remova ou tire o fundo de fotos e imagens com IA, direto no navegador e sem enviar arquivos. Ajuste o recorte e baixe em PNG transparente, grátis.',
     name: 'Remover fundo de imagem',
     appName: 'Kompres Remover Fundo',
     group: 'image',
@@ -50,8 +50,8 @@ export const pages = {
   },
   webpToJpg: {
     path: '/converter/webp-para-jpg/',
-    title: 'Converter WebP para JPG online grátis e em lote | Kompres',
-    description: 'Transforme imagens WebP em JPG compatível com qualquer programa. Conversão em lote no navegador, sem enviar arquivos, com download em ZIP.',
+    title: 'Converter WebP para JPG online grátis (WebP to JPG) | Kompres',
+    description: 'Converta WebP para JPG (WebP to JPG) e abra suas imagens em qualquer programa. Em lote, grátis, direto no navegador e sem enviar arquivos.',
     name: 'WebP para JPG',
     appName: 'Kompres WebP para JPG',
     group: 'image',
