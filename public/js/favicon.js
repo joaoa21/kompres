@@ -309,7 +309,7 @@ kompres.register('favicon', (signal, document) => {
   }));
 
   zipBtn.addEventListener('click', () => run(zipBtn, 'Baixar pacote (ZIP)', async (opts) => {
-    if (typeof JSZip === 'undefined') throw new Error('Não foi possível carregar o gerador de ZIP. Verifique a conexão e tente de novo.');
+    const JSZip = await kompres.downloads.loadZip();
     // iOS não aceita transparência no ícone da tela inicial (vira preto) e arredonda sozinho.
     const appleOpts = { ...opts, color: opts.color || '#ffffff', radius: 0 };
     const background = opts.color || '#ffffff';

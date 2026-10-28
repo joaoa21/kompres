@@ -794,6 +794,7 @@ kompres.register('pdf', (signal, document) => {
     if (files.length === 1) { triggerDownload(files[0].blob, files[0].name); return; }
     busy = true; setStatus('Preparando ZIP…'); refresh();
     try {
+      const JSZip = await kompres.downloads.loadZip();
       const zip = new JSZip(); files.forEach(file => zip.file(file.name, file.blob));
       triggerDownload(await zip.generateAsync({ type: 'blob' }), 'kompres-arquivos.zip'); setStatus();
     } catch { setStatus('Não foi possível criar o ZIP. Baixe os arquivos individualmente.', true); }

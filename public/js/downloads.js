@@ -46,6 +46,21 @@
 
   const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
+  // JSZip só carrega quando alguém pede um ZIP: as páginas abrem sem baixar ~95 KB a mais.
+  const ZIP_SRC = 'https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js';
+  let zipLoading = null;
+  function loadZip() {
+    if (window.JSZip) return Promise.resolve(window.JSZip);
+    zipLoading ??= new Promise((resolve, reject) => {
+      const script = document.createElement('script');
+      script.src = ZIP_SRC;
+      script.onload = () => (window.JSZip ? resolve(window.JSZip) : reject(new Error('JSZip indisponível')));
+      script.onerror = () => { zipLoading = null; script.remove(); reject(new Error('Não foi possível carregar o gerador de ZIP. Verifique a conexão e tente de novo.')); };
+      document.head.append(script);
+    });
+    return zipLoading;
+  }
+
   /** Salva os arquivos na forma escolhida. Devolve 'single', 'separate', 'folder', 'zip' ou 'cancelled'. */
   async function saveFiles(files, { zipName = 'kompres.zip', mode = getMode(), store = false } = {}) {
     if (!files.length) return 'cancelled';
@@ -64,7 +79,7 @@
       return 'folder';
     }
     if (mode === 'zip') {
-      if (!window.JSZip) throw new Error('JSZip indisponível');
+      const JSZip = await loadZip();
       const zip = new JSZip();
       // Imagens já são comprimidas: STORE gera o ZIP bem mais rápido sem aumentar o tamanho.
       list.forEach((file) => zip.file(file.name, file.blob, store ? { compression: 'STORE' } : undefined));
@@ -171,5 +186,5 @@
     };
   }
 
-  kompres.downloads = { getMode, setMode, saveFiles, label, busyLabel, attach };
+  kompres.downloads = { getMode, setMode, saveFiles, label, busyLabel, attach, loadZip };
 })();

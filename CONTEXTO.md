@@ -18,7 +18,7 @@ Ferramentas de imagem: comprimir/converter (`/`, aceita SVG), redimensionar (`/r
 - `src/data/tools.ts` + `src/components/ToolsNav.astro`: cartões de navegação (ícone, nome, descrição) abaixo do cabeçalho; `Base.astro` recebe `activeTool`.
 - `public/js/*.js`: cada ferramenta é `kompres.register('nome', (signal, document) => {...})`. Imagem: `compressor.js`, `resizer.js`, `background-remover.js`, `rotate.js`, `crop.js`, `watermark.js`. PDF: `pdf.js` (modos merge/compress/images/extract/remove/rotate/export/watermark/number/crop, operações em `pdf-tools.js`) e `pdf-organize.js` (organizar páginas). `document` é restrito à página; `signal` aborta ao sair. Compartilhados: `input.js` (arrastar em qualquer lugar + colar), `png-client.js` (PNG otimizado via worker), `theme.js`, `selects.js`, `privacy.js`.
 - `public/js/png-engine.js` + `png-worker.js`: compressor PNG próprio (sem dithering). Teste: `npm test` (`tests/regression.cjs`, precisa de `sharp`).
-- Bibliotecas externas via CDN (cdnjs): JSZip, pdf.js 3.11.174, pdf-lib 1.17.1. Modelo de IA do remover fundo vem do Hugging Face (`background-worker.js`).
+- Bibliotecas externas via CDN (cdnjs): JSZip (carregado sob demanda por `kompres.downloads.loadZip()`, só ao gerar um ZIP), pdf.js 3.11.174, pdf-lib 1.17.1. O `netlify.toml` redireciona (301) `kompres-app.netlify.app` e o `www` direto para `https://kompres.com.br`. Modelo de IA do remover fundo vem do Hugging Face (`background-worker.js`).
 
 ## Estado atual (27/10/2026)
 
