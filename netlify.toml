@@ -11,23 +11,11 @@
   [headers.values]
     Cache-Control = "public, max-age=31536000, immutable"
 
-# Um endereço só para o Google: o domínio da Netlify e o www vão direto (301) para
-# https://kompres.com.br, sem cadeia http://www -> https://www -> domínio.
+# Um endereço só para o Google: o domínio da Netlify e o www vão (301) para https://kompres.com.br.
+# Regras para http:// não adiantam: a Netlify passa para https antes de ler este arquivo.
 # As prévias de PR (deploy-preview-N--kompres-app.netlify.app) têm outro endereço e continuam abrindo.
 [[redirects]]
   from = "https://kompres-app.netlify.app/*"
-  to = "https://kompres.com.br/:splat"
-  status = 301
-  force = true
-
-[[redirects]]
-  from = "http://kompres-app.netlify.app/*"
-  to = "https://kompres.com.br/:splat"
-  status = 301
-  force = true
-
-[[redirects]]
-  from = "http://www.kompres.com.br/*"
   to = "https://kompres.com.br/:splat"
   status = 301
   force = true
@@ -37,3 +25,9 @@
   to = "https://kompres.com.br/:splat"
   status = 301
   force = true
+
+# Fontes não mudam de conteúdo sem mudar de nome: cache longo.
+[[headers]]
+  for = "/fonts/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
