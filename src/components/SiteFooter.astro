@@ -4,9 +4,9 @@
 import { pages, allPages, type PageKey } from '../data/pages';
 
 const columns: { title: string; keys: PageKey[] }[] = [
-  { title: 'Editar imagens', keys: ['compress', 'resize', 'upscaleImage', 'background', 'rotateImage', 'cropImage', 'watermarkImage', 'blurImage'] },
+  { title: 'Editar imagens', keys: ['compress', 'compress100kb', 'compress50kb', 'resize', 'upscaleImage', 'background', 'rotateImage', 'cropImage', 'watermarkImage', 'blurImage'] },
   { title: 'Converter imagens', keys: ['heicToJpg', 'svgToPng', 'pngToIco', 'gifMaker', 'pngToJpg', 'jpgToPng', 'webpToJpg', 'webpToPng', 'pngToWebp', 'jpgToWebp'] },
-  { title: 'Organizar PDF', keys: ['pdfMerge', 'pdfSplit', 'pdfRemove', 'pdfRotate', 'pdfOrganize', 'pdfCompress'] },
+  { title: 'Organizar PDF', keys: ['pdfMerge', 'pdfSplit', 'pdfRemove', 'pdfRotate', 'pdfOrganize', 'pdfCompress', 'pdfCompress1mb'] },
   { title: 'Editar e converter PDF', keys: ['pdfSign', 'pdfWatermark', 'pdfNumber', 'pdfCrop', 'pdfFromImages', 'pngToPdf', 'pdfToImages', 'pdfToText'] },
 ];
 // Página nova sem lugar no rodapé quebra o build, para nenhuma ficar sem link.

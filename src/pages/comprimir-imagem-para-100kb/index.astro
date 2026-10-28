@@ -1,0 +1,25 @@
+---
+import CompressorPage from '../../layouts/CompressorPage.astro';
+import { pages } from '../../data/pages';
+---
+<CompressorPage
+  page={pages.compress100kb}
+  format="jpeg"
+  target={{ value: 100, unit: 'KB' }}
+  hero={{
+    title: 'Comprimir imagem para 100 KB',
+    highlight: 'em um clique.',
+    text: 'Formulário, cadastro ou inscrição pedindo foto de até 100 KB? Arraste a imagem: o limite já vem configurado e o Kompres acha a melhor qualidade que cabe nele.',
+  }}
+  heading="Compressor para 100 KB"
+  intro="O modo Tamanho máx. já vem com 100 KB e saída em JPEG. Dá para trocar o limite e o formato."
+  guideTitle="Como deixar uma foto com até 100 KB"
+  faqs={[
+    { q: 'Como comprimir uma imagem para 100 KB?', a: 'Arraste a foto para a área acima e clique em Comprimir tudo. O limite de 100 KB já vem preenchido: o Kompres testa vários níveis de qualidade e entrega o maior que cabe. Depois, é só baixar.' },
+    { q: 'E se a foto não couber em 100 KB?', a: 'Fotos de celular muito grandes podem não caber só baixando a qualidade. Nesse caso, o Kompres pergunta se pode reduzir as dimensões (largura e altura) até o arquivo ficar dentro do limite. Para escolher a medida você mesmo, use antes o <a href="/resizer/">redimensionador</a>.' },
+    { q: 'Qual formato usar para enviar em formulários?', a: 'JPEG (JPG) é aceito em praticamente todos os sites de cadastro, concursos e órgãos públicos, por isso já vem selecionado. WebP fica ainda menor, mas nem todo formulário aceita.' },
+    { q: 'Preciso de outro limite, como 200 KB ou 500 KB. Dá?', a: 'Sim. Troque o número no campo Tamanho máximo por arquivo e, se precisar, escolha MB em vez de KB. Para fotos ainda menores, veja <a href="/comprimir-imagem-para-50kb/">comprimir foto para 50 KB</a>. Aqui, 1 KB equivale a 1.000 bytes; se o site contar 1.024 bytes, o arquivo também cabe.' },
+    { q: 'Dá para comprimir várias fotos de uma vez?', a: 'Sim. Selecione todas: cada uma fica com até 100 KB. No fim, baixe separadas, numa pasta ou em ZIP.' },
+    { q: 'As imagens são enviadas para algum servidor?', a: 'Não. A compressão acontece no seu navegador e as fotos não saem do seu dispositivo. Veja mais nas <a href="/">perguntas do compressor de imagens</a>.' },
+  ]}
+/>

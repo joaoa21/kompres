@@ -7,10 +7,13 @@ interface Props {
   intro?: string;
   /** Página de SVG: o campo de largura fica sempre visível. */
   svg?: boolean;
+  /** Abre no modo Tamanho máx. com este limite (páginas "comprimir para 100 KB"). */
+  target?: { value: number; unit: 'KB' | 'MB' };
 }
 const {
   format = 'webp',
   svg = false,
+  target,
   heading = 'Compressor e conversor de imagens',
   intro = 'Arraste suas imagens, escolha o formato e gere versões otimizadas em poucos cliques.',
 } = Astro.props;
@@ -31,24 +34,24 @@ const formats = [['webp', 'WebP'], ['png', 'PNG'], ['jpeg', 'JPEG']] as const;
     <div class="control-group">
       <label>Modo</label>
       <div class="format-toggle" id="mode-toggle">
-        <button class="fmt-btn active" type="button" data-mode="quality">Qualidade</button>
-        <button class="fmt-btn" type="button" data-mode="size">Tamanho máx.</button>
+        <button class:list={['fmt-btn', { active: !target }]} type="button" data-mode="quality">Qualidade</button>
+        <button class:list={['fmt-btn', { active: target }]} type="button" data-mode="size">Tamanho máx.</button>
       </div>
     </div>
 
-    <div class="control-group" id="quality-group">
+    <div class:list={['control-group', { hidden: target }]} id="quality-group">
       <label for="quality-slider">Qualidade</label>
       <div class="value" id="quality-val">80%</div>
       <input type="range" min="30" max="100" value="80" step="1" id="quality-slider">
     </div>
 
-    <div class="control-group hidden" id="size-group">
+    <div class:list={['control-group', { hidden: !target }]} id="size-group">
       <label for="target-size">Tamanho máximo por arquivo</label>
       <div class="target-size-row">
-        <input type="number" id="target-size" min="1" step="1" value="300" inputmode="numeric">
+        <input type="number" id="target-size" min="1" step="1" value={target?.value ?? 300} inputmode="numeric">
         <select id="target-unit" aria-label="Unidade">
-          <option value="KB" selected>KB</option>
-          <option value="MB">MB</option>
+          <option value="KB" selected={target?.unit !== 'MB'}>KB</option>
+          <option value="MB" selected={target?.unit === 'MB'}>MB</option>
         </select>
       </div>
     </div>

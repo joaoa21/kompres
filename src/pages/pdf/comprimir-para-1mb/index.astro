@@ -1,0 +1,23 @@
+---
+import PdfPage from '../../../layouts/PdfPage.astro';
+import { pages } from '../../../data/pages';
+---
+<PdfPage
+  page={pages.pdfCompress1mb}
+  mode="compress"
+  limit={1_000_000}
+  hero={{
+    title: 'Comprimir PDF para 1 MB',
+    highlight: 'e caber no limite.',
+    text: 'Formulário ou e-mail recusando o PDF por ser grande demais? Escolha o limite (500 KB, 1 MB, 2 MB…), comprima e veja na hora se o arquivo coube.',
+  }}
+  guideTitle="Como deixar um PDF com menos de 1 MB"
+  faqs={[
+    { q: 'Como comprimir um PDF para 1 MB?', a: 'Adicione o PDF, confira se o Tamanho máximo está em 1 MB e clique em Comprimir tudo. O Kompres tenta primeiro reduzir o arquivo mantendo o texto selecionável e, no fim, mostra se o resultado cabe em 1 MB.' },
+    { q: 'E se o PDF ainda passar do limite?', a: 'Marque Permitir compressão mais forte e comprima de novo: as páginas viram imagens com resolução menor até o arquivo caber. O texto continua legível, mas deixa de ser selecionável. Se nem assim couber, <a href="/pdf/dividir/">divida o PDF</a> ou <a href="/pdf/remover-paginas/">remova páginas</a> que não precisam ir.' },
+    { q: 'Preciso de 2 MB ou 500 KB. Dá?', a: 'Sim. Escolha o limite no campo Tamanho máximo: há opções de 500 KB a 10 MB. Aqui, 1 MB equivale a 1.000.000 bytes, o valor mais rígido; se o site contar 1.048.576 bytes, o arquivo também cabe.' },
+    { q: 'Por que meu PDF escaneado é tão pesado?', a: 'PDFs escaneados ou feitos a partir de fotos são, na prática, imagens grandes em cada página. Eles costumam ser os que mais diminuem com a compressão, principalmente com a resolução em 96 DPI.' },
+    { q: 'Também tenho fotos para enviar. Tem algo parecido?', a: 'Sim: <a href="/comprimir-imagem-para-100kb/">comprimir imagem para 100 KB</a> e <a href="/comprimir-imagem-para-50kb/">comprimir foto para 50 KB</a> já abrem com o limite configurado.' },
+    { q: 'Os documentos são enviados ao servidor?', a: 'Não. A compressão acontece no seu navegador e o PDF não sai do seu computador ou celular.' },
+  ]}
+/>

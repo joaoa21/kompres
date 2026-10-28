@@ -27,7 +27,8 @@ kompres.register('compressor', (signal, document) => {
 
   // Formato inicial definido pela página (/, /converter/png-para-jpg/, ...).
   let selectedFormat = fmtToggle.querySelector('.fmt-btn.active')?.dataset.fmt || 'webp';
-  let compressMode = 'quality'; // 'quality' | 'size'
+  // Modo inicial também vem da página (/comprimir-imagem-para-100kb/ abre em Tamanho máx.).
+  let compressMode = modeToggle.querySelector('.fmt-btn.active')?.dataset.mode || 'quality'; // 'quality' | 'size'
   let images = [];
   let busy = false;
   let rerun = false;       // configurações mudaram ou chegaram arquivos durante um processamento

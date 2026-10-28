@@ -1,0 +1,25 @@
+---
+import CompressorPage from '../../layouts/CompressorPage.astro';
+import { pages } from '../../data/pages';
+---
+<CompressorPage
+  page={pages.compress50kb}
+  format="jpeg"
+  target={{ value: 50, unit: 'KB' }}
+  hero={{
+    title: 'Comprimir foto para 50 KB',
+    highlight: 'sem complicação.',
+    text: 'Concurso, matrícula ou sistema pedindo foto de até 50 KB? Arraste a imagem: o limite já vem configurado e o Kompres ajusta a qualidade e o tamanho para caber.',
+  }}
+  heading="Compressor para 50 KB"
+  intro="O modo Tamanho máx. já vem com 50 KB e saída em JPEG. Dá para trocar o limite e o formato."
+  guideTitle="Como deixar uma foto com até 50 KB"
+  faqs={[
+    { q: 'Como reduzir uma foto para 50 KB?', a: 'Arraste a foto para a área acima e clique em Comprimir tudo. O limite de 50 KB já vem preenchido: o Kompres procura a melhor qualidade que cabe nele e, se precisar, pergunta se pode diminuir as dimensões da imagem.' },
+    { q: 'A foto vai ficar com baixa qualidade?', a: 'Com 50 KB, uma foto de rosto ou de documento continua nítida na tela, desde que não seja enorme. Fotos de celular costumam ter mais de 3.000 pixels de largura; reduzidas para algo entre 600 e 800 pixels, cabem em 50 KB com boa aparência.' },
+    { q: 'Preciso da foto 3x4 com até 50 KB. Como faço?', a: 'Primeiro, <a href="/recortar/">recorte a foto</a> na proporção 3:4, com o rosto centralizado. Depois, traga o arquivo recortado para cá e comprima para 50 KB.' },
+    { q: 'O site diz que o arquivo ainda é grande demais. E agora?', a: 'Alguns sistemas contam 1 KB como 1.024 bytes e outros como 1.000. O Kompres usa 1.000, o valor mais rígido, então o arquivo cabe nos dois casos. Se o site também limitar a largura e a altura em pixels, ajuste no <a href="/resizer/">redimensionador</a>.' },
+    { q: 'Posso escolher outro limite?', a: 'Sim. Troque o número no campo Tamanho máximo por arquivo. Para um limite um pouco maior, veja <a href="/comprimir-imagem-para-100kb/">comprimir imagem para 100 KB</a>.' },
+    { q: 'As imagens são enviadas para algum servidor?', a: 'Não. A compressão acontece no seu navegador e as fotos não saem do seu dispositivo.' },
+  ]}
+/>

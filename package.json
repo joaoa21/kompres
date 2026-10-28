@@ -6,7 +6,8 @@
     "dev": "astro dev",
     "build": "astro build",
     "preview": "astro preview",
-    "test": "node tests/regression.cjs"
+    "test": "node tests/regression.cjs",
+    "indexnow": "node scripts/indexnow.mjs"
   },
   "dependencies": {
     "astro": "^7.3.5"

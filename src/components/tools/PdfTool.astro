@@ -2,8 +2,13 @@
 /** Ferramentas de PDF (lógica em /js/pdf.js). O modo vem da página; a troca de
  *  modo é pelos cartões de navegação abaixo do cabeçalho (ToolsNav). */
 export type PdfMode = 'merge' | 'compress' | 'images' | 'extract' | 'remove' | 'rotate' | 'export' | 'watermark' | 'number' | 'crop' | 'text';
-interface Props { mode?: PdfMode }
-const { mode = 'merge' } = Astro.props;
+interface Props {
+  mode?: PdfMode;
+  /** Comprimir: limite de tamanho já escolhido ao abrir (bytes; /pdf/comprimir-para-1mb/). */
+  limit?: number;
+}
+const { mode = 'merge', limit = 0 } = Astro.props;
+const limits = [[0, 'Sem limite'], [500_000, '500 KB'], [1_000_000, '1 MB'], [2_000_000, '2 MB'], [5_000_000, '5 MB'], [10_000_000, '10 MB']] as const;
 // Mesmos textos que o pdf.js aplica ao trocar de modo.
 const titles: Record<PdfMode, string> = { merge: 'Juntar PDFs', compress: 'Comprimir PDFs', images: 'Imagens para PDF', extract: 'Extrair ou dividir PDF', remove: 'Remover páginas do PDF', rotate: 'Girar páginas do PDF', export: 'PDF para imagens', watermark: "Marca d'água no PDF", number: 'Numerar páginas do PDF', crop: 'Recortar margens do PDF', text: 'PDF para texto' };
 const descriptions: Record<PdfMode, string> = { merge: 'Adicione os PDFs e organize a ordem.', compress: 'Adicione seus PDFs e escolha a compressão.', images: 'Adicione as imagens e organize a ordem das páginas.', extract: 'Escolha as páginas que deseja salvar.', remove: 'Informe as páginas que devem sair do arquivo.', rotate: 'Escolha o ângulo e, se quiser, só algumas páginas.', export: 'Transforme as páginas do PDF em JPG ou PNG.', watermark: 'Escolha texto ou imagem e a posição, ou arraste a marca na prévia.', number: 'Escolha posição, formato e número inicial.', crop: 'Informe quanto cortar de cada margem.', text: 'Copie ou baixe o texto do PDF em .txt.' };
@@ -20,6 +25,12 @@ const descriptions: Record<PdfMode, string> = { merge: 'Adicione os PDFs e organ
   <div class="tool-workspace page-inner">
     <div class="tool-side" data-ah-label="Coluna de ajustes">
       <div class="controls page-inner controls-pdf" id="pdfControls" data-mode={mode}>
+    <div class="control-group compress-only hidden" id="limitGroup">
+      <label for="pdfLimit">Tamanho máximo</label>
+      <select id="pdfLimit">
+        {limits.map(([bytes, label]) => <option value={bytes} selected={bytes === limit}>{label}</option>)}
+      </select>
+    </div>
     <div class="control-group compress-only hidden" id="dpiGroup">
       <label for="dpiSelect">Resolução</label>
       <select id="dpiSelect">
