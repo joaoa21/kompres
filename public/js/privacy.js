@@ -24,6 +24,7 @@
   function choose(value) {
     try { localStorage.setItem('kompres-cookies', value); } catch {}
     banner?.classList.remove('show');
+    document.documentElement.classList.remove('cookie-ask');
     if (value === 'accepted') {
       enableAnalytics();
       trackik('consentir');

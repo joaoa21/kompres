@@ -1,3 +1,10 @@
+/* Fontes (OFL) servidas pelo próprio site, só o subconjunto latino (português incluso). */
+@font-face { font-family: 'Inter'; font-style: normal; font-weight: 100 900; font-display: swap; src: url('/fonts/inter.woff2') format('woff2'); }
+@font-face { font-family: 'Syne'; font-style: normal; font-weight: 400 700; font-display: swap; src: url('/fonts/syne.woff2') format('woff2'); }
+@font-face { font-family: 'DM Mono'; font-style: normal; font-weight: 400; font-display: swap; src: url('/fonts/dm-mono-400.woff2') format('woff2'); }
+@font-face { font-family: 'DM Mono'; font-style: normal; font-weight: 500; font-display: swap; src: url('/fonts/dm-mono-500.woff2') format('woff2'); }
+@font-face { font-family: 'Instrument Sans'; font-style: normal; font-weight: 700; font-display: swap; src: url('/fonts/instrument-sans-700.woff2') format('woff2'); }
+
 *, *::before, *::after {
   box-sizing: border-box;
   margin: 0;
@@ -1067,8 +1074,14 @@ html.light .footer-col a[aria-current="page"] { color: #3d7000; }
   animation: cookie-rise 0.4s ease forwards;
 }
 
-#cookie-banner.show {
+#cookie-banner.show,
+html.cookie-ask #cookie-banner {
   display: block;
+}
+
+/* No primeiro desenho, sem animação: o aviso já entra pronto. */
+html.cookie-ask #cookie-banner:not(.show) {
+  animation: none;
 }
 
 #cookie-banner p {

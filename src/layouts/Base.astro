@@ -96,6 +96,9 @@ if (page) {
     } catch {
       if (!matchMedia('(prefers-color-scheme: dark)').matches) document.documentElement.classList.add('light');
     }
+    // Aviso de cookies já no primeiro desenho da página (antes, esperava todos os scripts e
+    // aparecia tarde, o que atrasava o carregamento medido pelo Google). privacy.js segue cuidando dele.
+    try { if (!localStorage.getItem('kompres-cookies')) document.documentElement.classList.add('cookie-ask'); } catch {}
     // Chegou por transição entre ferramentas: sem animação de entrada no que já estava na tela.
     addEventListener('pagereveal', (event) => { if (event.viewTransition) document.documentElement.classList.add('vt-nav'); });
 
@@ -115,13 +118,14 @@ if (page) {
     </>
   ) : <meta name="robots" content="noindex">}
 
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Instrument+Sans:wght@700&family=Inter:wght@100..900&family=Syne:wght@400;600;700&display=swap" rel="stylesheet">
+  <!-- Fontes no próprio site (public/fonts, @font-face no style.css): sem esperar outras conexões.
+       Inter (texto) e Syne (títulos) aparecem logo no topo, por isso vêm antes. -->
+  <link rel="preload" href="/fonts/inter.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="/fonts/syne.woff2" as="font" type="font/woff2" crossorigin>
 
   <link rel="icon" type="image/svg+xml" href="/favicon.svg">
   <link rel="apple-touch-icon" href="/apple-touch-icon.png">
-  <link rel="stylesheet" href="/css/style.css?v=ux-26">
+  <link rel="stylesheet" href="/css/style.css?v=ux-27">
   {styles.map((href) => <link rel="stylesheet" href={href}>)}
   <link rel="stylesheet" href="/css/tool-navigation.css?v=ux-5">
   <link rel="stylesheet" href="/css/selects.css?v=1">
@@ -176,7 +180,7 @@ if (page) {
   <script is:inline src="/js/png-client.js?v=ux-1"></script>
   <script is:inline src="/js/downloads.js?v=4"></script>
   <slot name="scripts" />
-  <script is:inline src="/js/privacy.js?v=2"></script>
+  <script is:inline src="/js/privacy.js?v=3"></script>
   <script is:inline src="/js/selects.js?v=app-1"></script>
 
   <script>

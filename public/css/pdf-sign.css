@@ -1,6 +1,6 @@
-/* Fonte manuscrita da assinatura digitada (precisa vir antes de qualquer regra). */
+/* Fonte manuscrita da assinatura digitada (no próprio site, OFL; só carrega quando usada). */
 /* Mesma letra de mão da assinatura do Propostaria. */
-@import url('https://fonts.googleapis.com/css2?family=Mrs+Saint+Delafield&display=swap');
+@font-face { font-family: 'Mrs Saint Delafield'; font-style: normal; font-weight: 400; font-display: swap; src: url('/fonts/mrs-saint-delafield.woff2') format('woff2'); }
 
 /* Assinar PDF: quadro de assinatura, prévia da página com assinaturas arrastáveis e
  * miniaturas. Complementa style.css (variáveis de tema, .control-group, .format-toggle). */
