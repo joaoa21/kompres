@@ -59,7 +59,7 @@ html.light .tools-nav a.active strong { color: #3d7000; }
   .tools-nav a:hover { transform: none; }
   .tools-nav-icon { width: 32px; height: 32px; }
   .tools-nav strong { font-size: .8rem; }
-  .tools-nav small { font-size: .68rem; }
+  .tools-nav small { font-size: .75rem; }
 }
 
 @media (prefers-reduced-motion: reduce) { .tools-nav, .tools-filter { animation: none; } .tools-nav a, .tools-nav-icon { transition: none; } }
