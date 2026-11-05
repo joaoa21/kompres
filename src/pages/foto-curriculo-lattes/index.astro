@@ -1,0 +1,26 @@
+---
+import CompressorPage from '../../layouts/CompressorPage.astro';
+import { pages } from '../../data/pages';
+---
+<CompressorPage
+  page={pages.fotoLattes}
+  format="jpeg"
+  target={{ value: 70, unit: 'KB' }}
+  hero={{
+    title: 'Foto do Currículo Lattes',
+    highlight: 'com até 70 KB.',
+    text: 'A foto ficou grande demais para o Lattes? Arraste a imagem: o limite de 70 KB já vem configurado e o Kompres ajusta a qualidade e o tamanho para caber, sem enviar a sua foto a nenhum servidor.',
+  }}
+  heading="Compressor de foto para o Lattes"
+  intro="O modo Tamanho máx. já vem com 70 KB e saída em JPEG. Dá para trocar o limite e o formato."
+  guideTitle="Como deixar a foto do Lattes com até 70 KB"
+  faqs={[
+    { q: 'Qual o tamanho máximo da foto do Lattes?', a: 'Tutoriais de universidades, como o da <a href="https://www.ict.unesp.br/Home/pesquisa/escritoriodepesquisa/tutorial-curriculo-lattes.pdf" rel="noopener">Unesp</a>, indicam no máximo 70 KB. Essas regras podem mudar: se a plataforma mostrar outro limite, troque o número em Tamanho máximo por arquivo. O Kompres não tem vínculo com o CNPq.' },
+    { q: 'Como reduzir a foto para 70 KB?', a: 'Arraste a foto para a área de envio. O limite de 70 KB já vem preenchido e a compressão começa sozinha: o Kompres procura a melhor qualidade que cabe nele. Depois, é só baixar o arquivo .jpg e enviar na plataforma.' },
+    { q: 'Minha foto de celular tem vários MB. Vai caber?', a: 'Sim, mas só baixar a qualidade costuma não bastar. Nesse caso, o Kompres pergunta se pode reduzir as dimensões da imagem até caber. Numa foto de perfil isso quase não faz diferença, porque ela aparece pequena na tela.' },
+    { q: 'Como deixar a foto adequada para o currículo?', a: 'Tutoriais recomendam uma foto discreta, de rosto. Se precisar, <a href="/recortar/">recorte a imagem</a> antes para centralizar o rosto e, se o fundo atrapalhar, use o <a href="/remover-fundo/">removedor de fundo</a>. Depois, traga o resultado para cá e comprima.' },
+    { q: 'A plataforma diz que o arquivo ainda é grande. E agora?', a: 'Alguns sistemas contam 1 KB como 1.024 bytes e outros como 1.000. O Kompres usa 1.000, o valor mais rígido, então o arquivo cabe nos dois casos. Se ainda assim for recusado, confira a mensagem de erro: ela pode ser sobre o formato ou as dimensões, não sobre o peso.' },
+    { q: 'Serve para outros limites de tamanho?', a: 'Sim. Troque o número neste campo ou use a página de <a href="/comprimir-imagem-para-100kb/">comprimir imagem por tamanho</a>, com botões de 50 KB a 2 MB.' },
+    { q: 'A minha foto é enviada para algum servidor?', a: 'Não. A compressão acontece no seu navegador e a foto não sai do seu dispositivo.' },
+  ]}
+/>

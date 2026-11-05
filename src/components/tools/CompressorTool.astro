@@ -9,11 +9,14 @@ interface Props {
   svg?: boolean;
   /** Abre no modo Tamanho máx. com este limite (páginas "comprimir para 100 KB"). */
   target?: { value: number; unit: 'KB' | 'MB' };
+  /** Botões de tamanho prontos, abaixo do campo (página "comprimir para um tamanho"). */
+  presets?: { value: number; unit: 'KB' | 'MB' }[];
 }
 const {
   format = 'webp',
   svg = false,
   target,
+  presets = [],
   heading = 'Compressor e conversor de imagens',
   intro = 'Arraste suas imagens, escolha o formato e gere versões otimizadas em poucos cliques.',
 } = Astro.props;
@@ -54,6 +57,13 @@ const formats = [['webp', 'WebP'], ['png', 'PNG'], ['jpeg', 'JPEG']] as const;
           <option value="MB" selected={target?.unit === 'MB'}>MB</option>
         </select>
       </div>
+      {presets.length > 0 && (
+        <div class="format-toggle size-presets" id="size-presets" role="group" aria-label="Tamanhos prontos">
+          {presets.map(({ value, unit }) => (
+            <button class:list={['fmt-btn', { active: value === target?.value && unit === target?.unit }]} type="button" data-value={value} data-unit={unit}>{value} {unit}</button>
+          ))}
+        </div>
+      )}
     </div>
 
     <div class:list={['control-group', { hidden: !svg }]} id="svg-group" data-always={svg ? 'true' : undefined}>

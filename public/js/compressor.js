@@ -79,8 +79,23 @@ kompres.register('compressor', (signal, document) => {
     qualityGroup.classList.toggle('hidden', compressMode !== 'quality');
   }
 
-  targetSizeInput.addEventListener('change', resetCompressedResults);
-  targetUnit.addEventListener('change', resetCompressedResults);
+  // Atalhos de tamanho (só nas páginas que os têm): preenchem o campo; digitar outro valor desmarca.
+  const sizePresets = document.getElementById('size-presets');
+  const markPreset = () => sizePresets?.querySelectorAll('.fmt-btn').forEach((btn) => {
+    btn.classList.toggle('active', btn.dataset.value === targetSizeInput.value && btn.dataset.unit === targetUnit.value);
+  });
+  sizePresets?.addEventListener('click', (event) => {
+    const btn = event.target.closest('.fmt-btn');
+    if (!btn) return;
+    targetSizeInput.value = btn.dataset.value;
+    targetUnit.value = btn.dataset.unit;
+    targetUnit.dispatchEvent(new Event('kompres:sync'));
+    markPreset();
+    resetCompressedResults();
+  });
+
+  targetSizeInput.addEventListener('change', () => { markPreset(); resetCompressedResults(); });
+  targetUnit.addEventListener('change', () => { markPreset(); resetCompressedResults(); });
 
   // SVG: a largura escolhida muda a rasterização, então o data URL é refeito.
   svgWidthInput.addEventListener('change', () => {
@@ -334,6 +349,9 @@ kompres.register('compressor', (signal, document) => {
     updateUI();
   }
 
+  // O formato se chama jpeg no navegador, mas o arquivo sai .jpg: é o que formulários costumam pedir.
+  const extensionOf = (format) => (format === 'jpeg' ? 'jpg' : format);
+
   /* Exibe o resultado final no card */
   function showResult(image, blob, format, { note = '', warn = false, name = null } = {}) {
     const card = document.querySelector(`.image-card[data-id="${CSS.escape(image.id)}"]`);
@@ -343,7 +361,7 @@ kompres.register('compressor', (signal, document) => {
     image.resultUrl = URL.createObjectURL(blob);
     card.querySelector('.card-thumb').src = image.resultUrl;
     image.compressed = blob;
-    image.compressedName = name || `${stripExtension(image.file.name)}-kompres.${format}`;
+    image.compressedName = name || `${stripExtension(image.file.name)}-kompres.${extensionOf(format)}`;
 
     const progress = document.getElementById(`prog-${image.id}`);
     if (progress) progress.style.width = '100%';
@@ -488,7 +506,7 @@ kompres.register('compressor', (signal, document) => {
       if (result) {
         showResult(image, result.blob, format, {
           note: `redimensionada para ${result.width}×${result.height} px · até ${target.label}`,
-          name: `${stripExtension(image.file.name)}-${result.width}x${result.height}-kompres.${format}`,
+          name: `${stripExtension(image.file.name)}-${result.width}x${result.height}-kompres.${extensionOf(format)}`,
         });
       } else {
         showResult(image, minBlob, format, {

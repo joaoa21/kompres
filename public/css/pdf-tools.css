@@ -70,6 +70,7 @@ html.light .pdf-text-result textarea:focus-visible { outline-color: #3d7000; }
 /* Câmera (Imagens → PDF): só em telas de toque; o campo de arquivo fica invisível e o botão o abre. */
 .pdf-camera { display: none; }
 .tool-workspace .pdf-camera { order: 4; }
+@media (max-width: 900px) { .tool-workspace .pdf-camera { order: 0; } } /* logo depois da área de arrastar */
 .pdf-camera input[type="file"] { position: absolute; width: 1px; height: 1px; opacity: 0; overflow: hidden; pointer-events: none; }
 @media (hover: none) and (pointer: coarse) {
   .pdf-camera:not(.hidden) { display: flex; position: relative; margin-block: 0 1rem; }

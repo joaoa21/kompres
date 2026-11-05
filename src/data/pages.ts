@@ -4,6 +4,8 @@
  */
 export interface PageInfo {
   path: string;
+  /** Data da última mudança real no conteúdo (AAAA-MM-DD). Vai no sitemap e no schema: troque só quando a página mudar. */
+  updated: string;
   /** <title>: palavra-chave no início, até ~60 caracteres. */
   title: string;
   /** Meta description: até ~155 caracteres. */
@@ -18,6 +20,7 @@ export interface PageInfo {
 export const pages = {
   compress: {
     path: '/',
+    updated: '2026-11-05',
     title: 'Comprimir imagem online grátis: PNG, JPG e WebP | Kompres',
     description: 'Comprima imagens e fotos PNG, JPG e WebP e diminua o tamanho em KB, em lote, grátis e sem enviar arquivos. Também remova o fundo e edite PDFs.',
     name: 'Comprimir imagens',
@@ -26,6 +29,7 @@ export const pages = {
   },
   resize: {
     path: '/resizer/',
+    updated: '2026-10-27',
     title: 'Redimensionar imagens online em lote grátis | Kompres',
     description: 'Redimensione PNG, JPG e WebP por largura, altura, porcentagem ou medida exata, como 1080 × 1080. Em lote, grátis e sem enviar as imagens.',
     name: 'Redimensionar imagens',
@@ -34,6 +38,7 @@ export const pages = {
   },
   background: {
     path: '/remover-fundo/',
+    updated: '2026-10-27',
     title: 'Remover fundo de imagem online grátis com IA | Kompres',
     description: 'Remova ou tire o fundo de fotos e imagens com IA, direto no navegador e sem enviar arquivos. Ajuste o recorte e baixe em PNG transparente, grátis.',
     name: 'Remover fundo de imagem',
@@ -42,22 +47,25 @@ export const pages = {
   },
   pngToJpg: {
     path: '/converter/png-para-jpg/',
+    updated: '2026-11-05',
     title: 'Converter PNG para JPG online grátis e em lote | Kompres',
-    description: 'Converta PNG para JPG em lote, direto no navegador e sem upload. Áreas transparentes recebem fundo branco. Grátis, com ajuste de qualidade e ZIP.',
+    description: 'Converta PNG para JPG (JPEG) em lote, direto no navegador e sem enviar arquivos. Áreas transparentes ficam brancas. Grátis, com ajuste de qualidade.',
     name: 'PNG para JPG',
     appName: 'Kompres PNG para JPG',
     group: 'image',
   },
   webpToJpg: {
     path: '/converter/webp-para-jpg/',
-    title: 'Converter WebP para JPG online grátis (WebP to JPG) | Kompres',
-    description: 'Converta WebP para JPG (WebP to JPG) e abra suas imagens em qualquer programa. Em lote, grátis, direto no navegador e sem enviar arquivos.',
+    updated: '2026-11-05',
+    title: 'Converter WebP para JPG online grátis e em lote | Kompres',
+    description: 'Converta WebP para JPG e abra suas imagens em qualquer programa. Em lote, grátis, direto no navegador, sem instalar extensão nem enviar arquivos.',
     name: 'WebP para JPG',
     appName: 'Kompres WebP para JPG',
     group: 'image',
   },
   webpToPng: {
     path: '/converter/webp-para-png/',
+    updated: '2026-11-05',
     title: 'Converter WebP para PNG online grátis e em lote | Kompres',
     description: 'Converta WebP para PNG mantendo a transparência. Em lote, direto no navegador e sem upload dos arquivos. Grátis e com download em ZIP.',
     name: 'WebP para PNG',
@@ -66,6 +74,7 @@ export const pages = {
   },
   rotateImage: {
     path: '/girar/',
+    updated: '2026-10-27',
     title: 'Girar e espelhar imagens online grátis em lote | Kompres',
     description: 'Gire fotos em 90° ou 180° e espelhe na horizontal ou vertical, em lote e direto no navegador. Mantém o formato e a transparência. Grátis e sem upload.',
     name: 'Girar e espelhar imagens',
@@ -74,6 +83,7 @@ export const pages = {
   },
   cropImage: {
     path: '/recortar/',
+    updated: '2026-10-27',
     title: 'Recortar imagem online grátis: 1:1, 4:5 e 16:9 | Kompres',
     description: 'Recorte fotos livremente ou em proporções prontas para Instagram, YouTube e perfil. Direto no navegador, sem enviar a imagem. Baixe em PNG, JPG ou WebP.',
     name: 'Recortar imagem',
@@ -82,6 +92,7 @@ export const pages = {
   },
   watermarkImage: {
     path: '/marca-dagua/',
+    updated: '2026-10-27',
     title: "Marca d'água em imagens online grátis e em lote | Kompres",
     description: "Adicione texto ou logo como marca d'água em várias fotos de uma vez. Escolha posição, tamanho e opacidade. Direto no navegador, grátis e sem upload.",
     name: "Marca d'água em imagem",
@@ -90,14 +101,16 @@ export const pages = {
   },
   svgToPng: {
     path: '/converter/svg-para-png/',
+    updated: '2026-11-05',
     title: 'Converter SVG para PNG online grátis | Kompres',
-    description: 'Transforme arquivos SVG em PNG com fundo transparente, na largura que você escolher. Em lote, direto no navegador e sem upload. Grátis.',
+    description: 'Transforme SVG em PNG sem fundo e em alta qualidade, na largura que você escolher. Em lote, direto no navegador e sem enviar arquivos. Grátis.',
     name: 'SVG para PNG',
     appName: 'Kompres SVG para PNG',
     group: 'image',
   },
   upscaleImage: {
     path: '/melhorar-imagem/',
+    updated: '2026-10-27',
     title: 'Melhorar qualidade de imagem com IA: 2x grátis | Kompres',
     description: 'Aumente a resolução de fotos em 2x com inteligência artificial e recupere nitidez, direto no navegador. Grátis, sem cadastro e sem enviar a imagem.',
     name: 'Melhorar imagem com IA',
@@ -106,6 +119,7 @@ export const pages = {
   },
   blurImage: {
     path: '/desfocar/',
+    updated: '2026-10-27',
     title: 'Desfocar ou pixelar imagem online grátis | Kompres',
     description: 'Esconda rostos, placas e dados de prints: desfoque ou pixele só a área que escolher. Direto no navegador, grátis e sem enviar a imagem.',
     name: 'Desfocar imagem',
@@ -114,6 +128,7 @@ export const pages = {
   },
   heicToJpg: {
     path: '/converter/heic-para-jpg/',
+    updated: '2026-10-27',
     title: 'Converter HEIC para JPG ou PNG online grátis | Kompres',
     description: 'Transforme fotos HEIC do iPhone em JPG ou PNG que abrem em qualquer lugar. Em lote, direto no navegador e sem enviar as fotos. Grátis.',
     name: 'HEIC para JPG/PNG',
@@ -122,6 +137,7 @@ export const pages = {
   },
   pngToIco: {
     path: '/converter/png-para-ico/',
+    updated: '2026-10-27',
     title: 'Converter PNG para ICO: gerar favicon grátis | Kompres',
     description: 'Crie um favicon .ico com vários tamanhos a partir de PNG, JPG ou SVG, mais os ícones para Apple e Android. Grátis, no navegador e sem upload.',
     name: 'PNG para ICO',
@@ -130,7 +146,8 @@ export const pages = {
   },
   gifMaker: {
     path: '/criar-gif/',
-    title: 'Criar GIF com imagens online grátis | Kompres',
+    updated: '2026-11-05',
+    title: 'Criar GIF com fotos e imagens online grátis | Kompres',
     description: 'Junte fotos em um GIF animado: escolha a ordem, a velocidade e o tamanho. Direto no navegador, grátis, sem marca d’água e sem upload.',
     name: 'Criar GIF',
     appName: 'Kompres Criar GIF',
@@ -138,6 +155,7 @@ export const pages = {
   },
   jpgToPng: {
     path: '/converter/jpg-para-png/',
+    updated: '2026-11-05',
     title: 'Converter JPG para PNG online grátis e em lote | Kompres',
     description: 'Converta JPG para PNG em lote, direto no navegador e sem upload. PNG não perde qualidade a cada edição. Grátis, com download em ZIP.',
     name: 'JPG para PNG',
@@ -146,6 +164,7 @@ export const pages = {
   },
   pngToWebp: {
     path: '/converter/png-para-webp/',
+    updated: '2026-10-26',
     title: 'Converter PNG para WebP online grátis e em lote | Kompres',
     description: 'Converta PNG para WebP e deixe imagens de sites bem mais leves, mantendo a transparência. Em lote, no navegador e sem upload. Grátis.',
     name: 'PNG para WebP',
@@ -154,6 +173,7 @@ export const pages = {
   },
   jpgToWebp: {
     path: '/converter/jpg-para-webp/',
+    updated: '2026-10-26',
     title: 'Converter JPG para WebP online grátis e em lote | Kompres',
     description: 'Converta fotos JPG para WebP e reduza o peso sem perda visível. Ajuste a qualidade e baixe em ZIP. Em lote, no navegador e sem upload.',
     name: 'JPG para WebP',
@@ -162,22 +182,25 @@ export const pages = {
   },
   compress100kb: {
     path: '/comprimir-imagem-para-100kb/',
-    title: 'Comprimir imagem para 100 KB online grátis | Kompres',
-    description: 'Reduza fotos e imagens para até 100 KB em um clique, para formulários, cadastros e inscrições. JPG, PNG e WebP, grátis e sem enviar arquivos.',
+    updated: '2026-11-05',
+    title: 'Comprimir imagem para 100 KB, 200 KB ou 1 MB grátis | Kompres',
+    description: 'Reduza fotos e imagens para 50 KB, 100 KB, 200 KB ou 1 MB em um clique, para formulários e cadastros. JPG, PNG e WebP, grátis e sem enviar arquivos.',
     name: 'Comprimir imagem para 100 KB',
     appName: 'Kompres Comprimir para 100 KB',
     group: 'image',
   },
-  compress50kb: {
-    path: '/comprimir-imagem-para-50kb/',
-    title: 'Comprimir foto para 50 KB online grátis | Kompres',
-    description: 'Deixe fotos e imagens com até 50 KB para concursos, matrículas e sites com limite de envio. JPG, PNG e WebP, grátis e sem enviar arquivos.',
-    name: 'Comprimir foto para 50 KB',
-    appName: 'Kompres Comprimir para 50 KB',
+  fotoLattes: {
+    path: '/foto-curriculo-lattes/',
+    updated: '2026-11-05',
+    title: 'Foto do Currículo Lattes: reduza para 70 KB grátis | Kompres',
+    description: 'Deixe a foto do Currículo Lattes com até 70 KB em um clique. O limite já vem configurado. Grátis, direto no navegador e sem enviar a sua foto.',
+    name: 'Foto do Currículo Lattes (70 KB)',
+    appName: 'Kompres Foto para o Lattes',
     group: 'image',
   },
   pdfMerge: {
     path: '/pdf/',
+    updated: '2026-10-27',
     title: 'Juntar PDF online grátis: una arquivos em um só | Kompres',
     description: 'Junte vários PDFs em um único arquivo, na ordem que quiser, direto no navegador. Grátis, sem cadastro e sem enviar documentos ao servidor.',
     name: 'Juntar PDF',
@@ -186,6 +209,7 @@ export const pages = {
   },
   pdfCompress: {
     path: '/pdf/comprimir/',
+    updated: '2026-10-27',
     title: 'Comprimir PDF online grátis: reduza o tamanho | Kompres',
     description: 'Reduza o tamanho de PDFs no navegador preservando o texto selecionável. Escolha resolução e qualidade. Grátis, sem cadastro e sem upload.',
     name: 'Comprimir PDF',
@@ -194,6 +218,7 @@ export const pages = {
   },
   pdfCompress1mb: {
     path: '/pdf/comprimir-para-1mb/',
+    updated: '2026-11-05',
     title: 'Comprimir PDF para 1 MB ou 2 MB online grátis | Kompres',
     description: 'Reduza PDFs para caber no limite de 1 MB, 2 MB ou 500 KB de formulários e e-mails. Mostra se o arquivo coube. Grátis e sem enviar documentos.',
     name: 'Comprimir PDF para 1 MB',
@@ -202,6 +227,7 @@ export const pages = {
   },
   pdfFromImages: {
     path: '/pdf/jpg-para-pdf/',
+    updated: '2026-11-05',
     title: 'Converter JPG para PDF online grátis | Kompres',
     description: 'Transforme imagens JPG e PNG em um PDF, na ordem que quiser. Escolha A4 ou o tamanho da imagem e a margem. Grátis e sem upload dos arquivos.',
     name: 'JPG para PDF',
@@ -210,6 +236,7 @@ export const pages = {
   },
   pdfSplit: {
     path: '/pdf/dividir/',
+    updated: '2026-09-24',
     title: 'Dividir PDF e extrair páginas online grátis | Kompres',
     description: 'Extraia páginas de um PDF ou divida o documento em um arquivo por página. Use intervalos como 1-3, 7. Grátis, no navegador e sem upload.',
     name: 'Dividir PDF',
@@ -218,6 +245,7 @@ export const pages = {
   },
   pdfRemove: {
     path: '/pdf/remover-paginas/',
+    updated: '2026-10-27',
     title: 'Remover páginas de PDF online grátis | Kompres',
     description: 'Apague páginas de um PDF sem instalar nada: informe quais sair, como 2, 5-7, e baixe o arquivo. Grátis, no navegador e sem upload do documento.',
     name: 'Remover páginas de PDF',
@@ -226,6 +254,7 @@ export const pages = {
   },
   pdfRotate: {
     path: '/pdf/girar/',
+    updated: '2026-10-27',
     title: 'Girar PDF online grátis: 90° ou 180° | Kompres',
     description: 'Gire todas as páginas ou só algumas de um PDF em 90° ou 180° e salve o arquivo corrigido. Grátis, direto no navegador e sem enviar o documento.',
     name: 'Girar PDF',
@@ -234,6 +263,7 @@ export const pages = {
   },
   pdfToImages: {
     path: '/pdf/pdf-para-jpg/',
+    updated: '2026-09-24',
     title: 'Converter PDF para JPG ou PNG online grátis | Kompres',
     description: 'Transforme páginas de PDF em imagens JPG ou PNG em até 200 DPI. Escolha as páginas e baixe tudo em ZIP. Grátis e sem enviar o documento.',
     name: 'PDF para JPG',
@@ -242,6 +272,7 @@ export const pages = {
   },
   pdfWatermark: {
     path: '/pdf/marca-dagua/',
+    updated: '2026-10-26',
     title: "Marca d'água em PDF online grátis: texto ou imagem | Kompres",
     description: "Insira texto ou imagem como marca d'água em todas as páginas ou só em algumas. Ajuste posição, tamanho e opacidade. Grátis, no navegador e sem upload.",
     name: "Marca d'água em PDF",
@@ -250,6 +281,7 @@ export const pages = {
   },
   pdfNumber: {
     path: '/pdf/numerar/',
+    updated: '2026-10-26',
     title: 'Numerar páginas de PDF online grátis | Kompres',
     description: 'Adicione números de página a um PDF: escolha posição, formato como "1 de 10" e o número inicial. Grátis, direto no navegador e sem enviar o documento.',
     name: 'Numerar páginas de PDF',
@@ -258,6 +290,7 @@ export const pages = {
   },
   pdfOrganize: {
     path: '/pdf/organizar/',
+    updated: '2026-10-27',
     title: 'Organizar páginas de PDF online grátis | Kompres',
     description: 'Reordene, gire e exclua páginas de um PDF arrastando as miniaturas. Veja o resultado antes de baixar. Grátis, no navegador e sem upload do arquivo.',
     name: 'Organizar páginas de PDF',
@@ -266,6 +299,7 @@ export const pages = {
   },
   pdfCrop: {
     path: '/pdf/recortar/',
+    updated: '2026-10-26',
     title: 'Recortar PDF online grátis: corte as margens | Kompres',
     description: 'Corte as margens de todas as páginas de um PDF informando as medidas em milímetros. Grátis, direto no navegador e sem enviar o documento.',
     name: 'Recortar PDF',
@@ -274,6 +308,7 @@ export const pages = {
   },
   pngToPdf: {
     path: '/pdf/png-para-pdf/',
+    updated: '2026-10-26',
     title: 'Converter PNG para PDF online grátis | Kompres',
     description: 'Transforme imagens PNG, como prints e logos, em um PDF na ordem que quiser. Escolha A4 ou o tamanho da imagem. Grátis e sem upload.',
     name: 'PNG para PDF',
@@ -282,6 +317,7 @@ export const pages = {
   },
   pdfSign: {
     path: '/pdf/assinar/',
+    updated: '2026-10-27',
     title: 'Assinar PDF online grátis: desenhe ou envie | Kompres',
     description: 'Desenhe sua assinatura ou envie uma imagem e posicione no PDF, em uma ou várias páginas. Grátis, direto no navegador e sem enviar o documento.',
     name: 'Assinar PDF',
@@ -290,6 +326,7 @@ export const pages = {
   },
   pdfToText: {
     path: '/pdf/pdf-para-texto/',
+    updated: '2026-10-26',
     title: 'Converter PDF para texto (TXT) online grátis | Kompres',
     description: 'Extraia o texto de um PDF para copiar ou baixar em .txt, por página ou inteiro. Grátis, direto no navegador e sem enviar o documento.',
     name: 'PDF para texto',
