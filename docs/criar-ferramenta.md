@@ -3,7 +3,7 @@
 Projeto: `C:\Users\joaoa\OneDrive\Área de Trabalho\Arquivos\Dev\kompres` — Astro 7 estático, ferramentas de imagem e PDF que rodam 100% no navegador (nada é enviado a servidor). Idioma de interface, textos e comentários: **português do Brasil**. Leia `CONTEXTO.md` antes.
 
 ## Peças compartilhadas
-- `src/data/pages.ts` (registro: título, descrição, `path`), `src/data/tools.ts` (cartões de navegação; `ToolKey` = chave de `pages`), `src/data/og.ts`, `src/layouts/Base.astro`, `src/layouts/CompressorPage.astro`, `src/scripts/app.ts`, `public/css/style.css`, `public/css/tool-navigation.css`, `public/js/input.js`, `public/js/png-client.js`, `public/js/theme.js`. São compartilhados por todas as ferramentas: mexa neles só quando a mudança vale para todas.
+- `src/data/pages.ts` (registro: título, descrição, `path`, `updated`), `src/data/tools.ts` (cartões de navegação; `ToolKey` = chave de `pages`), `src/data/og.ts`, `src/layouts/Base.astro`, `src/layouts/CompressorPage.astro`, `src/scripts/app.ts`, `public/css/style.css`, `public/css/tool-navigation.css`, `public/js/input.js`, `public/js/png-client.js`, `public/js/theme.js`. São compartilhados por todas as ferramentas: mexa neles só quando a mudança vale para todas.
 - Antes de criar a página, registre a rota em `src/data/pages.ts`, o cartão (com categoria) em `src/data/tools.ts` e o texto da imagem de compartilhamento em `src/data/og.ts`. Sitemap, `llms.txt`, imagem OG e links "Todas as ferramentas" saem daí sozinhos.
 - Valide com `node --check arquivo.js`, `npm run build` e teste no navegador com arquivos gerados na própria página (canvas ou `PDFLib`, injetados num `DataTransfer` atribuído a `input.files`).
 

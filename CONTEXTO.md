@@ -68,7 +68,9 @@ Remover fundo e PDF continuam com botão (de propósito: modelo de IA pesado; ju
 
 - Sem React/SPA pura: Astro estático mantém SEO e peso baixo; `ClientRouter` dá a fluidez.
 - Sem prerender via Speculation Rules (executaria o analytics em páginas não visitadas).
-- Sem `FAQPage` em JSON-LD (Google não mostra mais para sites comuns).
+- Sem `FAQPage` nem `HowTo` em JSON-LD (Google descontinuou esses resultados). O schema é um único `@graph` por página (`Base.astro`).
+- Sem página nova por sinônimo ou tamanho de arquivo: amplia-se a página existente (regra do Google sobre conteúdo em escala).
+- `updated` em `pages.ts` alimenta o `<lastmod>` do sitemap e o `dateModified`: troque só quando o conteúdo da página mudar.
 - `/resizer/` continua com esse nome (mudar exigiria redirect 301).
 - Sem rolagem suave: é ferramenta, não landing page.
 

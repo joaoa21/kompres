@@ -38,37 +38,45 @@ const url = abs(Astro.url.pathname);
 const ogImage = abs(page ? `/og/${ogSlug(page.path)}.png` : '/og-image.png');
 const ogAlt = page ? `${page.name} no Kompres: grátis, direto no navegador` : 'Kompres: ferramentas de imagem e PDF no navegador';
 
-// Dados estruturados: o site e a organização (com @id, para as outras entidades apontarem
-// para eles), o app de cada página e, na home, a lista de todas as ferramentas. Nas páginas
-// internas, breadcrumbs. Ajuda o Google (sitelinks) e os buscadores com IA a entender o site.
+// Dados estruturados: um único @graph por página, com os nós ligados por @id. A organização
+// vai em todas as páginas; o WebSite (nome do site no Google) e a lista de ferramentas, só na home.
+// Sem FAQPage nem HowTo: o Google não mostra mais esses resultados.
 const siteId = abs('/#website');
 const orgId = abs('/#organization');
-const jsonLd: object[] = [];
+const graph: object[] = [];
 if (page) {
   const card = ogCards.find((item) => item.slug === ogSlug(page.path));
-  jsonLd.push({
-    '@context': 'https://schema.org', '@type': 'WebApplication', '@id': `${url}#app`,
-    name: page.appName, url, description, image: ogImage,
-    applicationCategory: 'MultimediaApplication', applicationSubCategory: page.group === 'pdf' ? 'Ferramenta de PDF' : 'Ferramenta de imagem',
-    operatingSystem: 'Any', inLanguage: 'pt-BR', isAccessibleForFree: true,
-    ...(card ? { featureList: card.subline } : {}),
-    offers: { '@type': 'Offer', price: '0', priceCurrency: 'BRL' },
-    browserRequirements: 'Requires JavaScript',
-    isPartOf: { '@id': siteId }, publisher: { '@id': orgId },
-  });
-  if (page.path === '/') {
-    jsonLd.push(
+  const isHome = page.path === '/';
+  graph.push(
+    {
+      '@type': 'Organization', '@id': orgId, name: 'Kompres', url: abs('/'),
+      logo: abs('/apple-touch-icon.png'), founder: { '@type': 'Person', name: 'João Alberto', url: 'https://joaoa.com.br' },
+    },
+    {
+      '@type': 'WebPage', '@id': `${url}#webpage`, url, name: title, description, inLanguage: 'pt-BR', dateModified: page.updated,
+      isPartOf: { '@id': siteId }, mainEntity: { '@id': `${url}#app` },
+      ...(isHome ? {} : { breadcrumb: { '@id': `${url}#breadcrumb` } }),
+    },
+    {
+      '@type': 'WebApplication', '@id': `${url}#app`,
+      name: page.appName, url, description, image: ogImage,
+      applicationCategory: 'MultimediaApplication', applicationSubCategory: page.group === 'pdf' ? 'Ferramenta de PDF' : 'Ferramenta de imagem',
+      operatingSystem: 'Any', inLanguage: 'pt-BR', isAccessibleForFree: true,
+      ...(card ? { featureList: card.subline } : {}),
+      offers: { '@type': 'Offer', price: '0', priceCurrency: 'BRL' },
+      browserRequirements: 'Requires JavaScript',
+      isPartOf: { '@id': siteId }, publisher: { '@id': orgId },
+    },
+  );
+  if (isHome) {
+    graph.push(
       {
-        '@context': 'https://schema.org', '@type': 'WebSite', '@id': siteId, name: 'Kompres', alternateName: 'kompres.com.br',
+        '@type': 'WebSite', '@id': siteId, name: 'Kompres', alternateName: 'kompres.com.br',
         url: abs('/'), inLanguage: 'pt-BR', publisher: { '@id': orgId },
         description: 'Ferramentas gratuitas de imagem e PDF que funcionam no navegador, sem enviar arquivos a servidores.',
       },
       {
-        '@context': 'https://schema.org', '@type': 'Organization', '@id': orgId, name: 'Kompres', url: abs('/'),
-        logo: abs('/apple-touch-icon.png'), founder: { '@type': 'Person', name: 'João Alberto', url: 'https://joaoa.com.br' },
-      },
-      {
-        '@context': 'https://schema.org', '@type': 'ItemList', name: 'Ferramentas do Kompres',
+        '@type': 'ItemList', name: 'Ferramentas do Kompres',
         itemListElement: allPages.map((item, i) => ({ '@type': 'ListItem', position: i + 1, name: item.name, url: abs(item.path) })),
       },
     );
@@ -76,8 +84,8 @@ if (page) {
     const trail = [{ name: 'Kompres', path: '/' }];
     if (page.group === 'pdf' && page.path !== '/pdf/') trail.push({ name: 'PDF', path: '/pdf/' });
     trail.push({ name: page.name, path: page.path });
-    jsonLd.push({
-      '@context': 'https://schema.org', '@type': 'BreadcrumbList',
+    graph.push({
+      '@type': 'BreadcrumbList', '@id': `${url}#breadcrumb`,
       itemListElement: trail.map((item, i) => ({ '@type': 'ListItem', position: i + 1, name: item.name, item: abs(item.path) })),
     });
   }
@@ -125,7 +133,7 @@ if (page) {
 
   <link rel="icon" type="image/svg+xml" href="/favicon.svg">
   <link rel="apple-touch-icon" href="/apple-touch-icon.png">
-  <link rel="stylesheet" href="/css/style.css?v=ux-27">
+  <link rel="stylesheet" href="/css/style.css?v=ux-28">
   {styles.map((href) => <link rel="stylesheet" href={href}>)}
   <link rel="stylesheet" href="/css/tool-navigation.css?v=ux-5">
   <link rel="stylesheet" href="/css/selects.css?v=1">
@@ -150,7 +158,7 @@ if (page) {
       <meta name="twitter:image" content={ogImage}>
       <meta name="twitter:image:alt" content={ogAlt}>
 
-      {jsonLd.map((data) => <script type="application/ld+json" set:html={JSON.stringify(data)} />)}
+      {graph.length > 0 && <script type="application/ld+json" set:html={JSON.stringify({ '@context': 'https://schema.org', '@graph': graph })} />}
     </>
   )}
 

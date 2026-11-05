@@ -30,8 +30,8 @@ const current = Astro.url.pathname;
       <nav class="footer-tools" aria-label="Todas as ferramentas">
         {columns.map(({ title, keys }) => (
           <div class="footer-col">
-            <h2>{title}</h2>
-            <ul>
+            <p class="footer-col-title">{title}</p>
+            <ul aria-label={title}>
               {keys.map((key) => (
                 <li><a href={pages[key].path} aria-current={pages[key].path === current ? 'page' : undefined}>{pages[key].name}</a></li>
               ))}

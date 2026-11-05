@@ -976,7 +976,7 @@ html.light .download-btn:hover {
   gap: 32px;
 }
 
-.footer-col h2 {
+.footer-col-title {
   margin: 0 0 14px;
   color: var(--text);
   font-family: var(--font-text);

@@ -13,7 +13,7 @@ export const GET: APIRoute = ({ site }) => {
   };
   const body = `# Kompres
 
-> Ferramentas gratuitas de imagem e PDF em português que funcionam inteiramente no navegador. Os arquivos não são enviados a nenhum servidor: a compressão, a conversão e a edição acontecem no próprio dispositivo. Sem cadastro, sem marca d'água no resultado e sem limite de uso.
+> Ferramentas gratuitas de imagem e PDF em português que funcionam inteiramente no navegador. Os arquivos não são enviados a nenhum servidor: a compressão, a conversão e a edição acontecem no próprio dispositivo. Sem cadastro, sem marca d'água no resultado e sem cota de uso (algumas ferramentas têm limites técnicos por arquivo).
 
 Site: ${new URL('/', site).href}
 Idioma: português do Brasil
@@ -31,8 +31,9 @@ ${allPages.filter((page) => page.group === 'pdf').map(line).join('\n')}
 
 - Tudo roda no navegador, com JavaScript, inclusive em celulares. Os arquivos não saem do dispositivo.
 - Formatos de imagem: PNG, JPG (JPEG), WebP, SVG e HEIC/HEIF do iPhone (entrada). Saída em PNG, JPG, WebP, ICO (favicon) ou GIF animado.
-- Processamento em lote: várias imagens de uma vez, com download individual ou em ZIP.
-- O remover fundo usa um modelo de IA baixado uma vez para o navegador; as imagens continuam locais.
+- Processamento em lote: várias imagens de uma vez, com download individual, separado, numa pasta ou em ZIP.
+- O remover fundo e o melhorar imagem usam modelos de IA baixados uma vez para o navegador; as imagens continuam locais.
+- O site registra estatísticas anônimas de uso (páginas e cliques), nunca o conteúdo dos arquivos.
 - PDFs protegidos por senha não são desbloqueados.
 `;
   return new Response(body, { headers: { 'Content-Type': 'text/plain; charset=utf-8' } });
