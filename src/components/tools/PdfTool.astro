@@ -1,6 +1,8 @@
 ---
 /** Ferramentas de PDF (lógica em /js/pdf.js). O modo vem da página; a troca de
- *  modo é pelos cartões de navegação abaixo do cabeçalho (ToolsNav). */
+ *  modo é pelos cartões de navegação abaixo do cabeçalho (ToolsNav). Trocar de modo
+ *  é trocar de página, então cada uma só traz os controles do seu modo. Os grupos
+ *  continuam com `hidden` no HTML: é o applyMode do pdf.js que os mostra ao montar. */
 export type PdfMode = 'merge' | 'compress' | 'images' | 'extract' | 'remove' | 'rotate' | 'export' | 'watermark' | 'number' | 'crop' | 'text';
 interface Props {
   mode?: PdfMode;
@@ -9,6 +11,8 @@ interface Props {
 }
 const { mode = 'merge', limit = 0 } = Astro.props;
 const limits = [[0, 'Sem limite'], [500_000, '500 KB'], [1_000_000, '1 MB'], [2_000_000, '2 MB'], [5_000_000, '5 MB'], [10_000_000, '10 MB']] as const;
+// Modos de um PDF só, os que têm o campo Páginas (a lista SINGLE do pdf.js).
+const usesPageRange = (['extract', 'export', 'remove', 'rotate', 'watermark', 'number', 'crop', 'text'] as PdfMode[]).includes(mode);
 // Mesmos textos que o pdf.js aplica ao trocar de modo.
 const titles: Record<PdfMode, string> = { merge: 'Juntar PDFs', compress: 'Comprimir PDFs', images: 'Imagens para PDF', extract: 'Extrair ou dividir PDF', remove: 'Remover páginas do PDF', rotate: 'Girar páginas do PDF', export: 'PDF para imagens', watermark: "Marca d'água no PDF", number: 'Numerar páginas do PDF', crop: 'Recortar margens do PDF', text: 'PDF para texto' };
 const descriptions: Record<PdfMode, string> = { merge: 'Adicione os PDFs e organize a ordem.', compress: 'Adicione seus PDFs e escolha a compressão.', images: 'Adicione as imagens e organize a ordem das páginas.', extract: 'Escolha as páginas que deseja salvar.', remove: 'Informe as páginas que devem sair do arquivo.', rotate: 'Escolha o ângulo e, se quiser, só algumas páginas.', export: 'Transforme as páginas do PDF em JPG ou PNG.', watermark: 'Escolha texto ou imagem e a posição, ou arraste a marca na prévia.', number: 'Escolha posição, formato e número inicial.', crop: 'Informe quanto cortar de cada margem.', text: 'Copie ou baixe o texto do PDF em .txt.' };
@@ -25,169 +29,201 @@ const descriptions: Record<PdfMode, string> = { merge: 'Adicione os PDFs e organ
   <div class="tool-workspace page-inner">
     <div class="tool-side" data-ah-label="Coluna de ajustes">
       <div class="controls page-inner controls-pdf" id="pdfControls" data-mode={mode}>
-    <div class="control-group compress-only hidden" id="limitGroup">
-      <label for="pdfLimit">Tamanho máximo</label>
-      <select id="pdfLimit">
-        {limits.map(([bytes, label]) => <option value={bytes} selected={bytes === limit}>{label}</option>)}
-      </select>
-    </div>
-    <div class="control-group compress-only hidden" id="dpiGroup">
-      <label for="dpiSelect">Resolução</label>
-      <select id="dpiSelect">
-        <option value="150">Alta qualidade · 150 DPI</option>
-        <option value="120" selected>Equilibrado · 120 DPI</option>
-        <option value="96">Máxima compressão · 96 DPI</option>
-      </select>
-    </div>
+    {mode === 'compress' && (
+      <>
+        <div class="control-group compress-only hidden" id="limitGroup">
+          <label for="pdfLimit">Tamanho máximo</label>
+          <select id="pdfLimit">
+            {limits.map(([bytes, label]) => <option value={bytes} selected={bytes === limit}>{label}</option>)}
+          </select>
+        </div>
+        <div class="control-group compress-only hidden" id="dpiGroup">
+          <label for="dpiSelect">Resolução</label>
+          <select id="dpiSelect">
+            <option value="150">Alta qualidade · 150 DPI</option>
+            <option value="120" selected>Equilibrado · 120 DPI</option>
+            <option value="96">Máxima compressão · 96 DPI</option>
+          </select>
+        </div>
 
-    <div class="control-group compress-only hidden" id="qualityGroup">
-      <label for="pdfQuality">Qualidade</label>
-      <div class="value" id="pdfQualityVal">80%</div>
-      <input type="range" min="30" max="95" value="80" step="1" id="pdfQuality">
-    </div>
-    <div class="control-group hidden" data-for="images">
-      <label for="imagePageSize">Tamanho da página</label>
-      <select id="imagePageSize"><option value="a4">A4 · retrato</option><option value="a4-landscape">A4 · paisagem</option><option value="image">Tamanho da imagem</option></select>
-    </div>
-    <div class="control-group hidden" data-for="images">
-      <label for="imageMargin">Margem</label>
-      <select id="imageMargin"><option value="0">Sem margem</option><option value="10" selected>10 mm</option><option value="20">20 mm</option></select>
-    </div>
-    <div class="control-group hidden" id="pageRangeGroup" data-for="extract export remove rotate watermark number crop text">
-      <label for="pageRange">Páginas</label>
-      <input type="text" id="pageRange" placeholder="Todas ou 1-3, 7" autocomplete="off" spellcheck="false" aria-describedby="rangeHint">
-      <small id="rangeHint" class="pdf-field-hint">Deixe vazio para todas as páginas.</small>
-    </div>
-    <div class="control-group hidden" data-for="text">
-      <label class="pdf-check" for="textSeparate"><input type="checkbox" id="textSeparate" aria-describedby="textSeparateHint"><span>Separar páginas</span></label>
-      <small id="textSeparateHint" class="pdf-field-hint">Coloca "--- Página N ---" antes do texto de cada página.</small>
-    </div>
-    <div class="control-group hidden" data-for="rotate">
-      <label for="rotateAngle">Ângulo</label>
-      <select id="rotateAngle"><option value="90">90° no sentido horário</option><option value="270">90° no sentido anti-horário</option><option value="180">180° (de cabeça para baixo)</option></select>
-    </div>
-
-    <!-- Marca d'água: texto ou imagem (o pdf.js mostra só os campos do tipo escolhido) -->
-    <div class="control-group hidden" data-for="watermark">
-      <label id="wmTypeLabel">Tipo</label>
-      <div class="format-toggle" id="wmType" role="group" aria-labelledby="wmTypeLabel">
-        <button class="fmt-btn active" type="button" data-type="text" aria-pressed="true">Texto</button>
-        <button class="fmt-btn" type="button" data-type="image" aria-pressed="false">Imagem</button>
+        <div class="control-group compress-only hidden" id="qualityGroup">
+          <label for="pdfQuality">Qualidade</label>
+          <div class="value" id="pdfQualityVal">80%</div>
+          <input type="range" min="30" max="95" value="80" step="1" id="pdfQuality">
+        </div>
+      </>
+    )}
+    {mode === 'images' && (
+      <>
+        <div class="control-group hidden" data-for="images">
+          <label for="imagePageSize">Tamanho da página</label>
+          <select id="imagePageSize"><option value="a4">A4 · retrato</option><option value="a4-landscape">A4 · paisagem</option><option value="image">Tamanho da imagem</option></select>
+        </div>
+        <div class="control-group hidden" data-for="images">
+          <label for="imageMargin">Margem</label>
+          <select id="imageMargin"><option value="0">Sem margem</option><option value="10" selected>10 mm</option><option value="20">20 mm</option></select>
+        </div>
+      </>
+    )}
+    {usesPageRange && (
+      <div class="control-group hidden" id="pageRangeGroup" data-for={mode}>
+        <label for="pageRange">Páginas</label>
+        <input type="text" id="pageRange" placeholder="Todas ou 1-3, 7" autocomplete="off" spellcheck="false" aria-describedby="rangeHint">
+        <small id="rangeHint" class="pdf-field-hint">Deixe vazio para todas as páginas.</small>
       </div>
-    </div>
-    <div class="control-group hidden" id="wmTextGroup" data-for="watermark">
-      <label for="wmText">Texto</label>
-      <input type="text" id="wmText" value="CONFIDENCIAL" maxlength="120" autocomplete="off" spellcheck="false">
-    </div>
-    <div class="control-group hidden pdf-file-field" id="wmImageGroup" data-for="watermark">
-      <label for="wmImage">Imagem</label>
-      <label class="pdf-file-btn" for="wmImage">Escolher PNG ou JPG…</label>
-      <input type="file" id="wmImage" accept="image/png,image/jpeg,.png,.jpg,.jpeg" aria-describedby="wmImageName">
-      <small id="wmImageName" class="pdf-field-hint pdf-file-name" data-ah-mask>Nenhuma imagem escolhida.</small>
-    </div>
-    <div class="control-group hidden" data-for="watermark">
-      <label for="wmPosition">Posição</label>
-      <select id="wmPosition">
-        <option value="diagonal" selected>Diagonal no centro</option>
-        <option value="center">Centro</option>
-        <option value="top-left">Canto superior esquerdo</option>
-        <option value="top-right">Canto superior direito</option>
-        <option value="bottom-left">Canto inferior esquerdo</option>
-        <option value="bottom-right">Canto inferior direito</option>
-        <option value="free">Livre (arraste na prévia)</option>
-        <option value="tile">Mosaico (repetida em grade)</option>
-      </select>
-    </div>
-    <!-- Só na posição Livre (o pdf.js mostra e esconde). -->
-    <div class="control-group hidden" id="wmAngleGroup" data-for="watermark">
-      <label for="wmAngle">Ângulo</label>
-      <select id="wmAngle">
-        <option value="0" selected>0° (horizontal)</option>
-        <option value="45">45° (subindo)</option>
-        <option value="-45">−45° (descendo)</option>
-        <option value="90">90° (vertical)</option>
-      </select>
-    </div>
-    <div class="control-group hidden" data-for="watermark">
-      <label for="wmSize">Tamanho</label>
-      <div class="value" id="wmSizeVal">50%</div>
-      <input type="range" min="5" max="100" value="50" step="1" id="wmSize" aria-describedby="wmSizeHint">
-      <small id="wmSizeHint" class="pdf-field-hint">Em relação à largura da página.</small>
-    </div>
-    <div class="control-group hidden" data-for="watermark">
-      <label for="wmOpacity">Opacidade</label>
-      <div class="value" id="wmOpacityVal">30%</div>
-      <input type="range" min="5" max="100" value="30" step="1" id="wmOpacity">
-    </div>
-    <div class="control-group hidden" id="wmColorGroup" data-for="watermark">
-      <label for="wmColor">Cor do texto</label>
-      <select id="wmColor"><option value="gray" selected>Cinza</option><option value="black">Preto</option><option value="red">Vermelho</option><option value="blue">Azul</option></select>
-    </div>
-
-    <!-- Numerar páginas -->
-    <div class="control-group hidden" data-for="number">
-      <label for="numberPosition">Posição</label>
-      <select id="numberPosition">
-        <option value="bottom-center" selected>Inferior, centro</option>
-        <option value="bottom-right">Inferior, direita</option>
-        <option value="bottom-left">Inferior, esquerda</option>
-        <option value="top-center">Superior, centro</option>
-        <option value="top-right">Superior, direita</option>
-        <option value="top-left">Superior, esquerda</option>
-      </select>
-    </div>
-    <div class="control-group hidden" data-for="number">
-      <label for="numberFormat">Formato</label>
-      <select id="numberFormat">
-        <option value="n" selected>1</option>
-        <option value="pagina-n">Página 1</option>
-        <option value="n-de-total">1 de N</option>
-        <option value="pagina-n-de-total">Página 1 de N</option>
-      </select>
-    </div>
-    <div class="control-group hidden" data-for="number">
-      <label for="numberStart">Número inicial</label>
-      <input type="number" id="numberStart" value="1" min="0" max="999999" step="1" inputmode="numeric">
-    </div>
-    <div class="control-group hidden" data-for="number">
-      <label for="numberSize">Tamanho da fonte</label>
-      <select id="numberSize"><option value="10">10 pt</option><option value="12" selected>12 pt</option><option value="14">14 pt</option></select>
-    </div>
-
-    <!-- Recortar margens: os quatro lados em milímetros -->
-    <div class="control-group hidden pdf-margins-group" data-for="crop">
-      <label id="cropLabel">Margens a cortar (mm)</label>
-      <div class="pdf-margins" role="group" aria-labelledby="cropLabel">
-        <div><label for="cropTop">Superior</label><input type="number" id="cropTop" value="0" min="0" max="1000" step="any" inputmode="decimal"></div>
-        <div><label for="cropRight">Direita</label><input type="number" id="cropRight" value="0" min="0" max="1000" step="any" inputmode="decimal"></div>
-        <div><label for="cropBottom">Inferior</label><input type="number" id="cropBottom" value="0" min="0" max="1000" step="any" inputmode="decimal"></div>
-        <div><label for="cropLeft">Esquerda</label><input type="number" id="cropLeft" value="0" min="0" max="1000" step="any" inputmode="decimal"></div>
+    )}
+    {mode === 'text' && (
+      <div class="control-group hidden" data-for="text">
+        <label class="pdf-check" for="textSeparate"><input type="checkbox" id="textSeparate" aria-describedby="textSeparateHint"><span>Separar páginas</span></label>
+        <small id="textSeparateHint" class="pdf-field-hint">Coloca "--- Página N ---" antes do texto de cada página.</small>
       </div>
-      <small class="pdf-field-hint">O que sobrar precisa ter pelo menos 20 mm de largura e de altura.</small>
-    </div>
-    <div class="control-group hidden" data-for="extract">
-      <label for="extractOutput">Salvar como</label>
-      <select id="extractOutput"><option value="single">PDF único</option><option value="split">Um PDF por página</option></select>
-    </div>
-    <div class="control-group hidden" data-for="export">
-      <label for="exportFormat">Formato de saída</label>
-      <select id="exportFormat"><option value="jpeg">JPG</option><option value="png">PNG</option></select>
-    </div>
-    <div class="control-group hidden" data-for="export">
-      <label for="exportDpi">Resolução</label>
-      <select id="exportDpi"><option value="72">72 DPI</option><option value="150" selected>150 DPI</option><option value="200">200 DPI</option></select>
-    </div>
-    <div class="control-group hidden" id="exportQualityGroup" data-for="export">
-      <label for="exportQuality">Qualidade JPG</label>
-      <div class="value" id="exportQualityVal">90%</div>
-      <input type="range" min="30" max="100" value="90" id="exportQuality">
-    </div>
+    )}
+    {mode === 'rotate' && (
+      <div class="control-group hidden" data-for="rotate">
+        <label for="rotateAngle">Ângulo</label>
+        <select id="rotateAngle"><option value="90">90° no sentido horário</option><option value="270">90° no sentido anti-horário</option><option value="180">180° (de cabeça para baixo)</option></select>
+      </div>
+    )}
+
+    {/* Marca d'água: texto ou imagem (o pdf.js mostra só os campos do tipo escolhido) */}
+    {mode === 'watermark' && (
+      <>
+        <div class="control-group hidden" data-for="watermark">
+          <label id="wmTypeLabel">Tipo</label>
+          <div class="format-toggle" id="wmType" role="group" aria-labelledby="wmTypeLabel">
+            <button class="fmt-btn active" type="button" data-type="text" aria-pressed="true">Texto</button>
+            <button class="fmt-btn" type="button" data-type="image" aria-pressed="false">Imagem</button>
+          </div>
+        </div>
+        <div class="control-group hidden" id="wmTextGroup" data-for="watermark">
+          <label for="wmText">Texto</label>
+          <input type="text" id="wmText" value="CONFIDENCIAL" maxlength="120" autocomplete="off" spellcheck="false">
+        </div>
+        <div class="control-group hidden pdf-file-field" id="wmImageGroup" data-for="watermark">
+          <label for="wmImage">Imagem</label>
+          <label class="pdf-file-btn" for="wmImage">Escolher PNG ou JPG…</label>
+          <input type="file" id="wmImage" accept="image/png,image/jpeg,.png,.jpg,.jpeg" aria-describedby="wmImageName">
+          <small id="wmImageName" class="pdf-field-hint pdf-file-name" data-ah-mask>Nenhuma imagem escolhida.</small>
+        </div>
+        <div class="control-group hidden" data-for="watermark">
+          <label for="wmPosition">Posição</label>
+          <select id="wmPosition">
+            <option value="diagonal" selected>Diagonal no centro</option>
+            <option value="center">Centro</option>
+            <option value="top-left">Canto superior esquerdo</option>
+            <option value="top-right">Canto superior direito</option>
+            <option value="bottom-left">Canto inferior esquerdo</option>
+            <option value="bottom-right">Canto inferior direito</option>
+            <option value="free">Livre (arraste na prévia)</option>
+            <option value="tile">Mosaico (repetida em grade)</option>
+          </select>
+        </div>
+        {/* Só na posição Livre (o pdf.js mostra e esconde). */}
+        <div class="control-group hidden" id="wmAngleGroup" data-for="watermark">
+          <label for="wmAngle">Ângulo</label>
+          <select id="wmAngle">
+            <option value="0" selected>0° (horizontal)</option>
+            <option value="45">45° (subindo)</option>
+            <option value="-45">−45° (descendo)</option>
+            <option value="90">90° (vertical)</option>
+          </select>
+        </div>
+        <div class="control-group hidden" data-for="watermark">
+          <label for="wmSize">Tamanho</label>
+          <div class="value" id="wmSizeVal">50%</div>
+          <input type="range" min="5" max="100" value="50" step="1" id="wmSize" aria-describedby="wmSizeHint">
+          <small id="wmSizeHint" class="pdf-field-hint">Em relação à largura da página.</small>
+        </div>
+        <div class="control-group hidden" data-for="watermark">
+          <label for="wmOpacity">Opacidade</label>
+          <div class="value" id="wmOpacityVal">30%</div>
+          <input type="range" min="5" max="100" value="30" step="1" id="wmOpacity">
+        </div>
+        <div class="control-group hidden" id="wmColorGroup" data-for="watermark">
+          <label for="wmColor">Cor do texto</label>
+          <select id="wmColor"><option value="gray" selected>Cinza</option><option value="black">Preto</option><option value="red">Vermelho</option><option value="blue">Azul</option></select>
+        </div>
+      </>
+    )}
+
+    {/* Numerar páginas */}
+    {mode === 'number' && (
+      <>
+        <div class="control-group hidden" data-for="number">
+          <label for="numberPosition">Posição</label>
+          <select id="numberPosition">
+            <option value="bottom-center" selected>Inferior, centro</option>
+            <option value="bottom-right">Inferior, direita</option>
+            <option value="bottom-left">Inferior, esquerda</option>
+            <option value="top-center">Superior, centro</option>
+            <option value="top-right">Superior, direita</option>
+            <option value="top-left">Superior, esquerda</option>
+          </select>
+        </div>
+        <div class="control-group hidden" data-for="number">
+          <label for="numberFormat">Formato</label>
+          <select id="numberFormat">
+            <option value="n" selected>1</option>
+            <option value="pagina-n">Página 1</option>
+            <option value="n-de-total">1 de N</option>
+            <option value="pagina-n-de-total">Página 1 de N</option>
+          </select>
+        </div>
+        <div class="control-group hidden" data-for="number">
+          <label for="numberStart">Número inicial</label>
+          <input type="number" id="numberStart" value="1" min="0" max="999999" step="1" inputmode="numeric">
+        </div>
+        <div class="control-group hidden" data-for="number">
+          <label for="numberSize">Tamanho da fonte</label>
+          <select id="numberSize"><option value="10">10 pt</option><option value="12" selected>12 pt</option><option value="14">14 pt</option></select>
+        </div>
+      </>
+    )}
+
+    {/* Recortar margens: os quatro lados em milímetros */}
+    {mode === 'crop' && (
+      <div class="control-group hidden pdf-margins-group" data-for="crop">
+        <label id="cropLabel">Margens a cortar (mm)</label>
+        <div class="pdf-margins" role="group" aria-labelledby="cropLabel">
+          <div><label for="cropTop">Superior</label><input type="number" id="cropTop" value="0" min="0" max="1000" step="any" inputmode="decimal"></div>
+          <div><label for="cropRight">Direita</label><input type="number" id="cropRight" value="0" min="0" max="1000" step="any" inputmode="decimal"></div>
+          <div><label for="cropBottom">Inferior</label><input type="number" id="cropBottom" value="0" min="0" max="1000" step="any" inputmode="decimal"></div>
+          <div><label for="cropLeft">Esquerda</label><input type="number" id="cropLeft" value="0" min="0" max="1000" step="any" inputmode="decimal"></div>
+        </div>
+        <small class="pdf-field-hint">O que sobrar precisa ter pelo menos 20 mm de largura e de altura.</small>
+      </div>
+    )}
+    {mode === 'extract' && (
+      <div class="control-group hidden" data-for="extract">
+        <label for="extractOutput">Salvar como</label>
+        <select id="extractOutput"><option value="single">PDF único</option><option value="split">Um PDF por página</option></select>
+      </div>
+    )}
+    {mode === 'export' && (
+      <>
+        <div class="control-group hidden" data-for="export">
+          <label for="exportFormat">Formato de saída</label>
+          <select id="exportFormat"><option value="jpeg">JPG</option><option value="png">PNG</option></select>
+        </div>
+        <div class="control-group hidden" data-for="export">
+          <label for="exportDpi">Resolução</label>
+          <select id="exportDpi"><option value="72">72 DPI</option><option value="150" selected>150 DPI</option><option value="200">200 DPI</option></select>
+        </div>
+        <div class="control-group hidden" id="exportQualityGroup" data-for="export">
+          <label for="exportQuality">Qualidade JPG</label>
+          <div class="value" id="exportQualityVal">90%</div>
+          <input type="range" min="30" max="100" value="90" id="exportQuality">
+        </div>
+      </>
+    )}
   </div>
 
-      <div class="pdf-compression-option page-inner compress-only hidden">
-    <label for="allow-rasterize"><input type="checkbox" id="allow-rasterize" aria-describedby="rasterize-hint"><span>Permitir compressão mais forte</span></label>
-    <p id="rasterize-hint">Pode transformar páginas em imagens, removendo texto selecionável, links e campos.</p>
-  </div>
+      {mode === 'compress' && (
+        <div class="pdf-compression-option page-inner compress-only hidden">
+          <label for="allow-rasterize"><input type="checkbox" id="allow-rasterize" aria-describedby="rasterize-hint"><span>Permitir compressão mais forte</span></label>
+          <p id="rasterize-hint">Pode transformar páginas em imagens, removendo texto selecionável, links e campos.</p>
+        </div>
+      )}
 
       <div class="action-bar page-inner">
     <button class="btn btn-primary" id="actionBtn" disabled>Juntar PDFs</button>
@@ -202,13 +238,13 @@ const descriptions: Record<PdfMode, string> = { merge: 'Adicione os PDFs e organ
     <p id="dropText"><strong>Arraste os PDFs aqui</strong><br>ou clique para selecionar · somente .pdf</p>
   </div>
 
-  <!-- Imagens → PDF no celular: abre a câmera; cada foto vira mais uma página. -->
-  <div class="pdf-camera page-inner hidden" data-for="images">
-    <button class="btn btn-outline" type="button" id="cameraBtn">📷 Tirar foto</button>
-    <input type="file" id="cameraInput" accept="image/*" capture="environment" tabindex="-1" aria-hidden="true">
-  </div>
-
-  
+  {/* Imagens → PDF no celular: abre a câmera; cada foto vira mais uma página. */}
+  {mode === 'images' && (
+    <div class="pdf-camera page-inner hidden" data-for="images">
+      <button class="btn btn-outline" type="button" id="cameraBtn">📷 Tirar foto</button>
+      <input type="file" id="cameraInput" accept="image/*" capture="environment" tabindex="-1" aria-hidden="true">
+    </div>
+  )}
 
   <p class="page-inner pdf-status" id="pdfStatus" role="status" aria-live="polite" hidden></p>
 
@@ -232,19 +268,21 @@ const descriptions: Record<PdfMode, string> = { merge: 'Adicione os PDFs e organ
   </div>
 
   <div class="pdf-list page-inner" id="pdfList" data-ah-mask data-ah-label="Lista de arquivos"></div>
-  <!-- PDF para texto: o texto extraído fica aqui, pronto para copiar ou baixar. -->
-  <div class="page-inner pdf-text-result" id="pdfTextResult" hidden>
-    <label for="pdfText">Texto extraído</label>
-    <textarea id="pdfText" readonly spellcheck="false" data-ah-mask></textarea>
-    <div class="pdf-text-actions">
-      <button class="btn btn-primary" type="button" id="textCopy" disabled>Copiar texto</button>
-      <button class="btn btn-outline" type="button" id="textDownload" disabled>↓ Baixar .txt</button>
+  {/* PDF para texto: o texto extraído fica aqui, pronto para copiar ou baixar. */}
+  {mode === 'text' && (
+    <div class="page-inner pdf-text-result" id="pdfTextResult" hidden>
+      <label for="pdfText">Texto extraído</label>
+      <textarea id="pdfText" readonly spellcheck="false" data-ah-mask></textarea>
+      <div class="pdf-text-actions">
+        <button class="btn btn-primary" type="button" id="textCopy" disabled>Copiar texto</button>
+        <button class="btn btn-outline" type="button" id="textDownload" disabled>↓ Baixar .txt</button>
+      </div>
     </div>
-  </div>
+  )}
   <div class="page-inner pdf-outputs" id="pdfOutputs" data-ah-mask hidden></div>
 
-  <!-- Marca d'água: prévia de uma página com a marca arrastável. O pdf.js só a mostra no modo
-       watermark com um PDF carregado; nos outros modos fica sempre oculta. -->
+  {/* Marca d'água: prévia de uma página com a marca arrastável. O pdf.js só a mostra com um PDF carregado. */}
+  {mode === 'watermark' && (
     <div class="tool-stage page-inner wm-stage" id="wmStage" hidden>
       <div class="wm-bar">
         <p class="wm-hint">Arraste a marca para posicioná-la e puxe o canto para mudar o tamanho.</p>
@@ -257,7 +295,7 @@ const descriptions: Record<PdfMode, string> = { merge: 'Adicione os PDFs e organ
       <div class="wm-view" id="wmView">
         <div class="wm-page" id="wmPage">
           <canvas id="wmCanvas" aria-hidden="true"></canvas>
-          <!-- A marca é cortada na borda da página, como no PDF; a moldura de arrastar fica por cima, sem corte. -->
+          {/* A marca é cortada na borda da página, como no PDF; a moldura de arrastar fica por cima, sem corte. */}
           <div class="wm-clip" aria-hidden="true">
             <div class="wm-ink" id="wmInk" hidden>
               <span class="wm-ink-text" id="wmInkText" data-ah-mask><span id="wmInkStr"></span><i class="wm-baseline" id="wmBaseline"></i></span>
@@ -273,6 +311,7 @@ const descriptions: Record<PdfMode, string> = { merge: 'Adicione os PDFs e organ
       </div>
       <p class="wm-notice" id="wmNotice" role="status" hidden></p>
     </div>
+  )}
     </div>
   </div>
 </section>
