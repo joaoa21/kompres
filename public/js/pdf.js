@@ -12,6 +12,8 @@ kompres.register('pdf', (signal, document) => {
   if (window.pdfjsLib) pdfjsLib.GlobalWorkerOptions.workerSrc =
     'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
 
+  // Cada página só traz os controles do seu modo (PdfTool.astro): fora dele, os elementos
+  // daquele modo não existem. Por isso os `?.` ao ligar eventos e os testes de `mode` abaixo.
   const fileInput   = document.getElementById('fileInput');
   const dropZone    = document.getElementById('dropZone');
   const actionBtn   = document.getElementById('actionBtn');
@@ -47,10 +49,12 @@ kompres.register('pdf', (signal, document) => {
   function escapeHtml(value) { return String(value).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
   document.querySelectorAll('#pdfControls input, #pdfControls select, #allow-rasterize').forEach(el => el.addEventListener('input', () => {
     if (busy) return;
-    qualityVal.textContent = `${qualityIn.value}%`;
-    field('exportQualityVal').textContent = `${field('exportQuality').value}%`;
-    field('exportQualityGroup').classList.toggle('hidden', mode !== 'export' || field('exportFormat').value === 'png');
-    field('pageRange').removeAttribute('aria-invalid');
+    if (mode === 'compress') qualityVal.textContent = `${qualityIn.value}%`;
+    if (mode === 'export') {
+      field('exportQualityVal').textContent = `${field('exportQuality').value}%`;
+      field('exportQualityGroup').classList.toggle('hidden', field('exportFormat').value === 'png');
+    }
+    field('pageRange')?.removeAttribute('aria-invalid');
     if (el.id === 'wmPosition') wmPositionChanged();
     if (el.id === 'wmSize' && field('wmPosition').value === 'free') wmFree.w = Number(el.value) / 100;
     syncWatermarkUi();
@@ -61,7 +65,7 @@ kompres.register('pdf', (signal, document) => {
   /* ── Marca d'água: tipo (texto/imagem) e imagem escolhida ── */
   let wmType = 'text', wmImage = null; // { bytes, name }
   const wmToggle = field('wmType');
-  wmToggle.querySelectorAll('.fmt-btn').forEach(btn => btn.addEventListener('click', () => {
+  wmToggle?.querySelectorAll('.fmt-btn').forEach(btn => btn.addEventListener('click', () => {
     if (busy || btn.dataset.type === wmType) return;
     wmType = btn.dataset.type;
     field('wmSize').value = wmType === 'image' ? 30 : 50; // imagem costuma ficar melhor menor que texto
@@ -82,7 +86,7 @@ kompres.register('pdf', (signal, document) => {
     nameEl.textContent = wmImage ? wmImage.name : 'Nenhuma imagem escolhida.';
     nameEl.classList.toggle('has-file', !!wmImage);
   }
-  field('wmImage').addEventListener('change', async () => {
+  field('wmImage')?.addEventListener('change', async () => {
     const input = field('wmImage'), file = input.files[0];
     input.value = ''; // permite escolher o mesmo arquivo de novo
     if (!file || busy) return;
@@ -106,7 +110,7 @@ kompres.register('pdf', (signal, document) => {
      Arrastar ou redimensionar passa a posição para "Livre": centro em frações da página
      visível (x a partir da esquerda, y a partir do topo) e largura em fração da largura. */
   const wmFree = { x: .5, y: .5, w: .5 };
-  let wmLastPosition = field('wmPosition').value;
+  let wmLastPosition = field('wmPosition')?.value;
   const wmStage = field('wmStage'), wmView = field('wmView'), wmPage = field('wmPage'), wmCanvas = field('wmCanvas');
   const wmInk = field('wmInk'), wmInkText = field('wmInkText'), wmInkStr = field('wmInkStr'), wmBaseline = field('wmBaseline'), wmInkImg = field('wmInkImg');
   const wmMark = field('wmMark'), wmNotice = field('wmNotice'), wmPageLabel = field('wmPageLabel'), wmPrev = field('wmPrev'), wmNext = field('wmNext');
@@ -298,12 +302,12 @@ kompres.register('pdf', (signal, document) => {
     preview.page = next;
     wmRender();
   }
-  wmPrev.addEventListener('click', () => wmGoTo(preview.page - 1), { signal });
-  wmNext.addEventListener('click', () => wmGoTo(preview.page + 1), { signal });
+  wmPrev?.addEventListener('click', () => wmGoTo(preview.page - 1), { signal });
+  wmNext?.addEventListener('click', () => wmGoTo(preview.page + 1), { signal });
 
   // Arrastar move o centro; a alça do canto muda o tamanho (Pointer Events: mouse, caneta e toque).
   let wmGesture = null; // { id, resize, startX, startY, geom, rect, cx, cy, d0, moved }
-  wmMark.addEventListener('pointerdown', (event) => {
+  wmMark?.addEventListener('pointerdown', (event) => {
     if (busy || wmGesture || !preview.size || (event.pointerType === 'mouse' && event.button !== 0)) return;
     event.preventDefault();
     wmMark.focus({ preventScroll: true });
@@ -316,7 +320,7 @@ kompres.register('pdf', (signal, document) => {
     try { wmMark.setPointerCapture(event.pointerId); } catch { /* segue sem captura */ }
     wmMark.classList.add('dragging');
   }, { signal });
-  wmMark.addEventListener('pointermove', (event) => {
+  wmMark?.addEventListener('pointermove', (event) => {
     const g = wmGesture;
     if (!g || event.pointerId !== g.id) return;
     const dx = event.clientX - g.startX, dy = event.clientY - g.startY;
@@ -343,11 +347,11 @@ kompres.register('pdf', (signal, document) => {
     wmMark.classList.remove('dragging');
     try { wmMark.releasePointerCapture(g.id); } catch { /* já solto */ }
   }
-  wmMark.addEventListener('pointerup', wmEndGesture, { signal });
-  wmMark.addEventListener('pointercancel', wmEndGesture, { signal });
+  wmMark?.addEventListener('pointerup', wmEndGesture, { signal });
+  wmMark?.addEventListener('pointercancel', wmEndGesture, { signal });
 
   // Teclado: setas movem (Shift: passo maior), + e − mudam o tamanho.
-  wmMark.addEventListener('keydown', (event) => {
+  wmMark?.addEventListener('keydown', (event) => {
     if (busy || event.target !== wmMark) return;
     const step = event.shiftKey ? .05 : .01, geom = wmGeometry();
     switch (event.key) {
@@ -375,7 +379,7 @@ kompres.register('pdf', (signal, document) => {
   });
   if (mode === 'watermark') wmObserver.observe(wmView);
   signal.addEventListener('abort', () => {
-    wmClose();
+    if (mode === 'watermark') wmClose();
     wmObserver.disconnect();
     clearTimeout(wmResizeTimer);
     if (wmImage?.url) URL.revokeObjectURL(wmImage.url);
@@ -428,7 +432,7 @@ kompres.register('pdf', (signal, document) => {
     field('textCopy').disabled = busy || !textResult;
     field('textDownload').disabled = busy || !textResult;
   }
-  field('textCopy').addEventListener('click', async () => {
+  field('textCopy')?.addEventListener('click', async () => {
     if (!textResult || busy) return;
     let copied = false;
     try { await navigator.clipboard.writeText(textResult); copied = true; }
@@ -439,20 +443,20 @@ kompres.register('pdf', (signal, document) => {
     }
     setStatus(copied ? 'Texto copiado.' : 'Não foi possível copiar. Selecione o texto e use Ctrl+C.', !copied);
   });
-  field('textDownload').addEventListener('click', () => {
+  field('textDownload')?.addEventListener('click', () => {
     if (!textResult || busy || !items[0]) return;
     // BOM + quebras CRLF: o Bloco de Notas abre com acentos e linhas certos.
     const blob = new Blob(['\uFEFF' + textResult.replace(/\r?\n/g, '\r\n')], { type: 'text/plain;charset=utf-8' });
     triggerDownload(blob, `${KompresPDF.safeBase(items[0].name)}-texto-kompres.txt`);
   });
   // Trocar "Separar páginas" refaz a extração na hora (é rápida e não muda o arquivo).
-  field('textSeparate').addEventListener('change', () => { if (mode === 'text' && !busy && items[0]?.status === 'ready') runAction(); });
-  field('pageRange').addEventListener('keydown', event => { if (mode === 'text' && event.key === 'Enter') { event.preventDefault(); runAction(); } });
+  field('textSeparate')?.addEventListener('change', () => { if (mode === 'text' && !busy && items[0]?.status === 'ready') runAction(); });
+  field('pageRange')?.addEventListener('keydown', event => { if (mode === 'text' && event.key === 'Enter') { event.preventDefault(); runAction(); } });
 
   /* ── Câmera (celular): cada foto entra como mais uma página no modo Imagens → PDF ── */
   const cameraInput = field('cameraInput');
-  field('cameraBtn').addEventListener('click', () => { if (!busy) cameraInput.click(); });
-  cameraInput.addEventListener('change', async () => {
+  field('cameraBtn')?.addEventListener('click', () => { if (!busy) cameraInput.click(); });
+  cameraInput?.addEventListener('change', async () => {
     const files = [...cameraInput.files];
     cameraInput.value = ''; // permite tirar outra foto em seguida
     await handleFiles(files);
@@ -549,12 +553,12 @@ kompres.register('pdf', (signal, document) => {
   function applyMode() {
     document.querySelectorAll('.compress-only').forEach(el => el.classList.toggle('hidden', mode !== 'compress'));
     document.querySelectorAll('[data-for]').forEach(el => el.classList.toggle('hidden', !el.dataset.for.split(' ').includes(mode)));
-    field('exportQualityGroup').classList.toggle('hidden', mode !== 'export' || field('exportFormat').value === 'png');
+    if (mode === 'export') field('exportQualityGroup').classList.toggle('hidden', field('exportFormat').value === 'png');
     const titles = { merge: 'Juntar PDFs', compress: 'Comprimir PDFs', images: 'Imagens para PDF', extract: 'Extrair ou dividir PDF', remove: 'Remover páginas do PDF', rotate: 'Girar páginas do PDF', export: 'PDF para imagens', watermark: "Marca d'água no PDF", number: 'Numerar páginas do PDF', crop: 'Recortar margens do PDF', text: 'PDF para texto' };
     const descriptions = { merge: 'Adicione os PDFs e organize a ordem.', compress: 'Adicione seus PDFs e escolha a compressão.', images: 'Adicione as imagens e organize a ordem das páginas.', extract: 'Escolha as páginas que deseja salvar.', remove: 'Informe as páginas que devem sair do arquivo.', rotate: 'Escolha o ângulo e, se quiser, só algumas páginas.', export: 'Transforme as páginas do PDF em JPG ou PNG.', watermark: 'Escolha texto ou imagem e a posição, ou arraste a marca na prévia.', number: 'Escolha posição, formato e número inicial.', crop: 'Informe quanto cortar de cada margem.', text: 'Copie ou baixe o texto do PDF em .txt.' };
     field('toolTitle').textContent = titles[mode]; field('toolDescription').textContent = descriptions[mode];
     const hints = { remove: 'Separe por vírgula e use hífen para intervalos: 2, 5-7.', number: 'Deixe vazio para numerar todas. Páginas fora da lista ficam sem número, mas contam na sequência.', watermark: 'Deixe vazio para marcar todas as páginas.', crop: 'Deixe vazio para recortar todas as páginas.', text: 'Deixe vazio para extrair o texto de todas as páginas.' };
-    field('rangeHint').textContent = hints[mode] || 'Deixe vazio para todas as páginas.';
+    if (SINGLE.includes(mode)) field('rangeHint').textContent = hints[mode] || 'Deixe vazio para todas as páginas.';
     syncWatermarkUi();
     updateRangePlaceholder();
     const imageMode = mode === 'images', single = bankKey() === 'single';
@@ -566,14 +570,15 @@ kompres.register('pdf', (signal, document) => {
     if (window.updateAllRangeFills) window.updateAllRangeFills();
   }
 
-  qualityIn.addEventListener('input', () => {
+  qualityIn?.addEventListener('input', () => {
     qualityVal.textContent = `${qualityIn.value}%`;
     if (window.updateAllRangeFills) window.updateAllRangeFills();
   });
 
   // O campo de páginas mostra o total do PDF carregado: "Todas (1-12)".
   function updateRangePlaceholder() {
-    const pages = SINGLE.includes(mode) ? items[0]?.pages : null;
+    if (!SINGLE.includes(mode)) return; // só os modos de um PDF têm o campo Páginas
+    const pages = items[0]?.pages;
     field('pageRange').placeholder = mode === 'remove' ? (pages ? `Ex.: 2, 5-7 (o PDF tem ${pages})` : 'Ex.: 2, 5-7') : pages ? `Todas (1-${pages})` : 'Todas ou 1-3, 7';
   }
 
