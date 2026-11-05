@@ -8,16 +8,19 @@ import { pages } from '../../../data/pages';
   hero={{
     title: 'Converter PNG para JPG',
     highlight: 'em lote e grátis.',
-    text: 'Transforme imagens PNG em JPG direto no navegador. Ajuste a qualidade, veja quanto cada arquivo diminuiu e baixe tudo em ZIP.',
+    text: 'Transforme PNG em JPG direto no navegador. A conversão começa ao soltar os arquivos: ajuste a qualidade, veja quanto cada um diminuiu e baixe tudo de uma vez.',
   }}
   heading="Conversor de PNG para JPG"
   intro="Arraste seus arquivos PNG. O formato JPEG já vem selecionado."
   guideTitle="Como converter PNG para JPG"
   faqs={[
-    { q: 'Como converter PNG para JPG?', a: 'Arraste os arquivos PNG para a área acima, confira se o formato de saída está em JPEG e clique em Comprimir tudo. Baixe cada imagem ou todas de uma vez em um arquivo ZIP.' },
-    { q: 'O que acontece com o fundo transparente?', a: 'O JPG não suporta transparência, então as áreas transparentes do PNG recebem fundo branco. Para manter a transparência, escolha WebP ou PNG como formato de saída.' },
+    { q: 'Como converter PNG para JPG?', a: 'Arraste os arquivos ou cole com Ctrl+V. O JPEG já vem selecionado e a conversão começa sozinha. Baixe uma imagem ou todas: separadas, numa pasta ou em ZIP.' },
+    { q: 'JPG e JPEG são a mesma coisa?', a: 'Sim, é o mesmo formato com outra extensão. Aqui o arquivo sai como .jpg, aceito na maioria dos sites e formulários.' },
+    { q: 'Qual a diferença entre PNG e JPG?', a: 'O PNG mantém transparência e contornos nítidos, bom para logos e prints. O JPG deixa fotos bem mais leves, mas não tem transparência e perde um pouco de detalhe.' },
+    { q: 'Converter para JPG perde qualidade?', a: 'Um pouco, porque o JPG descarta detalhes para diminuir o arquivo. Entre 85% e 100% a diferença costuma ser difícil de ver. Para não perder nada, <a href="/">comprima o próprio PNG</a>.' },
+    { q: 'O que acontece com o fundo transparente?', a: 'O JPG não suporta transparência, então as áreas transparentes do PNG recebem fundo branco. Para manter a transparência com um arquivo leve, use <a href="/converter/png-para-webp/">PNG para WebP</a>.' },
     { q: 'Por que converter PNG para JPG?', a: 'Fotos e imagens com muitas cores costumam ficar bem menores em JPG do que em PNG, o que deixa sites mais rápidos e facilita o envio por e-mail ou WhatsApp. Para logotipos, textos e ilustrações com cores chapadas, o PNG costuma preservar melhor os contornos.' },
-    { q: 'Qual qualidade usar?', a: 'Entre 75% e 85% é um bom equilíbrio para fotos. Se o arquivo precisa caber em um limite, como 300 KB, use o modo Tamanho máx.: o Kompres procura a maior qualidade que cabe no limite.' },
+    { q: 'Qual qualidade usar?', a: 'Entre 75% e 85% é um bom equilíbrio para fotos. Se o arquivo precisa caber em um limite, use o modo Tamanho máx. ou a página de <a href="/comprimir-imagem-para-100kb/">comprimir imagem para 100 KB</a>: o Kompres procura a maior qualidade que cabe.' },
     { q: 'As imagens são enviadas para algum servidor?', a: 'As imagens não saem do seu dispositivo: a conversão é feita pelo próprio navegador, sem upload. Veja mais detalhes sobre privacidade nas <a href="/">perguntas do compressor</a>.' },
   ]}
 />

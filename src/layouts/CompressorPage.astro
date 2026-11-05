@@ -16,16 +16,18 @@ interface Props {
   svg?: boolean;
   /** Abre no modo Tamanho máx. com este limite. */
   target?: { value: number; unit: 'KB' | 'MB' };
+  /** Botões de tamanho prontos. */
+  presets?: { value: number; unit: 'KB' | 'MB' }[];
   /** Cartão marcado na navegação (o padrão é o compressor). */
   activeTool?: ToolKey;
   guideTitle: string;
   faqs: Faq[];
 }
-const { page, hero, format, heading, intro, svg, target, activeTool = 'compress', guideTitle, faqs } = Astro.props;
+const { page, hero, format, heading, intro, svg, target, presets, activeTool = 'compress', guideTitle, faqs } = Astro.props;
 ---
 <Base page={page} section="image" activeTool={activeTool} tool="compressor">
   <Hero {...hero} />
-  <CompressorTool format={format} heading={heading} intro={intro} svg={svg} target={target} />
+  <CompressorTool format={format} heading={heading} intro={intro} svg={svg} target={target} presets={presets} />
   <Guide title={guideTitle} faqs={faqs} />
 
   <script slot="scripts" is:inline src="/js/compressor.js?v=dl-3"></script>

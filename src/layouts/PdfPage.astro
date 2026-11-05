@@ -22,7 +22,7 @@ interface Props {
 }
 const { page, hero, mode, limit, guideTitle, faqs } = Astro.props;
 ---
-<Base page={page} section="pdf" activeTool={navKey[mode]} tool="pdf" styles={['/css/pdf-tools.css?v=ux-5']}>
+<Base page={page} section="pdf" activeTool={navKey[mode]} tool="pdf" styles={['/css/pdf-tools.css?v=ux-6']}>
   <Hero {...hero} />
   <PdfTool mode={mode} limit={limit} />
   <Guide title={guideTitle} faqs={faqs} />

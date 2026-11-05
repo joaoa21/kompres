@@ -31,3 +31,10 @@
   for = "/fonts/*"
   [headers.values]
     Cache-Control = "public, max-age=31536000, immutable"
+
+# 05/11/2026: a página de 50 KB foi unificada com a de limite de tamanho (botões de 50 KB a 2 MB).
+[[redirects]]
+  from = "/comprimir-imagem-para-50kb/"
+  to = "/comprimir-imagem-para-100kb/"
+  status = 301
+  force = true

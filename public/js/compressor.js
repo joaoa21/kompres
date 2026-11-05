@@ -79,8 +79,23 @@ kompres.register('compressor', (signal, document) => {
     qualityGroup.classList.toggle('hidden', compressMode !== 'quality');
   }
 
-  targetSizeInput.addEventListener('change', resetCompressedResults);
-  targetUnit.addEventListener('change', resetCompressedResults);
+  // Atalhos de tamanho (só nas páginas que os têm): preenchem o campo; digitar outro valor desmarca.
+  const sizePresets = document.getElementById('size-presets');
+  const markPreset = () => sizePresets?.querySelectorAll('.fmt-btn').forEach((btn) => {
+    btn.classList.toggle('active', btn.dataset.value === targetSizeInput.value && btn.dataset.unit === targetUnit.value);
+  });
+  sizePresets?.addEventListener('click', (event) => {
+    const btn = event.target.closest('.fmt-btn');
+    if (!btn) return;
+    targetSizeInput.value = btn.dataset.value;
+    targetUnit.value = btn.dataset.unit;
+    targetUnit.dispatchEvent(new Event('kompres:sync'));
+    markPreset();
+    resetCompressedResults();
+  });
+
+  targetSizeInput.addEventListener('change', () => { markPreset(); resetCompressedResults(); });
+  targetUnit.addEventListener('change', () => { markPreset(); resetCompressedResults(); });
 
   // SVG: a largura escolhida muda a rasterização, então o data URL é refeito.
   svgWidthInput.addEventListener('change', () => {

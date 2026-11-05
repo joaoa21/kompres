@@ -1716,6 +1716,14 @@ html.vt-nav .tools-nav, html.vt-nav .tools-filter { animation: none; }
 .tool-section:has(> .tool-workspace) { display: flex; flex-direction: column; }
 .tool-section:has(> .tool-workspace) > .tool-header { order: 0; }
 
+/* Atalhos de tamanho, abaixo do campo de tamanho máximo. */
+.size-presets { flex-wrap: wrap; margin-top: 0.6rem; }
+
+/* Celular: a área de arrastar vem antes dos ajustes, para aparecer sem rolar tanto. */
+@media (max-width: 900px) {
+  .tool-workspace .drop-zone, .tool-workspace .crop-area { order: 0; }
+}
+
 @media (min-width: 901px) {
   /* Quadro mais largo para caber a coluna de ajustes e uma pré-visualização grande. */
   .tool-section.page2:has(> .tool-workspace) { width: min(1680px, calc(100% - 48px)); }
