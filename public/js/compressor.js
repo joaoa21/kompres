@@ -334,6 +334,9 @@ kompres.register('compressor', (signal, document) => {
     updateUI();
   }
 
+  // O formato se chama jpeg no navegador, mas o arquivo sai .jpg: é o que formulários costumam pedir.
+  const extensionOf = (format) => (format === 'jpeg' ? 'jpg' : format);
+
   /* Exibe o resultado final no card */
   function showResult(image, blob, format, { note = '', warn = false, name = null } = {}) {
     const card = document.querySelector(`.image-card[data-id="${CSS.escape(image.id)}"]`);
@@ -343,7 +346,7 @@ kompres.register('compressor', (signal, document) => {
     image.resultUrl = URL.createObjectURL(blob);
     card.querySelector('.card-thumb').src = image.resultUrl;
     image.compressed = blob;
-    image.compressedName = name || `${stripExtension(image.file.name)}-kompres.${format}`;
+    image.compressedName = name || `${stripExtension(image.file.name)}-kompres.${extensionOf(format)}`;
 
     const progress = document.getElementById(`prog-${image.id}`);
     if (progress) progress.style.width = '100%';
@@ -488,7 +491,7 @@ kompres.register('compressor', (signal, document) => {
       if (result) {
         showResult(image, result.blob, format, {
           note: `redimensionada para ${result.width}×${result.height} px · até ${target.label}`,
-          name: `${stripExtension(image.file.name)}-${result.width}x${result.height}-kompres.${format}`,
+          name: `${stripExtension(image.file.name)}-${result.width}x${result.height}-kompres.${extensionOf(format)}`,
         });
       } else {
         showResult(image, minBlob, format, {
